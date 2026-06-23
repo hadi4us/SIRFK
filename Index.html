@@ -2184,15 +2184,15 @@
 
     function onSubKegiatanChanged() {
       const sub = document.getElementById('dd-sub-kegiatan').value;
-      const kodeInput = document.getElementById('dd-kode-rekening');
-      const uraianInput = document.getElementById('dd-uraian-belanja');
-      const listKode = document.getElementById('list-kode-rekening');
-      listKode.innerHTML = '';
-      kodeInput.value = ''; uraianInput.value = ''; document.getElementById('lbl-pagu-dpa').textContent = 'Rp 0';
+      const kodeSelect = document.getElementById('dd-kode-rekening');
+      const uraianSelect = document.getElementById('dd-uraian-belanja');
+      kodeSelect.innerHTML = '<option value="">-- Kode Rekening --</option>';
+      uraianSelect.innerHTML = '<option value="">-- Uraian Belanja --</option>';
+      document.getElementById('lbl-pagu-dpa').textContent = 'Rp 0';
       const rekening = masterHierarki[sub] || {};
-      Object.keys(rekening).forEach(function(kode) { const opt = document.createElement('option'); opt.value = kode; listKode.appendChild(opt); });
-      kodeInput.disabled = Object.keys(rekening).length === 0;
-      uraianInput.disabled = true;
+      Object.keys(rekening).forEach(function(kode) { const opt = document.createElement('option'); opt.value = kode; opt.textContent = kode; kodeSelect.appendChild(opt); });
+      kodeSelect.disabled = Object.keys(rekening).length === 0;
+      uraianSelect.disabled = true;
     }
 
     function onKodeRekeningChanged() {

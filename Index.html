@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SI-RFK Monitoring - APBD 2026</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -39,23 +39,28 @@
       }
     }
   </script>
-  <style>
+  <style type="text/tailwindcss">
     .sidebar-link { @apply flex items-center px-3 py-2.5 text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-900 dark:hover:text-blue-400 rounded-lg transition-all duration-200 cursor-pointer; }
     .sidebar-link.active { @apply bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-900 dark:text-blue-300 font-semibold border-r-4 border-blue-600 dark:border-blue-400; }
-    .nav-link-mobile { @apply flex flex-col items-center py-2 text-xs text-gray-500 hover:text-blue-600; }
+    .nav-link-mobile { @apply flex flex-col items-center justify-center gap-1 py-2 px-1 text-[10px] leading-none text-gray-500 hover:text-blue-600 min-w-0 flex-1; }
+    .nav-link-mobile i { @apply text-lg leading-none; }
+    .nav-link-mobile span { @apply block w-full text-center truncate; }
     .nav-link-mobile.active { @apply text-blue-600 font-semibold; }
     .dark .nav-link-mobile { @apply text-gray-400 hover:text-blue-400; }
     .dark .nav-link-mobile.active { @apply text-blue-400; }
+    .mobile-nav-role-hidden { display: none !important; }
     .glass-panel { @apply bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-gray-200 dark:border-slate-700; }
+    .view-section { display: none; }
+    .view-section.active { display: block; }
     .text-gradient { @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600; }
     .dark .text-gradient { @apply from-blue-400 to-indigo-400; }
   </style>
 </head>
-<body class="bg-gray-50 dark:bg-dark:bg font-sans text-sm transition-colors duration-300">
+<body class="bg-gray-50 dark:bg-slate-900 font-sans text-sm transition-colors duration-300">
   <input type="checkbox" id="dark-mode-toggle" class="hidden" checked>
 
   <!-- Dark Mode Toggle -->
-  <div class="fixed bottom-6 right-6 z-50">
+  <div class="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50">
     <button onclick="toggleDarkMode()" class="bg-white dark:bg-slate-700 shadow-lg rounded-full p-3 text-gray-700 dark:text-gray-200 hover:scale-110 transition-all">
       <i id="dark-mode-icon" class="fas fa-moon text-xl"></i>
     </button>
@@ -110,43 +115,10 @@
           </button>
         </form>
 
-        <!-- Password Change Toggle -->
-        <div class="mt-6 pt-6 border-t border-gray-200 dark:border-slate-700">
-          <div class="text-center">
-            <button type="button" onclick="toggleChangePassword()" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition">
-              <i class="fas fa-key mr-1"></i>Ubah Password
-            </button>
-          </div>
-
-          <!-- Change Password Form (Hidden) -->
-          <div id="change-pass-form" class="hidden space-y-4 mt-6 pt-6 border-t border-gray-200 dark:border-slate-700">
-            <h3 class="font-bold text-gray-800 dark:text-gray-200 uppercase text-xs mb-4">
-              <i class="fas fa-shield-alt mr-2 text-emerald-600 dark:text-emerald-400"></i>Ganti Password
-            </h3>
-            
-            <div>
-              <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Password Lama</label>
-              <input id="old-pass" type="password" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:text-white">
-            </div>
-            
-            <div>
-              <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Password Baru</label>
-              <input id="new-pass" type="password" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:text-white">
-            </div>
-            
-            <div>
-              <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Konfirmasi Baru</label>
-              <input id="confirm-pass" type="password" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:text-white">
-            </div>
-            
-            <button type="button" onclick="handleUbahPassword()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-2 rounded text-xs uppercase transition shadow">
-              <i class="fas fa-save mr-1"></i>Simpan Password Baru
-            </button>
-            
-            <button type="button" onclick="toggleChangePassword()" class="w-full bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-300 font-semibold py-2 rounded text-xs uppercase transition">
-              Batal
-            </button>
-          </div>
+        <div class="mt-6 pt-6 border-t border-gray-200 dark:border-slate-700 text-center">
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            Ubah password tersedia di menu <b>Pengaturan User</b> setelah login.
+          </p>
         </div>
       </div>
 
@@ -215,6 +187,12 @@
             <span class="flex-1 font-medium text-sm">DPA & Anggaran</span>
           </a>
           
+
+          <a onclick="showView('masterdata')" class="sidebar-link" data-view="masterdata">
+            <i class="fas fa-database w-5 h-5 mr-3 text-cyan-600 dark:text-cyan-400 flex-shrink-0"></i>
+            <span class="flex-1 font-medium text-sm">Master DPA/Angkas</span>
+          </a>
+
           <a onclick="showView('inputspj')" class="sidebar-link" data-view="inputspj">
             <i class="fas fa-file-medical w-5 h-5 mr-3 text-amber-600 dark:text-amber-400 flex-shrink-0"></i>
             <span class="flex-1 font-medium text-sm">Input SPJ</span>
@@ -243,6 +221,11 @@
             <i class="fas fa-file-export w-5 h-5 mr-3 text-indigo-600 dark:text-indigo-400 flex-shrink-0"></i>
             <span class="flex-1 font-medium text-sm">Laporan</span>
           </a>
+
+          <a onclick="showView('settings')" class="sidebar-link" data-view="settings">
+            <i class="fas fa-user-cog w-5 h-5 mr-3 text-slate-600 dark:text-slate-300 flex-shrink-0"></i>
+            <span class="flex-1 font-medium text-sm">Pengaturan User</span>
+          </a>
         </nav>
         
         <div class="p-4 border-t border-gray-200 dark:border-slate-700 text-center">
@@ -252,7 +235,7 @@
 
       <!-- MOBILE NAV (Bottom) -->
       <div id="mobile-nav" class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 z-40 shadow-lg">
-        <div class="flex justify-around py-3">
+        <div class="flex items-center justify-between px-1 py-2 h-16">
           <a onclick="showView('dashboard')" class="nav-link-mobile" data-view="dashboard">
             <i class="fas fa-home text-xl mb-1"></i>
             <span>Dashboard</span>
@@ -269,11 +252,15 @@
             <i class="fas fa-exclamation-circle text-xl mb-1"></i>
             <span>Kendala</span>
           </a>
+          <a onclick="showView('settings')" class="nav-link-mobile" data-view="settings">
+            <i class="fas fa-user-cog text-xl mb-1"></i>
+            <span>User</span>
+          </a>
         </div>
       </div>
 
       <!-- MAIN CONTENT -->
-      <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-dark:bg p-4 pb-24 md:pb-4 transition-colors">
+      <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-900 p-4 pb-24 md:pb-4 transition-colors">
         
         <!-- DASHBOARD VIEW -->
         <div id="view-dashboard" class="view-section active space-y-6">
@@ -403,6 +390,7 @@
                     <th class="px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Anggaran Kas</th>
                     <th class="px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Selisih</th>
                     <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Status</th>
+                    <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Rincian</th>
                   </tr>
                 </thead>
                 <tbody id="dpa-table-body" class="divide-y divide-gray-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
@@ -414,12 +402,108 @@
                     <td class="px-4 py-3 text-right text-sm font-bold text-gray-900 dark:text-white" id="dpa-table-total-angkas">0</td>
                     <td class="px-4 py-3 text-right text-sm font-bold text-gray-900 dark:text-white" id="dpa-table-total-selisih">0</td>
                     <td class="px-4 py-3"></td>
+                    <td class="px-4 py-3"></td>
                   </tr>
                 </tfoot>
               </table>
             </div>
           </div>
         </div>
+
+
+        <!-- MASTER DATA VIEW -->
+        <div id="view-masterdata" class="view-section space-y-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Master DPA & Anggaran Kas</h2>
+              <p class="text-gray-500 dark:text-gray-400">Input, edit, dan hapus rincian DPA serta distribusi Anggaran Kas sampai detail kegiatan.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="loadMasterData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
+                <i class="fas fa-sync-alt mr-2"></i>Muat Ulang
+              </button>
+              <button onclick="clearServerCacheFromUi()" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
+                <i class="fas fa-broom mr-2"></i>Bersihkan Cache
+              </button>
+            </div>
+          </div>
+
+          <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
+            <div class="flex border-b border-gray-200 dark:border-slate-700">
+              <button id="btn-tab-master-dpa" onclick="showMasterTab('dpa')" class="px-5 py-3 text-sm font-bold text-blue-700 dark:text-blue-300 border-b-2 border-blue-600">
+                <i class="fas fa-file-invoice-dollar mr-2"></i>Master DPA
+              </button>
+              <button id="btn-tab-master-angkas" onclick="showMasterTab('angkas')" class="px-5 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 border-b-2 border-transparent">
+                <i class="fas fa-calendar-alt mr-2"></i>Master Anggaran Kas
+              </button>
+            </div>
+
+            <div id="master-dpa-panel" class="p-5 space-y-5">
+              <form onsubmit="event.preventDefault(); saveMasterDpa();" class="bg-blue-50/70 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/40 p-4">
+                <input type="hidden" id="mdpa-id">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div><label class="block text-xs font-semibold mb-1">Kode Sub Kegiatan</label><input id="mdpa-sub-kode" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Nama Sub Kegiatan</label><input id="mdpa-sub-nama" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div><label class="block text-xs font-semibold mb-1">Kode Rekening</label><input id="mdpa-kode-rekening" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Uraian Belanja</label><input id="mdpa-uraian" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Detail Kegiatan</label><input id="mdpa-detail" placeholder="Contoh: Rapat Evaluasi Pengelola Program..." class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Pagu DPA</label><input id="mdpa-pagu" type="number" min="0" step="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Sub Rincian</label><textarea id="mdpa-sub-rincian" rows="2" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></textarea></div>
+                  <div><label class="block text-xs font-semibold mb-1">Sumber Dana</label><input id="mdpa-sumber" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Tahun</label><input id="mdpa-tahun" value="2026" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Status</label><select id="mdpa-status" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"><option>Aktif</option><option>Nonaktif</option></select></div>
+                  <div><label class="block text-xs font-semibold mb-1">Volume</label><input id="mdpa-volume" type="number" min="0" step="0.01" value="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Satuan</label><input id="mdpa-satuan" value="Paket/Kegiatan" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Source PDF</label><input id="mdpa-source" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-4">
+                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-save mr-2"></i>Simpan DPA</button>
+                  <button type="button" onclick="resetMasterDpaForm()" class="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-undo mr-2"></i>Reset</button>
+                </div>
+              </form>
+              <div class="overflow-x-auto border border-gray-200 dark:border-slate-700 rounded-xl">
+                <table class="min-w-full text-xs">
+                  <thead class="bg-blue-600 text-white"><tr><th class="px-3 py-2 text-left">Kode Sub</th><th class="px-3 py-2 text-left">Kode Rekening</th><th class="px-3 py-2 text-left">Uraian / Detail Kegiatan</th><th class="px-3 py-2 text-right">Pagu</th><th class="px-3 py-2 text-center">Aksi</th></tr></thead>
+                  <tbody id="master-dpa-body" class="divide-y divide-gray-100 dark:divide-slate-800"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div id="master-angkas-panel" class="hidden p-5 space-y-5">
+              <form onsubmit="event.preventDefault(); saveMasterAngkas();" class="bg-emerald-50/70 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-900/40 p-4">
+                <input type="hidden" id="mak-id">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div><label class="block text-xs font-semibold mb-1">Kode Sub Kegiatan</label><input id="mak-sub-kode" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Nama Sub Kegiatan</label><input id="mak-sub-nama" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div><label class="block text-xs font-semibold mb-1">Kode Rekening</label><input id="mak-kode-rekening" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Uraian Belanja</label><input id="mak-uraian" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Detail Kegiatan</label><input id="mak-detail" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Pagu DPA Referensi</label><input id="mak-pagu-ref" type="number" min="0" step="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Sub Rincian</label><textarea id="mak-sub-rincian" rows="2" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></textarea></div>
+                  <div><label class="block text-xs font-semibold mb-1">Metode Alokasi</label><input id="mak-metode" value="Input manual" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Tahun</label><input id="mak-tahun" value="2026" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Source PDF</label><input id="mak-source" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                </div>
+                <div class="mt-4">
+                  <p class="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 uppercase">Distribusi Bulanan RAK</p>
+                  <div id="mak-month-grid" class="grid grid-cols-2 md:grid-cols-6 gap-2"></div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">TW dan total dihitung otomatis dari nilai bulanan saat disimpan.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-4">
+                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-save mr-2"></i>Simpan Angkas</button>
+                  <button type="button" onclick="resetMasterAngkasForm()" class="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-undo mr-2"></i>Reset</button>
+                </div>
+              </form>
+              <div class="overflow-x-auto border border-gray-200 dark:border-slate-700 rounded-xl">
+                <table class="min-w-full text-xs">
+                  <thead class="bg-emerald-600 text-white"><tr><th class="px-3 py-2 text-left">Kode Sub</th><th class="px-3 py-2 text-left">Kode Rekening</th><th class="px-3 py-2 text-left">Uraian / Detail Kegiatan</th><th class="px-3 py-2 text-right">Total RAK</th><th class="px-3 py-2 text-center">Aksi</th></tr></thead>
+                  <tbody id="master-angkas-body" class="divide-y divide-gray-100 dark:divide-slate-800"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
 
         <!-- INPUT SPJ VIEW -->
         <div id="view-inputspj" class="view-section space-y-6">
@@ -800,26 +884,144 @@
             </div>
           </div>
         </div>
+
+        <!-- SETTINGS VIEW -->
+        <div id="view-settings" class="view-section space-y-6">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Pengaturan User</h2>
+              <p class="text-gray-500 dark:text-gray-400">Kelola akun login dan password pengguna aktif</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="glass-panel p-6 rounded-xl shadow-lg">
+              <h3 class="font-bold text-blue-900 dark:text-blue-300 border-b border-gray-200 dark:border-slate-700 pb-3 uppercase text-sm tracking-wider flex items-center">
+                <i class="fas fa-id-card mr-2"></i>Informasi Akun
+              </h3>
+              <div class="mt-4 space-y-3 text-sm">
+                <div class="flex justify-between border-b border-gray-100 dark:border-slate-700 pb-2">
+                  <span class="text-gray-500 dark:text-gray-400">Nama</span>
+                  <span id="settings-user-nama" class="font-semibold text-gray-900 dark:text-white">-</span>
+                </div>
+                <div class="flex justify-between border-b border-gray-100 dark:border-slate-700 pb-2">
+                  <span class="text-gray-500 dark:text-gray-400">Username/Email</span>
+                  <span id="settings-user-email" class="font-mono text-xs text-gray-900 dark:text-white">-</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-500 dark:text-gray-400">Role</span>
+                  <span id="settings-user-role" class="font-semibold text-blue-700 dark:text-blue-300">-</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-xl shadow-lg">
+              <h3 class="font-bold text-emerald-900 dark:text-emerald-300 border-b border-gray-200 dark:border-slate-700 pb-3 uppercase text-sm tracking-wider flex items-center">
+                <i class="fas fa-key mr-2"></i>Ubah Password
+              </h3>
+              <div id="change-pass-form" class="space-y-4 mt-5">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Password Lama</label>
+                  <input id="old-pass" type="password" autocomplete="current-password" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:text-white">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Password Baru</label>
+                  <input id="new-pass" type="password" autocomplete="new-password" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:text-white">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Konfirmasi Password Baru</label>
+                  <input id="confirm-pass" type="password" autocomplete="new-password" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:text-white">
+                </div>
+                <button type="button" onclick="handleUbahPassword()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-2.5 rounded text-xs uppercase transition shadow">
+                  <i class="fas fa-save mr-1"></i>Simpan Password Baru
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   </div>
 
   <!-- Toast Container -->
-  <div id="toast-container" class="fixed bottom-6 right-6 z-[10000] space-y-2"></div>
+  <div id="toast-container" class="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-[10000] space-y-2 max-w-[calc(100vw-2rem)]"></div>
 
 
   <script>
     // ==================== GLOBAL VARIABLES ====================
     let currentUser = { email: '', role: 'VIEWER', nama: '' };
+    let currentSessionToken = '';
     let masterHierarki = {};
     let spjAntrean = [];
     let monitoringData = [];
     let dashboardChart = null;
+    let dashboardChartRequestId = 0;
     
     const APP_CONFIG = {
       timezone: 'Asia/Jakarta',
       tahun: '2026'
     };
+
+    const SESSION_STORAGE_KEY = 'sirfk_session_v1';
+
+    function saveSessionToBrowser_(payload) {
+      try {
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
+          token: payload.token || '',
+          user: payload.user || {},
+          savedAt: Date.now(),
+          expiresAt: Date.now() + ((payload.sessionExpiresInSeconds || 21600) * 1000)
+        }));
+      } catch (e) {
+        console.warn('Gagal menyimpan session browser', e);
+      }
+    }
+
+    function loadSessionFromBrowser_() {
+      try {
+        const raw = localStorage.getItem(SESSION_STORAGE_KEY);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        if (!data || !data.token || (data.expiresAt && Date.now() > data.expiresAt)) {
+          localStorage.removeItem(SESSION_STORAGE_KEY);
+          return null;
+        }
+        return data;
+      } catch (e) {
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+        return null;
+      }
+    }
+
+    function clearSessionFromBrowser_() {
+      try { localStorage.removeItem(SESSION_STORAGE_KEY); } catch (e) {}
+    }
+
+    function applyLoggedInState_(user, token, options = {}) {
+      currentUser = user || { email: '', role: 'VIEWER', nama: '' };
+      currentSessionToken = token || '';
+      document.getElementById('txt-user').textContent = currentUser.nama || currentUser.email || '-';
+      document.getElementById('txt-role').textContent = currentUser.role || '-';
+      const mobileNav = document.getElementById('mobile-nav');
+      if (['ADMIN', 'OPERATOR', 'PPTK'].includes(currentUser.role)) {
+        mobileNav.classList.remove('mobile-nav-role-hidden');
+        mobileNav.style.removeProperty('display');
+      } else {
+        mobileNav.classList.add('mobile-nav-role-hidden');
+      }
+      document.getElementById('screen-login').classList.add('hidden');
+      document.getElementById('screen-workspace').classList.remove('hidden');
+      showView(options.view || 'dashboard');
+    }
+
+    function refreshSettingsUserInfo() {
+      const name = document.getElementById('settings-user-nama');
+      const email = document.getElementById('settings-user-email');
+      const role = document.getElementById('settings-user-role');
+      if (name) name.textContent = currentUser.nama || '-';
+      if (email) email.textContent = currentUser.email || '-';
+      if (role) role.textContent = currentUser.role || '-';
+    }
 
     const BULAN_INDONESIA = [
       'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -890,21 +1092,9 @@
       google.script.run
         .withSuccessHandler(function(res) {
           if (res.success) {
-            currentUser = res.user;
-            document.getElementById('txt-user').textContent = res.user.nama;
-            document.getElementById('txt-role').textContent = res.user.role;
-            
-            if (['ADMIN', 'OPERATOR', 'PPTK'].includes(res.user.role)) {
-              document.getElementById('mobile-nav').style.display = 'flex';
-            } else {
-              document.getElementById('mobile-nav').style.display = 'none';
-            }
-
-            loadDashboard();
-            showView('dashboard');
+            saveSessionToBrowser_(res);
+            applyLoggedInState_(res.user, res.token, { view: 'dashboard' });
             showToast('Login berhasil!', 'success');
-            document.getElementById('screen-login').classList.add('hidden');
-            document.getElementById('screen-workspace').classList.remove('hidden');
           } else {
             alertText.textContent = res.message || 'Login gagal!';
             alertBox.classList.remove('hidden');
@@ -921,28 +1111,28 @@
 
     function handleLogout() {
       currentUser = { email: '', role: 'VIEWER', nama: '' };
+      currentSessionToken = '';
+      clearSessionFromBrowser_();
       document.getElementById('screen-workspace').classList.add('hidden');
       document.getElementById('screen-login').classList.remove('hidden');
       showToast('Logout berhasil!', 'info');
     }
 
-    function toggleChangePassword() {
-      const form = document.getElementById('change-pass-form');
-      form.classList.toggle('hidden');
-      if (!form.classList.contains('hidden')) {
-        document.getElementById('old-pass').value = '';
-        document.getElementById('new-pass').value = '';
-        document.getElementById('confirm-pass').value = '';
-      }
+    function resetChangePasswordForm() {
+      ['old-pass', 'new-pass', 'confirm-pass'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
     }
 
     function handleUbahPassword() {
+      const username = (currentUser.email || document.getElementById('login-user').value || '').toLowerCase().trim();
       const oldPass = document.getElementById('old-pass').value;
       const newPass = document.getElementById('new-pass').value;
       const confirmPass = document.getElementById('confirm-pass').value;
       
-      if (!oldPass || !newPass || !confirmPass) {
-        showToast('Semua field harus diisi!', 'error');
+      if (!username || !oldPass || !newPass || !confirmPass) {
+        showToast('Username dan semua field password harus diisi!', 'error');
         return;
       }
       
@@ -963,7 +1153,7 @@
           showLoading(false);
           if (res.success) {
             showToast(res.message || 'Password berhasil diubah!', 'success');
-            toggleChangePassword();
+            resetChangePasswordForm();
           } else {
             showToast(res.message || 'Gagal mengubah password!', 'error');
           }
@@ -972,7 +1162,7 @@
           showLoading(false);
           showToast('Error: ' + err.message, 'error');
         })
-        .ubahPassword(oldPass, newPass);
+        .ubahPassword(username, oldPass, newPass);
     }
 
     function showView(viewId) {
@@ -992,8 +1182,12 @@
 
       if (viewId === 'dashboard') loadDashboard();
       if (viewId === 'dpa') loadDPAList();
+      if (viewId === 'masterdata') loadMasterData();
+      if (viewId === 'inputspj') loadSPJWorkspace();
       if (viewId === 'monitoring') loadMonitoringList();
+      if (viewId === 'kendala') loadMonitoringList();
       if (viewId === 'validasi') loadValidasi();
+      if (viewId === 'settings') refreshSettingsUserInfo();
     }
 
     // ==================== DASHBOARD ====================
@@ -1021,25 +1215,32 @@
           
           showLoading(false);
         })
+        .withFailureHandler(failToast('Gagal memuat dashboard'))
         .getDashboardStats();
     }
 
     function renderDashboardChart(stats) {
-      const ctx = document.getElementById('dashboardChart');
-      if (ctx) {
-        if (dashboardChart) dashboardChart.destroy();
+      const canvas = document.getElementById('dashboardChart');
+      if (canvas) {
+        const requestId = ++dashboardChartRequestId;
         
         google.script.run
           .withSuccessHandler(function(dpaList) {
+            if (requestId !== dashboardChartRequestId) return;
+            const existingChart = Chart.getChart(canvas);
+            if (existingChart) existingChart.destroy();
+            if (dashboardChart) dashboardChart.destroy();
+            dashboardChart = null;
             const labels = dpaList.map(d => d.kode);
             const paguData = dpaList.map(d => d.pagu || 0);
             const angkasData = dpaList.map(d => d.angkas || 0);
+            const realisasiData = dpaList.map(d => d.realisasi || 0);
             
             const isDark = document.body.classList.contains('dark');
             const textColor = isDark ? '#f1f5f9' : '#374151';
             const gridColor = isDark ? '#334155' : '#e5e7eb';
             
-            dashboardChart = new Chart(ctx, {
+            dashboardChart = new Chart(canvas, {
               type: 'bar',
               data: {
                 labels: labels,
@@ -1057,6 +1258,14 @@
                     data: angkasData,
                     backgroundColor: '#10b981',
                     borderColor: '#059669',
+                    borderWidth: 1,
+                    borderRadius: 4
+                  },
+                  {
+                    label: 'Realisasi Valid (Rp)',
+                    data: realisasiData,
+                    backgroundColor: '#f59e0b',
+                    borderColor: '#d97706',
                     borderWidth: 1,
                     borderRadius: 4
                   }
@@ -1090,6 +1299,7 @@
               }
             });
           })
+          .withFailureHandler(failToast('Gagal memuat grafik'))
           .getDpaList();
       }
     }
@@ -1126,5 +1336,691 @@
             container.appendChild(row);
           });
         })
+        .withFailureHandler(failToast('Gagal memuat SPJ terbaru'))
         .getDaftarSpj();
     }
+
+    // ==================== DATA HELPERS & FALLBACKS ====================
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, function(ch) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[ch];
+      });
+    }
+
+    function failToast(prefix) {
+      return function(err) {
+        showLoading(false);
+        showToast(prefix + ': ' + (err && err.message ? err.message : err), 'error');
+      };
+    }
+
+    function statusBadge(status) {
+      const st = String(status || '').toUpperCase();
+      if (st === 'OK' || st === 'DIBAYAR' || st === 'DIVERIFIKASI') return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+      if (st === 'WARNING' || st === 'DRAFT' || st === 'DIAJUKAN') return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+      return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+    }
+
+    function fillSelect(select, rows, valueKey, textFn, placeholder) {
+      if (!select) return;
+      select.innerHTML = '';
+      const first = document.createElement('option');
+      first.value = '';
+      first.textContent = placeholder || '-- Pilih --';
+      select.appendChild(first);
+      rows.forEach(function(row) {
+        const opt = document.createElement('option');
+        opt.value = row[valueKey] || '';
+        opt.textContent = textFn ? textFn(row) : (row[valueKey] || '');
+        select.appendChild(opt);
+      });
+    }
+
+    // ==================== DPA ====================
+    function toggleDpaRincian(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.toggle('hidden');
+    }
+
+    function renderDpaRincianRow(item, detailId) {
+      const rincian = Array.isArray(item.rincian) ? item.rincian : [];
+      if (!rincian.length) {
+        return '<tr id="' + detailId + '" class="hidden bg-slate-50 dark:bg-slate-950/40"><td colspan="7" class="px-4 py-4 text-center text-gray-400">Belum ada rincian rekening/detail kegiatan.</td></tr>';
+      }
+      let rowsHtml = '';
+      let totalPagu = 0, totalAngkas = 0, totalRealisasi = 0, totalSisaKas = 0;
+      rincian.forEach(function(row) {
+        const pagu = Number(row.pagu || 0);
+        const angkas = Number(row.angkas || 0);
+        const realisasi = Number(row.realisasi || 0);
+        const sisaKas = Number(row.sisaKas || 0);
+        totalPagu += pagu; totalAngkas += angkas; totalRealisasi += realisasi; totalSisaKas += sisaKas;
+        const metode = row.metodeAlokasi ? '<div class="text-[10px] text-amber-600 dark:text-amber-400 mt-1">' + escapeHtml(row.metodeAlokasi) + '</div>' : '';
+        rowsHtml += '<tr class="border-b border-gray-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-900">' +
+          '<td class="px-3 py-2 align-top font-mono text-[11px] text-blue-900 dark:text-blue-300 whitespace-nowrap">' + escapeHtml(row.kodeRekening || '') + '</td>' +
+          '<td class="px-3 py-2 align-top text-xs text-gray-700 dark:text-gray-200 min-w-[220px]">' + escapeHtml(row.uraianBelanja || '') + '</td>' +
+          '<td class="px-3 py-2 align-top text-xs text-gray-800 dark:text-gray-100 min-w-[260px]"><span class="font-semibold">' + escapeHtml(row.detailKegiatan || '-') + '</span>' + metode + '</td>' +
+          '<td class="px-3 py-2 align-top text-[11px] text-gray-500 dark:text-gray-400 min-w-[260px]">' + escapeHtml(row.subRincian || '-') + '</td>' +
+          '<td class="px-3 py-2 align-top text-right font-mono text-xs text-gray-900 dark:text-white whitespace-nowrap">' + formatRupiah(pagu) + '</td>' +
+          '<td class="px-3 py-2 align-top text-right font-mono text-xs text-emerald-600 dark:text-emerald-400 whitespace-nowrap">' + formatRupiah(angkas) + '</td>' +
+          '<td class="px-3 py-2 align-top text-right font-mono text-xs text-indigo-600 dark:text-indigo-400 whitespace-nowrap">' + formatRupiah(realisasi) + '</td>' +
+          '<td class="px-3 py-2 align-top text-right font-mono text-xs ' + (sisaKas < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white') + ' whitespace-nowrap">' + formatRupiah(sisaKas) + '</td>' +
+        '</tr>';
+      });
+      rowsHtml += '<tr class="bg-gray-100 dark:bg-slate-800 font-bold">' +
+        '<td colspan="4" class="px-3 py-2 text-xs text-gray-700 dark:text-gray-200 uppercase">Total Rincian</td>' +
+        '<td class="px-3 py-2 text-right font-mono text-xs">' + formatRupiah(totalPagu) + '</td>' +
+        '<td class="px-3 py-2 text-right font-mono text-xs text-emerald-600 dark:text-emerald-400">' + formatRupiah(totalAngkas) + '</td>' +
+        '<td class="px-3 py-2 text-right font-mono text-xs text-indigo-600 dark:text-indigo-400">' + formatRupiah(totalRealisasi) + '</td>' +
+        '<td class="px-3 py-2 text-right font-mono text-xs">' + formatRupiah(totalSisaKas) + '</td>' +
+      '</tr>';
+      return '<tr id="' + detailId + '" class="hidden bg-slate-50 dark:bg-slate-950/40"><td colspan="7" class="px-4 py-4">' +
+        '<div class="rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-900 shadow-sm">' +
+          '<div class="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-slate-700">' +
+            '<p class="text-xs font-bold text-blue-900 dark:text-blue-300 uppercase"><i class="fas fa-layer-group mr-2"></i>Breakdown Kode Rekening, Uraian Belanja, dan Detail Kegiatan</p>' +
+            '<p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Angkas detail mengikuti RAK rekening. Jika PDF RAK tidak memuat rincian kegiatan, sistem membagi angkas proporsional berdasarkan pagu DPA per rekening.</p>' +
+          '</div>' +
+          '<div class="overflow-x-auto">' +
+            '<table class="min-w-full text-xs">' +
+              '<thead class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200">' +
+                '<tr>' +
+                  '<th class="px-3 py-2 text-left uppercase">Kode Rekening</th>' +
+                  '<th class="px-3 py-2 text-left uppercase">Uraian Belanja</th>' +
+                  '<th class="px-3 py-2 text-left uppercase">Detail Kegiatan</th>' +
+                  '<th class="px-3 py-2 text-left uppercase">Sub Rincian</th>' +
+                  '<th class="px-3 py-2 text-right uppercase">Pagu DPA</th>' +
+                  '<th class="px-3 py-2 text-right uppercase">Angkas RAK</th>' +
+                  '<th class="px-3 py-2 text-right uppercase">Realisasi</th>' +
+                  '<th class="px-3 py-2 text-right uppercase">Sisa Kas</th>' +
+                '</tr>' +
+              '</thead><tbody>' + rowsHtml + '</tbody>' +
+            '</table>' +
+          '</div>' +
+        '</div>' +
+      '</td></tr>';
+    }
+
+    function loadDPAList() {
+      showLoading(true, 'Memuat DPA & Anggaran Kas...');
+      google.script.run
+        .withSuccessHandler(function(list) {
+          const rows = Array.isArray(list) ? list : [];
+          const tbody = document.getElementById('dpa-table-body');
+          tbody.innerHTML = '';
+          let totalPagu = 0, totalAngkas = 0, totalSelisih = 0;
+
+          rows.forEach(function(item, idx) {
+            const pagu = Number(item.pagu || 0);
+            const angkas = Number(item.angkas || 0);
+            const selisih = pagu - angkas;
+            totalPagu += pagu;
+            totalAngkas += angkas;
+            totalSelisih += selisih;
+            const status = Math.abs(selisih) < 1 ? 'OK' : Math.abs(selisih) <= pagu * 0.05 ? 'WARNING' : 'ERROR';
+            const detailId = 'dpa-rincian-' + idx;
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-blue-50/60 dark:hover:bg-slate-800/70 transition';
+            tr.innerHTML = '<td class="px-4 py-3 font-mono text-xs font-semibold text-blue-900 dark:text-blue-400">' + escapeHtml(item.kode) + '</td>' +
+              '<td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">' + escapeHtml(item.nama) + '<div class="text-[10px] text-gray-400">' + escapeHtml(item.sumberDana) + '</div></td>' +
+              '<td class="px-4 py-3 text-right font-mono text-sm text-gray-900 dark:text-white">' + formatRupiah(pagu) + '</td>' +
+              '<td class="px-4 py-3 text-right font-mono text-sm text-emerald-600 dark:text-emerald-400">' + formatRupiah(angkas) + '</td>' +
+              '<td class="px-4 py-3 text-right font-mono text-sm ' + (selisih < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white') + '">' + formatRupiah(selisih) + '</td>' +
+              '<td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded text-[10px] font-bold ' + statusBadge(status) + '">' + status + '</span></td>' +
+              '<td class="px-4 py-3 text-center"><button type="button" onclick="toggleDpaRincian(&quot;' + detailId + '&quot;)" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow"><i class="fas fa-chevron-down"></i> Rincian</button></td>';
+            tbody.appendChild(tr);
+            tbody.insertAdjacentHTML('beforeend', renderDpaRincianRow(item, detailId));
+          });
+
+          if (!rows.length) tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-400 dark:text-gray-500">Belum ada data DPA</td></tr>';
+          document.getElementById('dpa-table-total-pagu').textContent = formatRupiah(totalPagu);
+          document.getElementById('dpa-table-total-angkas').textContent = formatRupiah(totalAngkas);
+          document.getElementById('dpa-table-total-selisih').textContent = formatRupiah(totalSelisih);
+          showLoading(false);
+        })
+        .withFailureHandler(failToast('Gagal memuat DPA'))
+        .getDpaList();
+    }
+
+    // ==================== MONITORING RFK ====================
+    function loadMonitoringList() {
+      showLoading(true, 'Memuat monitoring RFK...');
+      google.script.run
+        .withSuccessHandler(function(list) {
+          monitoringData = Array.isArray(list) ? list : [];
+          fillSelect(document.getElementById('monitoring-sub-kegiatan'), monitoringData, 'kode', function(row) { return row.kode + ' - ' + row.nama; }, '-- Pilih Sub Kegiatan --');
+          fillSelect(document.getElementById('kendala-sub-kegiatan'), monitoringData, 'kode', function(row) { return row.kode + ' - ' + row.nama; }, '-- Pilih --');
+          const detail = document.getElementById('monitoring-detail');
+          if (detail) detail.classList.add('hidden');
+          loadKendalaList(false);
+          showLoading(false);
+        })
+        .withFailureHandler(failToast('Gagal memuat monitoring'))
+        .getMonitoringRFKData();
+    }
+
+    function loadMonitoringDetail(kode) {
+      const item = monitoringData.find(function(row) { return String(row.kode) === String(kode); });
+      const detail = document.getElementById('monitoring-detail');
+      if (!item) { if (detail) detail.classList.add('hidden'); return; }
+      detail.classList.remove('hidden');
+      document.getElementById('monitoring-title').textContent = item.kode + ' - ' + item.nama;
+      document.getElementById('monitoring-subtitle').textContent = 'Pagu ' + formatRupiah(item.pagu) + ' | Anggaran Kas ' + formatRupiah(item.angkasTotal);
+      const tbody = document.getElementById('monitoring-table-body');
+      tbody.innerHTML = '';
+      let totalAngkas = 0, totalRealisasi = 0, totalSisa = 0;
+      (item.perBulan || []).forEach(function(row) {
+        totalAngkas += Number(row.anggaranKas || 0);
+        totalRealisasi += Number(row.realisasi || 0);
+        totalSisa += Number(row.sisa || 0);
+        const kendala = (item.kendala || []).filter(function(k) { return k.bulan === row.bulan; }).map(function(k) { return k.permasalahan; }).join('; ') || '-';
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-blue-50/60 dark:hover:bg-slate-800/70 transition';
+        tr.innerHTML = '<td class="px-3 py-3 text-center text-sm font-semibold text-gray-700 dark:text-gray-200">' + escapeHtml(row.bulan) + '</td>' +
+          '<td class="px-3 py-3 text-right font-mono text-xs text-gray-900 dark:text-white">' + formatRupiah(row.anggaranKas) + '</td>' +
+          '<td class="px-3 py-3 text-right font-mono text-xs text-emerald-600 dark:text-emerald-400">' + formatRupiah(row.realisasi) + '</td>' +
+          '<td class="px-3 py-3 text-right font-mono text-xs text-gray-900 dark:text-white">' + formatRupiah(row.sisa) + '</td>' +
+          '<td class="px-3 py-3 text-center"><span class="inline-block px-2 py-1 rounded text-[10px] font-bold ' + statusBadge(row.persenSerap >= 90 ? 'OK' : row.persenSerap >= 50 ? 'WARNING' : 'ERROR') + '">' + (row.persenSerap || 0) + '%</span></td>' +
+          '<td class="px-3 py-3 text-xs text-gray-600 dark:text-gray-300">' + escapeHtml(item.indikator) + '</td>' +
+          '<td class="px-3 py-3 text-xs text-gray-600 dark:text-gray-300">' + escapeHtml(item.targetIndikator) + '</td>' +
+          '<td class="px-3 py-3 text-center text-xs text-gray-500">' + escapeHtml(item.realisasiKinerja || '-') + '</td>' +
+          '<td class="px-3 py-3 text-center text-xs text-gray-500">' + (item.persenKinerja || 0) + '%</td>' +
+          '<td class="px-3 py-3 text-xs text-gray-600 dark:text-gray-300">' + escapeHtml(kendala) + '</td>';
+        tbody.appendChild(tr);
+      });
+      document.getElementById('mon-total-angkas').textContent = formatRupiah(totalAngkas);
+      document.getElementById('mon-total-realisasi').textContent = formatRupiah(totalRealisasi);
+      document.getElementById('mon-total-sisa').textContent = formatRupiah(totalSisa);
+      document.getElementById('mon-total-persen').textContent = totalAngkas > 0 ? ((totalRealisasi / totalAngkas) * 100).toFixed(2) + '%' : '0%';
+    }
+
+    function exportMonitoring() {
+      showLoading(true, 'Generate monitoring RFK...');
+      google.script.run
+        .withSuccessHandler(function(res) {
+          showLoading(false);
+          showToast(String(res || 'Monitoring RFK berhasil dibuat'), 'success');
+        })
+        .withFailureHandler(failToast('Gagal export monitoring'))
+        .exportMonitoringRFK(currentSessionToken);
+    }
+
+    // ==================== VALIDASI ====================
+    function loadValidasi() {
+      showLoading(true, 'Memuat validasi...');
+      google.script.run
+        .withSuccessHandler(function(list) {
+          const rows = Array.isArray(list) ? list : [];
+          const tbody = document.getElementById('validasi-table-body');
+          tbody.innerHTML = '';
+          let totalPagu = 0, totalAngkas = 0, totalSelisih = 0;
+          rows.forEach(function(item) {
+            const pagu = Number(item.pagu || 0), angkas = Number(item.angkas || 0), selisih = Number(item.selisih || (pagu - angkas));
+            totalPagu += pagu; totalAngkas += angkas; totalSelisih += selisih;
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-emerald-50/60 dark:hover:bg-slate-800/70 transition';
+            tr.innerHTML = '<td class="px-4 py-3 font-mono text-xs font-semibold text-blue-900 dark:text-blue-400">' + escapeHtml(item.kode) + '</td>' +
+              '<td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">' + escapeHtml(item.nama) + '</td>' +
+              '<td class="px-4 py-3 text-right font-mono text-sm text-gray-900 dark:text-white">' + formatRupiah(pagu) + '</td>' +
+              '<td class="px-4 py-3 text-right font-mono text-sm text-gray-900 dark:text-white">' + formatRupiah(angkas) + '</td>' +
+              '<td class="px-4 py-3 text-right font-mono text-sm ' + (Math.abs(selisih) > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400') + '">' + formatRupiah(selisih) + '</td>' +
+              '<td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded text-[10px] font-bold ' + statusBadge(item.status) + '">' + escapeHtml(item.status) + '</span></td>';
+            tbody.appendChild(tr);
+          });
+          if (!rows.length) tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 dark:text-gray-500">Belum ada data validasi</td></tr>';
+          document.getElementById('val-total-pagu').textContent = formatRupiah(totalPagu);
+          document.getElementById('val-total-angkas').textContent = formatRupiah(totalAngkas);
+          document.getElementById('val-selisih').textContent = formatRupiah(totalSelisih);
+          showLoading(false);
+        })
+        .withFailureHandler(failToast('Gagal memuat validasi'))
+        .getValidasiAngkas();
+    }
+
+    // ==================== KENDALA ====================
+    function loadKendalaList(showSpinner) {
+      if (showSpinner) showLoading(true, 'Memuat kendala...');
+      google.script.run
+        .withSuccessHandler(function(list) {
+          const rows = Array.isArray(list) ? list : [];
+          const wrap = document.getElementById('kendala-table');
+          wrap.innerHTML = '';
+          if (!rows.length) wrap.innerHTML = '<div class="p-8 text-center text-gray-400 dark:text-gray-500">Belum ada data kendala</div>';
+          rows.slice().reverse().forEach(function(item) {
+            const card = document.createElement('div');
+            card.className = 'p-4 hover:bg-orange-50/60 dark:hover:bg-slate-800/70 transition';
+            card.innerHTML = '<div class="flex items-start justify-between gap-4"><div><p class="font-mono text-xs font-bold text-blue-900 dark:text-blue-400">' + escapeHtml(item.subKode) + ' / ' + escapeHtml(item.bulan) + '</p>' +
+              '<p class="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-1">' + escapeHtml(item.permasalahan) + '</p>' +
+              '<p class="text-xs text-gray-500 dark:text-gray-400 mt-1"><b>Solusi:</b> ' + escapeHtml(item.solusi || '-') + '</p></div>' +
+              '<span class="shrink-0 inline-block px-2 py-1 rounded text-[10px] font-bold ' + statusBadge(item.status === 'Selesai' ? 'OK' : 'WARNING') + '">' + escapeHtml(item.status) + '</span></div>';
+            wrap.appendChild(card);
+          });
+          if (showSpinner) showLoading(false);
+        })
+        .withFailureHandler(failToast('Gagal memuat kendala'))
+        .getKendalaList();
+    }
+
+    function simpanKendala() {
+      const data = {
+        subKode: document.getElementById('kendala-sub-kegiatan').value,
+        bulan: document.getElementById('kendala-bulan').value,
+        tahun: APP_CONFIG.tahun,
+        permasalahan: document.getElementById('kendala-permasalahan').value.trim(),
+        solusi: document.getElementById('kendala-solusi').value.trim(),
+        status: 'Belum Ditangani',
+        inputBy: currentUser.email || currentUser.nama || 'web'
+      };
+      if (!data.subKode || !data.permasalahan) { showToast('Sub kegiatan dan permasalahan wajib diisi.', 'error'); return; }
+      showLoading(true, 'Menyimpan kendala...');
+      google.script.run
+        .withSuccessHandler(function(res) {
+          showLoading(false);
+          if (res && res.success) {
+            document.getElementById('kendala-permasalahan').value = '';
+            document.getElementById('kendala-solusi').value = '';
+            showToast('Kendala berhasil disimpan', 'success');
+            loadKendalaList(false);
+          } else {
+            showToast('Gagal menyimpan kendala', 'error');
+          }
+        })
+        .withFailureHandler(failToast('Gagal menyimpan kendala'))
+        .simpanKendala(data, currentSessionToken);
+    }
+
+
+    // ==================== MASTER DATA DPA / ANGGARAN KAS ====================
+    let masterDpaRows = [];
+    let masterAngkasRows = [];
+    const MASTER_MONTHS = ['januari','februari','maret','april','mei','juni','juli','agustus','september','oktober','november','desember'];
+    const MASTER_MONTH_LABELS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+    function ensureMonthInputs() {
+      const wrap = document.getElementById('mak-month-grid');
+      if (!wrap || wrap.dataset.ready === '1') return;
+      wrap.dataset.ready = '1';
+      wrap.innerHTML = MASTER_MONTHS.map(function(m, idx) {
+        return '<div><label class="block text-[10px] font-semibold mb-1">' + MASTER_MONTH_LABELS[idx] + '</label><input id="mak-bulan-' + m + '" type="number" min="0" step="1" value="0" class="w-full px-2 py-1.5 rounded border text-xs dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>';
+      }).join('');
+    }
+
+    function showMasterTab(tab) {
+      ensureMonthInputs();
+      const isDpa = tab === 'dpa';
+      document.getElementById('master-dpa-panel').classList.toggle('hidden', !isDpa);
+      document.getElementById('master-angkas-panel').classList.toggle('hidden', isDpa);
+      document.getElementById('btn-tab-master-dpa').className = isDpa ? 'px-5 py-3 text-sm font-bold text-blue-700 dark:text-blue-300 border-b-2 border-blue-600' : 'px-5 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 border-b-2 border-transparent';
+      document.getElementById('btn-tab-master-angkas').className = !isDpa ? 'px-5 py-3 text-sm font-bold text-emerald-700 dark:text-emerald-300 border-b-2 border-emerald-600' : 'px-5 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 border-b-2 border-transparent';
+    }
+
+    function loadMasterData() {
+      ensureMonthInputs();
+      showLoading(true, 'Memuat master DPA dan Anggaran Kas...');
+      google.script.run
+        .withSuccessHandler(function(rows) {
+          masterDpaRows = Array.isArray(rows) ? rows : [];
+          renderMasterDpaTable();
+          google.script.run
+            .withSuccessHandler(function(akRows) {
+              masterAngkasRows = Array.isArray(akRows) ? akRows : [];
+              renderMasterAngkasTable();
+              showLoading(false);
+            })
+            .withFailureHandler(failToast('Gagal memuat Master Anggaran Kas'))
+            .getMasterAngkasRows(currentSessionToken);
+        })
+        .withFailureHandler(failToast('Gagal memuat Master DPA'))
+        .getMasterDpaRows(currentSessionToken);
+    }
+
+    function renderMasterDpaTable() {
+      const body = document.getElementById('master-dpa-body');
+      if (!body) return;
+      if (!masterDpaRows.length) {
+        body.innerHTML = '<tr><td colspan="5" class="px-3 py-6 text-center text-gray-400">Belum ada Master DPA</td></tr>';
+        return;
+      }
+      body.innerHTML = masterDpaRows.map(function(row, idx) {
+        return '<tr class="hover:bg-blue-50 dark:hover:bg-slate-800">' +
+          '<td class="px-3 py-2 align-top font-mono text-blue-900 dark:text-blue-300 whitespace-nowrap">' + escapeHtml(row.sub_kode || '') + '</td>' +
+          '<td class="px-3 py-2 align-top font-mono whitespace-nowrap">' + escapeHtml(row.kode_rekening || '') + '</td>' +
+          '<td class="px-3 py-2 align-top min-w-[320px]"><div class="font-semibold text-gray-800 dark:text-gray-100">' + escapeHtml(row.uraian_belanja || '') + '</div><div class="text-blue-600 dark:text-blue-400">' + escapeHtml(row.detail_kegiatan || '-') + '</div><div class="text-gray-400">' + escapeHtml(row.sub_rincian || '') + '</div></td>' +
+          '<td class="px-3 py-2 align-top text-right font-mono whitespace-nowrap">' + formatRupiah(row.pagu_total || 0) + '</td>' +
+          '<td class="px-3 py-2 align-top text-center whitespace-nowrap"><button onclick="editMasterDpa(' + idx + ')" class="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded text-[11px] mr-1"><i class="fas fa-edit"></i></button><button onclick="deleteMasterDpa(&quot;' + escapeHtml(row.id_dpa || '') + '&quot;)" class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-[11px]"><i class="fas fa-trash"></i></button></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function resetMasterDpaForm() {
+      ['mdpa-id','mdpa-sub-kode','mdpa-sub-nama','mdpa-kode-rekening','mdpa-uraian','mdpa-detail','mdpa-pagu','mdpa-sub-rincian','mdpa-sumber','mdpa-source'].forEach(function(id){ const el=document.getElementById(id); if(el) el.value=''; });
+      document.getElementById('mdpa-tahun').value = '2026';
+      document.getElementById('mdpa-status').value = 'Aktif';
+      document.getElementById('mdpa-volume').value = '1';
+      document.getElementById('mdpa-satuan').value = 'Paket/Kegiatan';
+    }
+
+    function editMasterDpa(idx) {
+      const r = masterDpaRows[idx]; if (!r) return;
+      document.getElementById('mdpa-id').value = r.id_dpa || '';
+      document.getElementById('mdpa-sub-kode').value = r.sub_kode || '';
+      document.getElementById('mdpa-sub-nama').value = r.sub_kegiatan || '';
+      document.getElementById('mdpa-kode-rekening').value = r.kode_rekening || '';
+      document.getElementById('mdpa-uraian').value = r.uraian_belanja || '';
+      document.getElementById('mdpa-detail').value = r.detail_kegiatan || '';
+      document.getElementById('mdpa-pagu').value = r.pagu_total || 0;
+      document.getElementById('mdpa-sub-rincian').value = r.sub_rincian || '';
+      document.getElementById('mdpa-sumber').value = r.sumber_dana || '';
+      document.getElementById('mdpa-tahun').value = r.tahun || '2026';
+      document.getElementById('mdpa-status').value = r.status || 'Aktif';
+      document.getElementById('mdpa-volume').value = r.volume || 1;
+      document.getElementById('mdpa-satuan').value = r.satuan || 'Paket/Kegiatan';
+      document.getElementById('mdpa-source').value = r.source_pdf || '';
+      showToast('Data DPA dimuat ke form edit.', 'info');
+    }
+
+    function saveMasterDpa() {
+      const payload = {
+        id_dpa: document.getElementById('mdpa-id').value,
+        sub_kode: document.getElementById('mdpa-sub-kode').value,
+        sub_kegiatan: document.getElementById('mdpa-sub-nama').value,
+        kode_rekening: document.getElementById('mdpa-kode-rekening').value,
+        uraian_belanja: document.getElementById('mdpa-uraian').value,
+        detail_kegiatan: document.getElementById('mdpa-detail').value,
+        pagu_total: Number(document.getElementById('mdpa-pagu').value || 0),
+        sub_rincian: document.getElementById('mdpa-sub-rincian').value,
+        sumber_dana: document.getElementById('mdpa-sumber').value,
+        tahun: document.getElementById('mdpa-tahun').value,
+        status: document.getElementById('mdpa-status').value,
+        volume: Number(document.getElementById('mdpa-volume').value || 1),
+        satuan: document.getElementById('mdpa-satuan').value,
+        source_pdf: document.getElementById('mdpa-source').value
+      };
+      showLoading(true, 'Menyimpan Master DPA...');
+      google.script.run
+        .withSuccessHandler(function(res) { showLoading(false); showToast(res.message || 'Master DPA tersimpan.', 'success'); resetMasterDpaForm(); loadMasterData(); loadDPAList(); })
+        .withFailureHandler(failToast('Gagal menyimpan Master DPA'))
+        .saveMasterDpaRow(payload, currentSessionToken);
+    }
+
+    function deleteMasterDpa(id) {
+      if (!id || !confirm('Hapus data Master DPA ini?')) return;
+      showLoading(true, 'Menghapus Master DPA...');
+      google.script.run
+        .withSuccessHandler(function(res) { showLoading(false); showToast(res.message || 'Master DPA dihapus.', 'success'); loadMasterData(); loadDPAList(); })
+        .withFailureHandler(failToast('Gagal menghapus Master DPA'))
+        .deleteMasterDpaRow(id, currentSessionToken);
+    }
+
+    function renderMasterAngkasTable() {
+      const body = document.getElementById('master-angkas-body');
+      if (!body) return;
+      if (!masterAngkasRows.length) {
+        body.innerHTML = '<tr><td colspan="5" class="px-3 py-6 text-center text-gray-400">Belum ada Master Anggaran Kas</td></tr>';
+        return;
+      }
+      body.innerHTML = masterAngkasRows.map(function(row, idx) {
+        return '<tr class="hover:bg-emerald-50 dark:hover:bg-slate-800">' +
+          '<td class="px-3 py-2 align-top font-mono text-blue-900 dark:text-blue-300 whitespace-nowrap">' + escapeHtml(row.sub_kegiatan_kode || '') + '</td>' +
+          '<td class="px-3 py-2 align-top font-mono whitespace-nowrap">' + escapeHtml(row.kode_rekening || '') + '</td>' +
+          '<td class="px-3 py-2 align-top min-w-[320px]"><div class="font-semibold text-gray-800 dark:text-gray-100">' + escapeHtml(row.uraian_belanja || '') + '</div><div class="text-emerald-600 dark:text-emerald-400">' + escapeHtml(row.detail_kegiatan || '-') + '</div><div class="text-gray-400">' + escapeHtml(row.sub_rincian || '') + '</div></td>' +
+          '<td class="px-3 py-2 align-top text-right font-mono whitespace-nowrap">' + formatRupiah(row.total || 0) + '</td>' +
+          '<td class="px-3 py-2 align-top text-center whitespace-nowrap"><button onclick="editMasterAngkas(' + idx + ')" class="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded text-[11px] mr-1"><i class="fas fa-edit"></i></button><button onclick="deleteMasterAngkas(&quot;' + escapeHtml(row.id_kas || '') + '&quot;)" class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-[11px]"><i class="fas fa-trash"></i></button></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function resetMasterAngkasForm() {
+      ['mak-id','mak-sub-kode','mak-sub-nama','mak-kode-rekening','mak-uraian','mak-detail','mak-sub-rincian','mak-pagu-ref','mak-source'].forEach(function(id){ const el=document.getElementById(id); if(el) el.value=''; });
+      document.getElementById('mak-metode').value = 'Input manual';
+      document.getElementById('mak-tahun').value = '2026';
+      MASTER_MONTHS.forEach(function(m){ const el=document.getElementById('mak-bulan-' + m); if(el) el.value = 0; });
+    }
+
+    function editMasterAngkas(idx) {
+      ensureMonthInputs();
+      const r = masterAngkasRows[idx]; if (!r) return;
+      document.getElementById('mak-id').value = r.id_kas || '';
+      document.getElementById('mak-sub-kode').value = r.sub_kegiatan_kode || '';
+      document.getElementById('mak-sub-nama').value = r.sub_kegiatan_nama || '';
+      document.getElementById('mak-kode-rekening').value = r.kode_rekening || '';
+      document.getElementById('mak-uraian').value = r.uraian_belanja || '';
+      document.getElementById('mak-detail').value = r.detail_kegiatan || '';
+      document.getElementById('mak-sub-rincian').value = r.sub_rincian || '';
+      document.getElementById('mak-pagu-ref').value = r.pagu_dpa_referensi || 0;
+      document.getElementById('mak-metode').value = r.metode_alokasi || 'Input manual';
+      document.getElementById('mak-tahun').value = r.tahun || '2026';
+      document.getElementById('mak-source').value = r.source_pdf || '';
+      MASTER_MONTHS.forEach(function(m){ const el=document.getElementById('mak-bulan-' + m); if(el) el.value = r['bulan_' + m] || 0; });
+      showMasterTab('angkas');
+      showToast('Data Anggaran Kas dimuat ke form edit.', 'info');
+    }
+
+    function saveMasterAngkas() {
+      const payload = {
+        id_kas: document.getElementById('mak-id').value,
+        sub_kegiatan_kode: document.getElementById('mak-sub-kode').value,
+        sub_kegiatan_nama: document.getElementById('mak-sub-nama').value,
+        kode_rekening: document.getElementById('mak-kode-rekening').value,
+        uraian_belanja: document.getElementById('mak-uraian').value,
+        detail_kegiatan: document.getElementById('mak-detail').value,
+        sub_rincian: document.getElementById('mak-sub-rincian').value,
+        pagu_dpa_referensi: Number(document.getElementById('mak-pagu-ref').value || 0),
+        metode_alokasi: document.getElementById('mak-metode').value,
+        tahun: document.getElementById('mak-tahun').value,
+        source_pdf: document.getElementById('mak-source').value
+      };
+      MASTER_MONTHS.forEach(function(m){ payload['bulan_' + m] = Number(document.getElementById('mak-bulan-' + m).value || 0); });
+      showLoading(true, 'Menyimpan Master Anggaran Kas...');
+      google.script.run
+        .withSuccessHandler(function(res) { showLoading(false); showToast(res.message || 'Master Anggaran Kas tersimpan.', 'success'); resetMasterAngkasForm(); loadMasterData(); loadDPAList(); })
+        .withFailureHandler(failToast('Gagal menyimpan Master Anggaran Kas'))
+        .saveMasterAngkasRow(payload, currentSessionToken);
+    }
+
+    function deleteMasterAngkas(id) {
+      if (!id || !confirm('Hapus data Master Anggaran Kas ini?')) return;
+      showLoading(true, 'Menghapus Master Anggaran Kas...');
+      google.script.run
+        .withSuccessHandler(function(res) { showLoading(false); showToast(res.message || 'Master Anggaran Kas dihapus.', 'success'); loadMasterData(); loadDPAList(); })
+        .withFailureHandler(failToast('Gagal menghapus Master Anggaran Kas'))
+        .deleteMasterAngkasRow(id, currentSessionToken);
+    }
+
+    function clearServerCacheFromUi() {
+      showLoading(true, 'Membersihkan cache...');
+      google.script.run
+        .withSuccessHandler(function(res) { showLoading(false); showToast(res.message || 'Cache dibersihkan.', 'success'); loadDPAList(); loadMasterData(); })
+        .withFailureHandler(failToast('Gagal membersihkan cache'))
+        .clearRfkCachePublic(currentSessionToken);
+    }
+
+
+    // ==================== SPJ ====================
+    function loadSPJWorkspace() {
+      showLoading(true, 'Memuat referensi SPJ...');
+      google.script.run
+        .withSuccessHandler(function(hierarki) {
+          masterHierarki = hierarki || {};
+          const datalist = document.getElementById('list-sub-kegiatan');
+          datalist.innerHTML = '';
+          Object.keys(masterHierarki).forEach(function(sub) {
+            const opt = document.createElement('option'); opt.value = sub; datalist.appendChild(opt);
+          });
+          loadSPJList(false);
+          showLoading(false);
+        })
+        .withFailureHandler(failToast('Gagal memuat referensi SPJ'))
+        .getDpaHierarkiTigaTingkat();
+    }
+
+    function onSubKegiatanChanged() {
+      const sub = document.getElementById('dd-sub-kegiatan').value;
+      const kodeInput = document.getElementById('dd-kode-rekening');
+      const uraianInput = document.getElementById('dd-uraian-belanja');
+      const listKode = document.getElementById('list-kode-rekening');
+      listKode.innerHTML = '';
+      kodeInput.value = ''; uraianInput.value = ''; document.getElementById('lbl-pagu-dpa').textContent = 'Rp 0';
+      const rekening = masterHierarki[sub] || {};
+      Object.keys(rekening).forEach(function(kode) { const opt = document.createElement('option'); opt.value = kode; listKode.appendChild(opt); });
+      kodeInput.disabled = Object.keys(rekening).length === 0;
+      uraianInput.disabled = true;
+    }
+
+    function onKodeRekeningChanged() {
+      const sub = document.getElementById('dd-sub-kegiatan').value;
+      const kode = document.getElementById('dd-kode-rekening').value;
+      const uraianInput = document.getElementById('dd-uraian-belanja');
+      const listUraian = document.getElementById('list-uraian-belanja');
+      listUraian.innerHTML = '';
+      uraianInput.value = '';
+      const items = ((masterHierarki[sub] || {})[kode]) || [];
+      items.forEach(function(item) { const opt = document.createElement('option'); opt.value = item.display_text || item.uraian_belanja || ''; listUraian.appendChild(opt); });
+      uraianInput.disabled = items.length === 0;
+      if (items[0]) document.getElementById('lbl-pagu-dpa').textContent = formatRupiah(items[0].pagu || 0);
+    }
+
+    function onUraianBelanjaChanged() {
+      const item = getSelectedDpaItem();
+      document.getElementById('lbl-pagu-dpa').textContent = formatRupiah(item ? item.pagu : 0);
+    }
+
+    function getSelectedDpaItem() {
+      const sub = document.getElementById('dd-sub-kegiatan').value;
+      const kode = document.getElementById('dd-kode-rekening').value;
+      const uraian = document.getElementById('dd-uraian-belanja').value;
+      const items = ((masterHierarki[sub] || {})[kode]) || [];
+      return items.find(function(item) { return String(item.display_text || item.uraian_belanja || '') === String(uraian); }) || items[0] || null;
+    }
+
+    function sisipkanItem() {
+      const sub = document.getElementById('dd-sub-kegiatan').value;
+      const kode = document.getElementById('dd-kode-rekening').value;
+      const uraianDisplay = document.getElementById('dd-uraian-belanja').value;
+      const nilai = Number(document.getElementById('input-nilai-bruto').value || 0);
+      const item = getSelectedDpaItem();
+      const uraian = item ? (item.uraian_belanja || uraianDisplay) : uraianDisplay;
+      if (!sub || !kode || !uraianDisplay || nilai <= 0) { showToast('Lengkapi sub kegiatan, rekening, uraian, dan nilai bruto.', 'error'); return; }
+      spjAntrean.push({
+        id_dpa: item ? item.id_dpa : '',
+        sub_kegiatan: sub,
+        sub_kegiatan_kode: item ? (item.sub_kegiatan_kode || '') : '',
+        sub_kegiatan_nama: item ? (item.sub_kegiatan_nama || sub) : sub,
+        nama_kegiatan: document.getElementById('input-nama-kegiatan').value.trim(),
+        kode_rekening: kode,
+        uraian_belanja: uraian,
+        pelaksana: document.getElementById('input-pelaksana').value.trim(),
+        nilai_bruto: nilai,
+        pagu_referensi: item ? Number(item.pagu || 0) : 0,
+        detail_kegiatan: item ? (item.detail_kegiatan || '') : '',
+        sub_rincian: item ? (item.sub_rincian || '') : ''
+      });
+      document.getElementById('input-nilai-bruto').value = '';
+      renderSpjAntrean();
+      showToast('Item SPJ ditambahkan', 'success');
+    }
+
+    function renderSpjAntrean() {
+      const wrap = document.getElementById('tbody-temp-spj');
+      const count = document.getElementById('item-count');
+      count.textContent = spjAntrean.length;
+      wrap.innerHTML = '';
+      if (!spjAntrean.length) { wrap.innerHTML = '<p class="text-center italic text-gray-400 dark:text-gray-500 text-xs">Belum ada item</p>'; return; }
+      spjAntrean.forEach(function(item, idx) {
+        const row = document.createElement('div');
+        row.className = 'p-3 rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700';
+        row.innerHTML = '<div class="flex justify-between gap-3"><div><p class="text-xs font-bold text-gray-800 dark:text-gray-100">' + escapeHtml(item.uraian_belanja) + '</p>' +
+          '<p class="text-[10px] text-gray-500">' + escapeHtml(item.kode_rekening) + ' | ' + escapeHtml(item.sub_kegiatan) + '</p>' +
+          '<p class="text-[10px] text-blue-600 dark:text-blue-400">' + escapeHtml(item.detail_kegiatan || '') + '</p></div>' +
+          '<div class="text-right"><p class="text-xs font-bold text-emerald-600 dark:text-emerald-400">' + formatRupiah(item.nilai_bruto) + '</p>' +
+          '<button type="button" class="text-[10px] text-red-500 hover:underline" onclick="hapusItemSPJ(' + idx + ')">hapus</button></div></div>';
+        wrap.appendChild(row);
+      });
+    }
+
+    function hapusItemSPJ(idx) {
+      spjAntrean.splice(idx, 1);
+      renderSpjAntrean();
+    }
+
+    function simpanSPJ() {
+      const total = spjAntrean.reduce(function(sum, item) { return sum + Number(item.nilai_bruto || 0); }, 0);
+      const header = {
+        nomor_spj: document.getElementById('spj-nomor').value.trim(),
+        tanggal_spj: document.getElementById('spj-tanggal').value,
+        bulan: document.getElementById('spj-bulan').value,
+        pptk: document.getElementById('spj-pptk').value.trim(),
+        jenis_spj: document.getElementById('spj-jenis').value,
+        status_spj: 'Draft',
+        total_bruto: total
+      };
+      if (!header.nomor_spj || !header.tanggal_spj || !header.bulan || !header.pptk) { showToast('Identitas SPJ wajib lengkap.', 'error'); return; }
+      if (!spjAntrean.length) { showToast('Tambahkan minimal satu item SPJ.', 'error'); return; }
+      showLoading(true, 'Menyimpan SPJ...');
+      google.script.run
+        .withSuccessHandler(function(res) {
+          showLoading(false);
+          if (res && res.success) {
+            showToast('SPJ berhasil disimpan', 'success');
+            spjAntrean = []; renderSpjAntrean(); loadSPJList(false); loadDashboard();
+          } else {
+            showToast('Gagal menyimpan SPJ', 'error');
+          }
+        })
+        .withFailureHandler(failToast('Gagal menyimpan SPJ'))
+        .simpanSpj(header, spjAntrean, currentSessionToken);
+    }
+
+    function loadSPJList(showSpinner) {
+      if (showSpinner) showLoading(true, 'Memuat daftar SPJ...');
+      google.script.run
+        .withSuccessHandler(function(list) {
+          const rows = Array.isArray(list) ? list : [];
+          const tbody = document.getElementById('tabel-spj');
+          tbody.innerHTML = '';
+          if (!rows.length) tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 dark:text-gray-500">Belum ada SPJ</td></tr>';
+          rows.forEach(function(item) {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-blue-50/60 dark:hover:bg-slate-800/70 transition';
+            tr.innerHTML = '<td class="px-4 py-3"><p class="font-mono text-xs font-bold text-blue-900 dark:text-blue-400">' + escapeHtml(item.nomor_spj) + '</p><p class="text-[10px] text-gray-500">' + escapeHtml(formatDate(item.tanggal)) + ' | ' + escapeHtml(item.pptk) + '</p></td>' +
+              '<td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">' + escapeHtml(item.bulan) + '</td>' +
+              '<td class="px-4 py-3 text-right font-mono text-sm text-gray-900 dark:text-white">' + formatRupiah(item.total) + '</td>' +
+              '<td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded text-[10px] font-bold ' + statusBadge(item.status) + '">' + escapeHtml(item.status) + '</span></td>' +
+              '<td class="px-4 py-3 text-center text-xs text-gray-400">-</td>';
+            tbody.appendChild(tr);
+          });
+          if (showSpinner) showLoading(false);
+        })
+        .withFailureHandler(failToast('Gagal memuat daftar SPJ'))
+        .getDaftarSpj();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const kode = document.getElementById('dd-kode-rekening');
+      const uraian = document.getElementById('dd-uraian-belanja');
+      if (kode) kode.addEventListener('change', onKodeRekeningChanged);
+      if (uraian) uraian.addEventListener('change', onUraianBelanjaChanged);
+
+      const savedSession = loadSessionFromBrowser_();
+      if (savedSession && savedSession.token) {
+        showLoading(true, 'Memulihkan sesi login...');
+        google.script.run
+          .withSuccessHandler(function(res) {
+            showLoading(false);
+            if (res && res.success) {
+              saveSessionToBrowser_({ token: savedSession.token, user: res.user, sessionExpiresInSeconds: res.sessionExpiresInSeconds || 21600 });
+              applyLoggedInState_(res.user, savedSession.token, { view: 'dashboard' });
+            } else {
+              clearSessionFromBrowser_();
+            }
+          })
+          .withFailureHandler(function() {
+            showLoading(false);
+            clearSessionFromBrowser_();
+          })
+          .getCurrentSessionInfo(savedSession.token);
+      }
+    });
+  </script>
+</body>
+</html>

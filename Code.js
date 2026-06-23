@@ -49,8 +49,8 @@ const APP = {
 
 const RFK_CACHE_KEYS = [
   'rfk_dashboard_v13',
-  'rfk_dpa_list_v15',
-  'rfk_monitoring_v18',
+  'rfk_dpa_list_v16',
+  'rfk_monitoring_v19',
   'rfk_kendala_v13',
   'rfk_validasi_v13',
   'rfk_dpa_hierarki_v14',
@@ -886,8 +886,8 @@ function getRealisasiAggregates_(statusFilter) {
  * Public read functions
  ***************************************************************************/
 function getDashboardStats() { return cacheJson_('rfk_dashboard_v13', getDashboardStats_uncached_); }
-function getDpaList() { return cacheJson_('rfk_dpa_list_v15', getDpaList_uncached_); }
-function getMonitoringRFKData() { return cacheJson_('rfk_monitoring_v18', getMonitoringRFKData_uncached_); }
+function getDpaList() { return cacheJson_('rfk_dpa_list_v16', getDpaList_uncached_); }
+function getMonitoringRFKData() { return cacheJson_('rfk_monitoring_v19', getMonitoringRFKData_uncached_); }
 function getKendalaList() { return cacheJson_('rfk_kendala_v13', getKendalaList_uncached_); }
 function getValidasiAngkas() { return cacheJson_('rfk_validasi_v13', getValidasiAngkas_uncached_); }
 function getDpaHierarkiTigaTingkat() { return cacheJson_('rfk_dpa_hierarki_v14', getDpaHierarkiTigaTingkat_uncached_, 300); }
@@ -970,9 +970,6 @@ function getDpaList_uncached_() {
       const monthlyRealisasi = validAgg.byDpaMonth[dpaKey] || {};
       const monthly = APP.MONTHS.map(function(monthName, idx) {
         let angkasBulan = asNumber_((angkasDetail.bulanan || [])[idx]);
-        if (!angkasBulan && angkasNilai && asNumber_(angkas.total) > 0) {
-          angkasBulan = round2_(asNumber_(angkas.bulanan[idx]) * pagu / info.pagu);
-        }
         const realisasiBulan = asNumber_(monthlyRealisasi[idx]);
         return {
           bulan: monthName,
@@ -1085,17 +1082,11 @@ function getMonitoringRFKData_uncached_() {
       const detailKey = [row.sub_kegiatan_kode, row.kode_rekening, row.uraian_belanja, row.detail_kegiatan, row.sub_rincian].map(normalizeKey_).join('|');
       const angkasDetail = angkasDetailByKey[detailKey] || {};
       const pagu = asNumber_(row.pagu_total);
-      let angkasNilai = asNumber_(angkasDetail.total);
-      if (!angkasNilai && info.pagu > 0 && asNumber_(angkas.total) > 0) {
-        angkasNilai = round2_(asNumber_(angkas.total) * pagu / info.pagu);
-      }
+      const angkasNilai = asNumber_(angkasDetail.total);
       const realisasiNilai = asNumber_(validAgg.byDpa[dpaKey]);
       const monthlyRealisasi = validAgg.byDpaMonth[dpaKey] || {};
       const monthly = APP.MONTHS.map(function(monthName, idx) {
         let angkasBulan = asNumber_((angkasDetail.bulanan || [])[idx]);
-        if (!angkasBulan && angkasNilai && asNumber_(angkas.total) > 0 && info.pagu > 0) {
-          angkasBulan = round2_(asNumber_(angkas.bulanan[idx]) * pagu / info.pagu);
-        }
         const realisasiBulan = asNumber_(monthlyRealisasi[idx]);
         return {
           bulan: monthName,
@@ -1118,7 +1109,7 @@ function getMonitoringRFKData_uncached_() {
         sisaKas: angkasNilai - realisasiNilai,
         sisaPagu: pagu - realisasiNilai,
         persenSerap: angkasNilai > 0 ? round2_(realisasiNilai / angkasNilai * 100) : 0,
-        metodeAlokasi: angkasDetail.metode_alokasi || (angkasNilai ? 'Proporsional berdasarkan pagu DPA' : ''),
+        metodeAlokasi: angkasDetail.metode_alokasi || '',
         monthly: monthly
       };
     });

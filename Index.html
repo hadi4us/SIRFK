@@ -760,52 +760,8 @@
             </div>
           </div>
           
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-1">
-              <div class="glass-panel p-5 rounded-xl shadow-lg">
-                <h3 class="font-bold text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-slate-700 pb-3 uppercase text-sm tracking-wider">
-                  <i class="fas fa-edit mr-2 text-orange-600 dark:text-orange-400"></i>Input Kendala
-                </h3>
-                <div class="space-y-4 mt-4">
-                  <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Sub Kegiatan</label>
-                    <select id="kendala-sub-kegiatan" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:text-white">
-                      <option value="">-- Pilih --</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Bulan</label>
-                    <select id="kendala-bulan" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:text-white">
-                      <option value="Januari">Januari</option>
-                      <option value="Februari">Februari</option>
-                      <option value="Maret">Maret</option>
-                      <option value="April">April</option>
-                      <option value="Mei">Mei</option>
-                      <option value="Juni">Juni</option>
-                      <option value="Juli">Juli</option>
-                      <option value="Agustus">Agustus</option>
-                      <option value="September">September</option>
-                      <option value="Oktober">Oktober</option>
-                      <option value="November">November</option>
-                      <option value="Desember">Desember</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Permasalahan</label>
-                    <textarea id="kendala-permasalahan" rows="4" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:text-white" placeholder="Deskripsikan permasalahan..."></textarea>
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Solusi / Tindak Lanjut</label>
-                    <textarea id="kendala-solusi" rows="4" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:text-white" placeholder="Deskripsikan solusi..."></textarea>
-                  </div>
-                  <button onclick="simpanKendala()" class="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-2 rounded text-sm uppercase transition shadow">
-                    <i class="fas fa-save mr-2"></i>Simpan Kendala
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            <div class="lg:col-span-2">
+          <div class="grid grid-cols-1 gap-6">
+            <div>
               <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
                 <div class="p-4 border-b bg-gray-100 dark:bg-slate-800">
                   <h3 class="font-bold text-gray-800 dark:text-gray-200 uppercase text-sm tracking-wider flex items-center">
@@ -1690,7 +1646,7 @@
         .withSuccessHandler(function(list) {
           monitoringData = Array.isArray(list) ? list : [];
           fillSelect(document.getElementById('monitoring-sub-kegiatan'), monitoringData, 'kode', function(row) { return row.kode + ' - ' + row.nama; }, '-- Pilih Sub Kegiatan --');
-          fillSelect(document.getElementById('kendala-sub-kegiatan'), monitoringData, 'kode', function(row) { return row.kode + ' - ' + row.nama; }, '-- Pilih --');
+          if (document.getElementById('kendala-sub-kegiatan')) fillSelect(document.getElementById('kendala-sub-kegiatan'), monitoringData, 'kode', function(row) { return row.kode + ' - ' + row.nama; }, '-- Pilih --');
           const detail = document.getElementById('monitoring-detail');
           if (detail) detail.classList.add('hidden');
           loadKendalaIssues();

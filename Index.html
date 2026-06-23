@@ -136,8 +136,8 @@
     <nav class="bg-white dark:bg-slate-900 shadow-md border-b border-gray-200 dark:border-slate-700 z-50">
       <div class="flex items-center justify-between px-4 py-3">
         <div class="flex items-center space-x-4">
-          <button id="sidebar-toggle" class="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800">
-            <i class="fas fa-bars text-gray-700 dark:text-gray-300 text-xl"></i>
+          <button id="sidebar-toggle" onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800" title="Tampilkan/Sembunyikan Menu">
+            <i id="sidebar-toggle-icon" class="fas fa-bars text-gray-700 dark:text-gray-300 text-xl"></i>
           </button>
           <div>
             <h1 class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center">
@@ -161,7 +161,7 @@
 
     <div class="flex flex-1 overflow-hidden">
       <!-- SIDEBAR (Desktop) -->
-      <aside id="sidebar" class="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 overflow-y-auto border-r border-gray-200 dark:border-slate-700 transition-all duration-300">
+      <aside id="sidebar" class="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 overflow-y-auto border-r border-gray-200 dark:border-slate-700 transition-all duration-300 fixed md:relative inset-y-0 left-0 z-[60] md:z-auto shadow-xl md:shadow-none">
         <div class="p-5 border-b border-gray-200 dark:border-slate-700">
           <div class="text-center">
             <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg">
@@ -1143,6 +1143,31 @@
       showToast(isDark ? 'Mode gelap diaktifkan' : 'Mode terang diaktifkan', 'info');
     }
 
+    function setSidebarVisible(visible) {
+      const sidebar = document.getElementById('sidebar');
+      const icon = document.getElementById('sidebar-toggle-icon');
+      if (!sidebar) return;
+      sidebar.classList.toggle('hidden', !visible);
+      sidebar.classList.toggle('md:flex', visible);
+      localStorage.setItem('sidebarVisible', visible ? '1' : '0');
+      if (icon) {
+        icon.classList.toggle('fa-bars', !visible);
+        icon.classList.toggle('fa-times', visible);
+      }
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const isVisible = sidebar && !sidebar.classList.contains('hidden');
+      setSidebarVisible(!isVisible);
+    }
+
+    function restoreSidebarState() {
+      const saved = localStorage.getItem('sidebarVisible');
+      const desktop = window.matchMedia('(min-width: 768px)').matches;
+      setSidebarVisible(saved === null ? desktop : saved === '1');
+    }
+
     // ==================== AUTH & NAVIGATION ====================
     function handleLogin() {
       const user = document.getElementById('login-user').value.toLowerCase().trim();
@@ -1230,6 +1255,7 @@
     }
 
     function showView(viewId) {
+      if (!window.matchMedia('(min-width: 768px)').matches) setSidebarVisible(false);
       document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
       const target = document.getElementById('view-' + viewId);
       if (target) target.classList.add('active');
@@ -2201,6 +2227,9 @@
     window.showToast = showToast;
     window.showLoading = showLoading;
     window.toggleDarkMode = toggleDarkMode;
+    window.setSidebarVisible = setSidebarVisible;
+    window.toggleSidebar = toggleSidebar;
+    window.restoreSidebarState = restoreSidebarState;
     window.handleLogin = handleLogin;
     window.handleLogout = handleLogout;
     window.resetChangePasswordForm = resetChangePasswordForm;
@@ -2254,6 +2283,7 @@
     window.loadSPJList = loadSPJList;
 
     document.addEventListener('DOMContentLoaded', function() {
+      restoreSidebarState();
       const kode = document.getElementById('dd-kode-rekening');
       const uraian = document.getElementById('dd-uraian-belanja');
       if (kode) kode.addEventListener('change', onKodeRekeningChanged);

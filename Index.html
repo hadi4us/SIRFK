@@ -582,13 +582,15 @@
                   </div>
                   <div>
                     <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Kode Rekening</label>
-                    <input list="list-kode-rekening" id="dd-kode-rekening" disabled class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
-                    <datalist id="list-kode-rekening"></datalist>
+                    <select id="dd-kode-rekening" disabled class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
+                      <option value="">-- Kode Rekening --</option>
+                    </select>
                   </div>
                   <div>
                     <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Uraian Belanja</label>
-                    <input list="list-uraian-belanja" id="dd-uraian-belanja" disabled class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
-                    <datalist id="list-uraian-belanja"></datalist>
+                    <select id="dd-uraian-belanja" disabled class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
+                      <option value="">-- Uraian Belanja --</option>
+                    </select>
                   </div>
                   <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3 py-3 rounded-lg">
                     <p class="text-blue-100 text-xs uppercase font-semibold">Pagu Tersedia</p>
@@ -2196,13 +2198,17 @@
     function onKodeRekeningChanged() {
       const sub = document.getElementById('dd-sub-kegiatan').value;
       const kode = document.getElementById('dd-kode-rekening').value;
-      const uraianInput = document.getElementById('dd-uraian-belanja');
+      const uraianSelect = document.getElementById('dd-uraian-belanja');
       const listUraian = document.getElementById('list-uraian-belanja');
-      listUraian.innerHTML = '';
-      uraianInput.value = '';
+      uraianSelect.innerHTML = '<option value="">-- Uraian Belanja --</option>';
       const items = ((masterHierarki[sub] || {})[kode]) || [];
-      items.forEach(function(item) { const opt = document.createElement('option'); opt.value = item.display_text || item.uraian_belanja || ''; listUraian.appendChild(opt); });
-      uraianInput.disabled = items.length === 0;
+      items.forEach(function(item) {
+        const opt = document.createElement('option');
+        opt.value = item.uraian_belanja || '';
+        opt.textContent = (item.kode_rekening || '') + ' - ' + (item.uraian_belanja || '-') + (item.detail_kegiatan ? ' — ' + item.detail_kegiatan : '') + (item.sub_rincian ? ' | ' + item.sub_rincian : '');
+        uraianSelect.appendChild(opt);
+      });
+      uraianSelect.disabled = items.length === 0;
       if (items[0]) document.getElementById('lbl-pagu-dpa').textContent = formatRupiah(items[0].pagu || 0);
     }
 
@@ -2216,7 +2222,7 @@
       const kode = document.getElementById('dd-kode-rekening').value;
       const uraian = document.getElementById('dd-uraian-belanja').value;
       const items = ((masterHierarki[sub] || {})[kode]) || [];
-      return items.find(function(item) { return String(item.display_text || item.uraian_belanja || '') === String(uraian); }) || items[0] || null;
+      return items.find(function(item) { return String(item.uraian_belanja || '') === String(uraian); }) || items[0] || null;
     }
 
     function sisipkanItem() {
@@ -2225,7 +2231,6 @@
       const uraianDisplay = document.getElementById('dd-uraian-belanja').value;
       const nilai = Number(document.getElementById('input-nilai-bruto').value || 0);
       const item = getSelectedDpaItem();
-      const uraian = item ? (item.uraian_belanja || uraianDisplay) : uraianDisplay;
       if (!sub || !kode || !uraianDisplay || nilai <= 0) { showToast('Lengkapi sub kegiatan, rekening, uraian, dan nilai bruto.', 'error'); return; }
       spjAntrean.push({
         id_dpa: item ? item.id_dpa : '',
@@ -2234,7 +2239,7 @@
         sub_kegiatan_nama: item ? (item.sub_kegiatan_nama || sub) : sub,
         nama_kegiatan: document.getElementById('input-nama-kegiatan').value.trim(),
         kode_rekening: kode,
-        uraian_belanja: uraian,
+        uraian_belanja: uraianDisplay,
         pelaksana: document.getElementById('input-pelaksana').value.trim(),
         nilai_bruto: nilai,
         pagu_referensi: item ? Number(item.pagu || 0) : 0,

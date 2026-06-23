@@ -1703,7 +1703,7 @@
           status === 'MELEBIHI_JADWAL' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' :
           'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
         const icon = status === 'SEBELUM_JADWAL' ? '⏱' : status === 'MELEBIHI_JADWAL' ? '⚠' : '✓';
-        return '<div class="rounded px-2 py-1 ' + cls + '"><div class="font-bold text-[10px]">' + escapeHtml(String(m.bulan || '').slice(0,3)) + ' ' + icon + '</div><div class="font-mono text-[10px]">A ' + formatRupiah(angkas).replace('Rp ', '') + '</div><div class="font-mono text-[10px]">R ' + formatRupiah(realisasi).replace('Rp ', '') + '</div></div>';
+        return '<div class="rounded px-2 py-1 ' + cls + '"><div class="font-bold text-[10px]">' + escapeHtml(String(m && m.bulan || '').slice(0,3)) + ' ' + icon + '</div><div class="font-mono text-[10px]">A ' + formatRupiah(angkas).replace('Rp ', '') + '</div><div class="font-mono text-[10px]">R ' + formatRupiah(realisasi).replace('Rp ', '') + '</div></div>';
       }).join('') + '</div>';
     }
 
@@ -1871,7 +1871,7 @@
       document.getElementById('kendala-modal-title').textContent = issue.sub.kode + ' — ' + (issue.row.namaUraianKegiatan || issue.row.uraianBelanja || '-');
       const bulan = document.getElementById('modal-kendala-bulan');
       bulan.innerHTML = APP_CONFIG.bulan.map(function(b) { return '<option value="' + b + '">' + b + '</option>'; }).join('');
-      bulan.value = firstBadMonth ? firstBadMonth.bulan : APP_CONFIG.bulan[0];
+      bulan.value = firstBadMonth ? firstBadMonth && firstBadMonth.bulan || '' : APP_CONFIG.bulan[0];
       document.getElementById('modal-kendala-permasalahan').value = issue.problems.join('; ') + '. ' + (issue.row.namaUraianKegiatan || issue.row.uraianBelanja || '-');
       document.getElementById('modal-kendala-solusi').value = '';
       document.getElementById('kendala-modal').classList.remove('hidden');

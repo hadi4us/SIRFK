@@ -1638,9 +1638,13 @@
         const angkas = Number(m.angkas || 0);
         const realisasi = Number(m.realisasi || 0);
         const hasValue = angkas || realisasi;
-        const ok = realisasi <= angkas + 1;
-        const cls = !hasValue ? 'bg-gray-100 text-gray-400 dark:bg-slate-800 dark:text-gray-500' : ok ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300';
-        return '<div class="rounded px-2 py-1 ' + cls + '"><div class="font-bold text-[10px]">' + escapeHtml(String(m.bulan || '').slice(0,3)) + ' ' + (ok ? '✓' : '⚠') + '</div><div class="font-mono text-[10px]">A ' + formatRupiah(angkas).replace('Rp ', '') + '</div><div class="font-mono text-[10px]">R ' + formatRupiah(realisasi).replace('Rp ', '') + '</div></div>';
+        const status = m.statusJadwal || (realisasi > 0 && angkas <= 0 ? 'SEBELUM_JADWAL' : realisasi > angkas + 1 ? 'MELEBIHI_JADWAL' : 'SESUAI_JADWAL');
+        const cls = !hasValue ? 'bg-gray-100 text-gray-400 dark:bg-slate-800 dark:text-gray-500' :
+          status === 'SEBELUM_JADWAL' ? 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
+          status === 'MELEBIHI_JADWAL' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' :
+          'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
+        const icon = status === 'SEBELUM_JADWAL' ? '⏱' : status === 'MELEBIHI_JADWAL' ? '⚠' : '✓';
+        return '<div class="rounded px-2 py-1 ' + cls + '"><div class="font-bold text-[10px]">' + escapeHtml(String(m.bulan || '').slice(0,3)) + ' ' + icon + '</div><div class="font-mono text-[10px]">A ' + formatRupiah(angkas).replace('Rp ', '') + '</div><div class="font-mono text-[10px]">R ' + formatRupiah(realisasi).replace('Rp ', '') + '</div></div>';
       }).join('') + '</div>';
     }
 
@@ -1708,7 +1712,7 @@
         '<td class="px-3 py-3 text-right text-sm font-bold text-emerald-600 dark:text-emerald-400">' + formatRupiah(detailAngkas) + '</td>' +
         '<td class="px-3 py-3 text-right text-sm font-bold text-indigo-600 dark:text-indigo-400">' + formatRupiah(detailRealisasi) + '</td>' +
         '<td class="px-3 py-3 text-right text-sm font-bold text-gray-900 dark:text-white">' + formatRupiah(detailSisa) + '</td>' +
-        '<td class="px-3 py-3 text-xs text-gray-500">✓ sesuai angkas, ⚠ melebihi jadwal</td>' +
+        '<td class="px-3 py-3 text-xs text-gray-500">✓ sesuai angkas, ⏱ realisasi sebelum jadwal (merah), ⚠ melebihi jadwal (kuning)</td>' +
         '<td class="px-3 py-3 text-center text-sm font-bold">' + (detailAngkas > 0 ? ((detailRealisasi / detailAngkas) * 100).toFixed(2) + '%' : '0%') + '</td></tr>';
     }
 

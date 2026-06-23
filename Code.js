@@ -50,7 +50,7 @@ const APP = {
 const RFK_CACHE_KEYS = [
   'rfk_dashboard_v13',
   'rfk_dpa_list_v14',
-  'rfk_monitoring_v16',
+  'rfk_monitoring_v17',
   'rfk_kendala_v13',
   'rfk_validasi_v13',
   'rfk_dpa_hierarki_v14',
@@ -887,7 +887,7 @@ function getRealisasiAggregates_(statusFilter) {
  ***************************************************************************/
 function getDashboardStats() { return cacheJson_('rfk_dashboard_v13', getDashboardStats_uncached_); }
 function getDpaList() { return cacheJson_('rfk_dpa_list_v14', getDpaList_uncached_); }
-function getMonitoringRFKData() { return cacheJson_('rfk_monitoring_v16', getMonitoringRFKData_uncached_); }
+function getMonitoringRFKData() { return cacheJson_('rfk_monitoring_v17', getMonitoringRFKData_uncached_); }
 function getKendalaList() { return cacheJson_('rfk_kendala_v13', getKendalaList_uncached_); }
 function getValidasiAngkas() { return cacheJson_('rfk_validasi_v13', getValidasiAngkas_uncached_); }
 function getDpaHierarkiTigaTingkat() { return cacheJson_('rfk_dpa_hierarki_v14', getDpaHierarkiTigaTingkat_uncached_, 300); }
@@ -978,6 +978,7 @@ function getDpaList_uncached_() {
           angkas: angkasBulan,
           realisasi: realisasiBulan,
           sisa: angkasBulan - realisasiBulan,
+          statusJadwal: realisasiBulan > 0 && angkasBulan <= 0 ? 'SEBELUM_JADWAL' : realisasiBulan > angkasBulan + 1 ? 'MELEBIHI_JADWAL' : 'SESUAI_JADWAL',
           sesuaiJadwal: realisasiBulan <= angkasBulan + 1
         };
       });
@@ -1099,6 +1100,7 @@ function getMonitoringRFKData_uncached_() {
           angkas: angkasBulan,
           realisasi: realisasiBulan,
           sisa: angkasBulan - realisasiBulan,
+          statusJadwal: realisasiBulan > 0 && angkasBulan <= 0 ? 'SEBELUM_JADWAL' : realisasiBulan > angkasBulan + 1 ? 'MELEBIHI_JADWAL' : 'SESUAI_JADWAL',
           sesuaiJadwal: realisasiBulan <= angkasBulan + 1
         };
       });

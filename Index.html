@@ -713,6 +713,28 @@
                 </tfoot>
               </table>
             </div>
+            <div class="p-4 border-t border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+              <h4 class="font-bold text-gray-800 dark:text-gray-200 text-sm uppercase mb-3"><i class="fas fa-list-ul mr-2 text-blue-600"></i>Rincian Uraian Kegiatan</h4>
+              <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-slate-700">
+                <table class="min-w-full text-xs">
+                  <thead class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200">
+                    <tr>
+                      <th class="px-3 py-2 text-left uppercase">Kode Rekening</th>
+                      <th class="px-3 py-2 text-left uppercase">Uraian Belanja</th>
+                      <th class="px-3 py-2 text-left uppercase">Nama Uraian Kegiatan</th>
+                      <th class="px-3 py-2 text-left uppercase">Sub Rincian</th>
+                      <th class="px-3 py-2 text-right uppercase">Pagu DPA</th>
+                      <th class="px-3 py-2 text-right uppercase">Angkas RAK</th>
+                      <th class="px-3 py-2 text-right uppercase">Realisasi</th>
+                      <th class="px-3 py-2 text-right uppercase">Sisa Kas</th>
+                      <th class="px-3 py-2 text-center uppercase">% Serap</th>
+                    </tr>
+                  </thead>
+                  <tbody id="monitoring-rincian-body" class="divide-y bg-white dark:bg-slate-900"></tbody>
+                  <tfoot id="monitoring-rincian-foot" class="bg-gray-50 dark:bg-slate-800/50"></tfoot>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1642,6 +1664,37 @@
       document.getElementById('mon-total-realisasi').textContent = formatRupiah(totalRealisasi);
       document.getElementById('mon-total-sisa').textContent = formatRupiah(totalSisa);
       document.getElementById('mon-total-persen').textContent = totalAngkas > 0 ? ((totalRealisasi / totalAngkas) * 100).toFixed(2) + '%' : '0%';
+
+      const rincianBody = document.getElementById('monitoring-rincian-body');
+      const rincianFoot = document.getElementById('monitoring-rincian-foot');
+      rincianBody.innerHTML = '';
+      let detailPagu = 0, detailAngkas = 0, detailRealisasi = 0, detailSisa = 0;
+      (item.rincian || []).forEach(function(row) {
+        const pagu = Number(row.pagu || 0);
+        const angkas = Number(row.angkas || 0);
+        const realisasi = Number(row.realisasi || 0);
+        const sisa = Number(row.sisaKas || 0);
+        detailPagu += pagu; detailAngkas += angkas; detailRealisasi += realisasi; detailSisa += sisa;
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-blue-50/60 dark:hover:bg-slate-800/70 transition';
+        tr.innerHTML = '<td class="px-3 py-2 align-top font-mono text-[11px] text-blue-900 dark:text-blue-300 whitespace-nowrap">' + escapeHtml(row.kodeRekening || '') + '</td>' +
+          '<td class="px-3 py-2 align-top text-xs text-gray-700 dark:text-gray-200 min-w-[220px]">' + escapeHtml(row.uraianBelanja || '') + '</td>' +
+          '<td class="px-3 py-2 align-top text-xs text-gray-800 dark:text-gray-100 min-w-[320px] font-semibold">' + escapeHtml(row.namaUraianKegiatan || '-') + '</td>' +
+          '<td class="px-3 py-2 align-top text-[11px] text-gray-500 dark:text-gray-400 min-w-[260px]">' + escapeHtml(row.subRincian || '-') + '</td>' +
+          '<td class="px-3 py-2 align-top text-right font-mono text-xs text-gray-900 dark:text-white whitespace-nowrap">' + formatRupiah(pagu) + '</td>' +
+          '<td class="px-3 py-2 align-top text-right font-mono text-xs text-emerald-600 dark:text-emerald-400 whitespace-nowrap">' + formatRupiah(angkas) + '</td>' +
+          '<td class="px-3 py-2 align-top text-right font-mono text-xs text-indigo-600 dark:text-indigo-400 whitespace-nowrap">' + formatRupiah(realisasi) + '</td>' +
+          '<td class="px-3 py-2 align-top text-right font-mono text-xs ' + (sisa < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white') + ' whitespace-nowrap">' + formatRupiah(sisa) + '</td>' +
+          '<td class="px-3 py-2 align-top text-center text-xs font-bold">' + (row.persenSerap || 0) + '%</td>';
+        rincianBody.appendChild(tr);
+      });
+      if (!(item.rincian || []).length) rincianBody.innerHTML = '<tr><td colspan="9" class="px-4 py-6 text-center text-gray-400">Belum ada rincian uraian kegiatan.</td></tr>';
+      rincianFoot.innerHTML = '<tr><td colspan="4" class="px-3 py-3 text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">Total Rincian</td>' +
+        '<td class="px-3 py-3 text-right text-sm font-bold text-gray-900 dark:text-white">' + formatRupiah(detailPagu) + '</td>' +
+        '<td class="px-3 py-3 text-right text-sm font-bold text-emerald-600 dark:text-emerald-400">' + formatRupiah(detailAngkas) + '</td>' +
+        '<td class="px-3 py-3 text-right text-sm font-bold text-indigo-600 dark:text-indigo-400">' + formatRupiah(detailRealisasi) + '</td>' +
+        '<td class="px-3 py-3 text-right text-sm font-bold text-gray-900 dark:text-white">' + formatRupiah(detailSisa) + '</td>' +
+        '<td class="px-3 py-3 text-center text-sm font-bold">' + (detailAngkas > 0 ? ((detailRealisasi / detailAngkas) * 100).toFixed(2) + '%' : '0%') + '</td></tr>';
     }
 
     function exportMonitoring() {

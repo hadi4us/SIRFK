@@ -50,7 +50,7 @@ const APP = {
 const RFK_CACHE_KEYS = [
   'rfk_dashboard_v13',
   'rfk_dpa_list_v14',
-  'rfk_monitoring_v13',
+  'rfk_monitoring_v14',
   'rfk_kendala_v13',
   'rfk_validasi_v13',
   'rfk_dpa_hierarki_v14',
@@ -884,7 +884,7 @@ function getRealisasiAggregates_(statusFilter) {
  ***************************************************************************/
 function getDashboardStats() { return cacheJson_('rfk_dashboard_v13', getDashboardStats_uncached_); }
 function getDpaList() { return cacheJson_('rfk_dpa_list_v14', getDpaList_uncached_); }
-function getMonitoringRFKData() { return cacheJson_('rfk_monitoring_v13', getMonitoringRFKData_uncached_); }
+function getMonitoringRFKData() { return cacheJson_('rfk_monitoring_v14', getMonitoringRFKData_uncached_); }
 function getKendalaList() { return cacheJson_('rfk_kendala_v13', getKendalaList_uncached_); }
 function getValidasiAngkas() { return cacheJson_('rfk_validasi_v13', getValidasiAngkas_uncached_); }
 function getDpaHierarkiTigaTingkat() { return cacheJson_('rfk_dpa_hierarki_v14', getDpaHierarkiTigaTingkat_uncached_, 300); }
@@ -1023,6 +1023,19 @@ function getMonitoringRFKData_uncached_() {
   const validAgg = getRealisasiAggregates_(APP.REALISASI_VALID_STATUSES);
   const kendalaMap = getKendalaMap_();
   const result = [];
+  const angkasDetailByKey = {};
+
+  Object.keys(angkasMap).forEach(function(subKode) {
+    const details = Array.isArray(angkasMap[subKode].details) ? angkasMap[subKode].details : [];
+    details.forEach(function(d) {
+      const key = [subKode, d.kode_rekening, d.uraian_belanja].map(normalizeKey_).join('|');
+      if (!angkasDetailByKey[key]) angkasDetailByKey[key] = { total: 0, metode_alokasi: '', sub_rincian: '', detail_kegiatan: '' };
+      angkasDetailByKey[key].total += asNumber_(d.total);
+      if (d.metode_alokasi) angkasDetailByKey[key].metode_alokasi = d.metode_alokasi;
+      if (d.sub_rincian) angkasDetailByKey[key].sub_rincian = d.sub_rincian;
+      if (d.detail_kegiatan) angkasDetailByKey[key].detail_kegiatan = d.detail_kegiatan;
+    });
+  });
 
   Object.keys(maps.subCodeInfo).sort().forEach(function(kode) {
     const info = maps.subCodeInfo[kode];
@@ -1044,6 +1057,32 @@ function getMonitoringRFKData_uncached_() {
       };
     });
 
+    const rincian = maps.rows.filter(function(row) { return row.sub_kegiatan_kode === kode; }).map(function(row) {
+      const exactKey = [row.sub_kegiatan_kode, row.kode_rekening, row.uraian_belanja].map(normalizeKey_).join('|');
+      const dpaKey = row.id_dpa || exactKey;
+      const angkasDetail = angkasDetailByKey[exactKey] || {};
+      const pagu = asNumber_(row.pagu_total);
+      let angkasNilai = asNumber_(angkasDetail.total);
+      if (!angkasNilai && info.pagu > 0 && asNumber_(angkas.total) > 0) {
+        angkasNilai = round2_(asNumber_(angkas.total) * pagu / info.pagu);
+      }
+      const realisasiNilai = asNumber_(validAgg.byDpa[dpaKey]);
+      return {
+        idDpa: row.id_dpa,
+        kodeRekening: row.kode_rekening,
+        uraianBelanja: row.uraian_belanja,
+        namaUraianKegiatan: row.detail_kegiatan || angkasDetail.detail_kegiatan || row.uraian_belanja,
+        subRincian: row.sub_rincian || angkasDetail.sub_rincian || '-',
+        pagu: pagu,
+        angkas: angkasNilai,
+        realisasi: realisasiNilai,
+        sisaKas: angkasNilai - realisasiNilai,
+        sisaPagu: pagu - realisasiNilai,
+        persenSerap: angkasNilai > 0 ? round2_(realisasiNilai / angkasNilai * 100) : 0,
+        metodeAlokasi: angkasDetail.metode_alokasi || (angkasNilai ? 'Proporsional berdasarkan pagu DPA' : '')
+      };
+    });
+
     result.push({
       kode: kode,
       nama: info.nama,
@@ -1060,6 +1099,7 @@ function getMonitoringRFKData_uncached_() {
       realisasiKinerja: '-',
       persenKinerja: 0,
       perBulan: perBulan,
+      rincian: rincian,
       kendala: kendalaMap[kode] || [],
       realisasiBasisStatus: APP.REALISASI_VALID_STATUSES.join(', ')
     });

@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <title>SI-RFK Monitoring - APBD 2026</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --brand-primary: #1e3a8a;
+      --brand-secondary: #1e40af;
+      --brand-light: #3b82f6;
+      --accent-success: #10b981;
+      --accent-warning: #f59e0b;
+      --accent-danger: #ef4444;
+    }
+    .brand-color { background-color: var(--brand-primary); }
+    .brand-text { color: var(--brand-primary); }
+    .sidebar-item { @apply flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-blue-900 cursor-pointer transition rounded-r-lg; }
+    .sidebar-item.active { @apply bg-blue-50 text-blue-900 font-semibold border-r-4 border-blue-900; }
+    .content-section { display: none; animation: fadeIn 0.3s ease; }
+    .content-section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999; display: none; }
+    .toast { position: fixed; bottom: 20px; right: 20px; min-width: 300px; z-index: 10000; }
+    .toast.success { background: #10b981; color: white; }
+    .toast.error { background: #ef4444; color: white; }
+    .toast.info { background: #3b82f6; color: white; }
+    .status-badge { display: inline-block; px: 0.5rem; py: 0.25rem; font-size: 0.75rem; font-weight: 600; border-radius: 9999px; }
+    .status-ok { background: #d1fae5; color: #065f46; }
+  <!-- TEST -->
+  <script>console.log('TEST');</script>
+    .status-warning { background: #fef3c7; color: #92400e; }
+    .status-error { background: #fee2e2; color: #991b1b; }
+    .status-running { background: #dbeafe; color: #1e40af; }
+  </style>
+</head>
+<body class="bg-gray-50 text-xs font-sans">
+  <div id="loading" class="loading-overlay items-center justify-center">
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-900 mx-auto mb-4"></div>
+      <p id="loading-text" class="text-blue-900 font-semibold">Sedang memproses...</p>
+    </div>
+  </div>
+
+  <!-- LOGIN SCREEN -->
+  <div id="screen-login" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100 px-4">
+    <div class="max-w-md w-full space-y-8 p-8 bg-white rounded-2xl shadow-xl border border-gray-200">
+      <div class="text-center">
+        <div class="bg-blue-900 text-white w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <h2 class="text-2xl font-bold text-blue-900 uppercase tracking-wide">SI-RFK MONITORING</h2>
+        <p class="text-gray-500 mt-2">Portal Penatausahaan Keuangan Daerah Tahun 2026</p>
+      </div>
+      <div id="login-alert" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <strong class="font-bold">Error!</strong>
+        <span class="block sm:inline" id="login-alert-text"></span>
+      </div>
+      <form class="space-y-6" onsubmit="event.preventDefault(); handleLogin();">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Username / Email</label>
+          <input id="login-user" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+          <input id="login-pass" type="password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+        </div>
+        <button type="submit" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-lg shadow-lg transition transform hover:scale-[1.02]">
+          Masuk ke Aplikasi
+        </button>
+      </form>
+      <div class="text-center">
+        <button type="button" onclick="toggleChangePassword()" class="text-sm text-blue-700 hover:text-blue-900 underline">
+          Ubah Password
+        </button>
+      </div>
+      <!-- Change Password Form (Hidden) -->
+      <div id="change-pass-form" class="hidden space-y-4 border-t pt-4 mt-4">
+        <h3 class="font-bold text-blue-900 uppercase text-xs">Ganti Password</h3>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Password Lama</label>
+          <input id="old-pass" type="password" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Password Baru</label>
+          <input id="new-pass" type="password" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Konfirmasi Baru</label>
+          <input id="confirm-pass" type="password" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+        </div>
+        <button type="button" onclick="handleUbahPassword()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 rounded text-xs uppercase">
+          Simpan Password Baru
+        </button>
+        <button type="button" onclick="toggleChangePassword()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 rounded text-xs uppercase">
+          Batal
+        </button>
+      </div>
+      <div class="text-center text-xs text-gray-400 mt-6">
+        <p>Sistem Informasi Rekening Fungsional Keuangan</p>
+        <p>Dinas Kesehatan Kota Depok - 2026</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKSPACE SCREEN -->
+  <div id="screen-workspace" class="hidden h-screen flex flex-col overflow-hidden">
+    <!-- TOP BAR -->
+    <nav class="bg-blue-900 text-white shadow-lg z-50">
+      <div class="flex items-center justify-between px-4 py-3">
+        <div class="flex items-center space-x-4">
+          <button id="sidebar-toggle" class="md:hidden p-2 rounded hover:bg-blue-800">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          </button>
+          <div>
+            <h1 class="text-lg font-bold uppercase tracking-wider">SI-RFK Monitoring</h1>
+            <p id="workspace-header-sub" class="text-xs text-blue-200">APBD 2026</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div class="hidden md:block text-right">
+            <p id="txt-user" class="text-sm font-semibold">-</p>
+            <p id="txt-role" class="text-xs text-blue-300">-</p>
+          </div>
+          <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow-md">
+            Keluar
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="flex flex-1 overflow-hidden">
+      <!-- SIDEBAR (Desktop) -->
+      <aside id="sidebar" class="hidden md:flex flex-col w-64 bg-gray-900 text-gray-300 overflow-y-auto border-r border-gray-700">
+        <div class="p-4 border-b border-gray-700">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-2">
+              <span class="text-white font-bold text-xl">DS</span>
+            </div>
+            <p class="text-sm font-semibold text-white">DINKES KOTA DEPOK</p>
+          </div>
+        </div>
+        <nav class="flex-1 py-4">
+          <div class="px-3 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Menu Utama</div>
+          <div onclick="showView('dashboard')" class="sidebar-item active" data-view="dashboard">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+            <span class="flex-1">Dashboard</span>
+          </div>
+          <div onclick="showView('dpa')" class="sidebar-item" data-view="dpa">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+            <span class="flex-1">DPA & Anggaran</span>
+          </div>
+          <div onclick="showView('inputspj')" class="sidebar-item" data-view="inputspj">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            <span class="flex-1">Input SPJ</span>
+          </div>
+          <div onclick="showView('monitoring')" class="sidebar-item" data-view="monitoring">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            <span class="flex-1">Monitoring RFK</span>
+          </div>
+          <div class="px-3 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">Operasional</div>
+          <div onclick="showView('kendala')" class="sidebar-item" data-view="kendala">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="flex-1">Kendala & Tindak Lanjut</span>
+          </div>
+          <div onclick="showView('validasi')" class="sidebar-item" data-view="validasi">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="flex-1">Validasi Data</span>
+          </div>
+          <div onclick="showView('laporan')" class="sidebar-item" data-view="laporan">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            <span class="flex-1">Laporan</span>
+          </div>
+        </nav>
+        <div class="p-4 border-t border-gray-700 text-center">
+          <p class="text-xs text-gray-500">v1.0 - APBD 2026</p>
+        </div>
+      </aside>
+
+      <!-- MOBILE NAV (Bottom) -->
+      <div id="mobile-nav" class="md:hidden fixed bottom-0 left-0 right-0 bg-gray-900 text-gray-300 z-40">
+        <div class="flex justify-around py-3">
+          <div onclick="showView('dashboard')" class="flex flex-col items-center sidebar-item" data-view="dashboard">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"></path></svg>
+            <span class="text-[10px] mt-1">Dashboard</span>
+          </div>
+          <div onclick="showView('dpa')" class="flex flex-col items-center sidebar-item" data-view="dpa">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"></path></svg>
+            <span class="text-[10px] mt-1">DPA</span>
+          </div>
+          <div onclick="showView('monitoring')" class="flex flex-col items-center sidebar-item" data-view="monitoring">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2"></path></svg>
+            <span class="text-[10px] mt-1">RFK</span>
+          </div>
+          <div onclick="showView('kendala')" class="flex flex-col items-center sidebar-item" data-view="kendala">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="text-[10px] mt-1">Kendala</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT -->
+      <main class="flex-1 overflow-y-auto bg-gray-50 p-4 pb-24 md:pb-4">
+        
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="content-section active">
+          <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Dashboard Monitoring</h2>
+            <p class="text-gray-500">Ringkasan penatausahaan keuangan daerah</p>
+          </div>
+
+          <!-- Stats Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+              <div class="flex items-center justify-between mb-3">
+                <div class="p-3 bg-blue-100 rounded-lg">
+                  <svg class="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <span class="text-xs font-semibold text-green-600" id="dash-pagu-badge">✓ Tersedia</span>
+              </div>
+              <p class="text-sm text-gray-500 uppercase font-semibold">Total Pagu Anggaran</p>
+              <p class="text-2xl font-bold text-gray-900 mt-1" id="dash-pagu">Rp 0</p>
+              <p class="text-xs text-gray-400 mt-2" id="dash-subkeg-count">5 Sub Kegiatan</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+              <div class="flex items-center justify-between mb-3">
+                <div class="p-3 bg-emerald-100 rounded-lg">
+                  <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </div>
+                <span class="text-xs font-semibold text-gray-600">Anggaran Kas</span>
+              </div>
+              <p class="text-sm text-gray-500 uppercase font-semibold">Total Anggaran Kas</p>
+              <p class="text-2xl font-bold text-gray-900 mt-1" id="dash-angkas">Rp 0</p>
+              <p class="text-xs text-gray-400 mt-2">Realisasi per triwulan</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+              <div class="flex items-center justify-between mb-3">
+                <div class="p-3 bg-indigo-100 rounded-lg">
+                  <svg class="w-6 h-6 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <span class="text-xs font-semibold text-gray-600">Realisasi</span>
+              </div>
+              <p class="text-sm text-gray-500 uppercase font-semibold">Total Realisasi SPJ</p>
+              <p class="text-2xl font-bold text-emerald-600 mt-1" id="dash-realisasi">Rp 0</p>
+              <p class="text-xs text-gray-400 mt-2" id="dash-servasPercent">0% dari pagu</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+              <div class="flex items-center justify-between mb-3">
+                <div class="p-3 bg-amber-100 rounded-lg">
+                  <svg class="w-6 h-6 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <span class="text-xs font-semibold text-gray-600">SPJ</span>
+              </div>
+              <p class="text-sm text-gray-500 uppercase font-semibold">Total Dokumen SPJ</p>
+              <p class="text-2xl font-bold text-gray-900 mt-1" id="dash-total-spj">0</p>
+              <p class="text-xs text-gray-400 mt-2">
+                <span id="dash-spj-draf" class="text-amber-600">0 Draf</span> | 
+                <span id="dash-spj-dibayar" class="text-emerald-600">0 Dibayar</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Chart & Recent Activity -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Simple CSS Bar Chart -->
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 class="font-bold text-gray-800 mb-4 uppercase text-sm tracking-wider">Perbandingan Anggaran Kas vs Realisasi per Sub-Kegiatan</h3>
+              <div id="dashboard-chart" class="space-y-3">
+                <!-- Chart will be populated here -->
+              </div>
+            </div>
+
+            <!-- SPJ Status -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 class="font-bold text-gray-800 mb-4 uppercase text-sm tracking-wider">Status SPJ Terakhir</h3>
+              <div id="recent-spj-list" class="space-y-3">
+                <!-- Recent SPJ items -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DPA & ANGGARAN KAS VIEW -->
+        <div id="view-dpa" class="content-section">
+          <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">DPA & Anggaran Kas</h2>
+            <p class="text-gray-500">Data Rencana Anggaran Belanja dan distribusi anggaran kas</p>
+          </div>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase">Kode Sub</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase">Nama Sub Kegiatan</th>
+                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 uppercase">Total Pagu</th>
+                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 uppercase">Anggaran Kas</th>
+                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 uppercase">Selisih</th>
+                    <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="dpa-table-body" class="divide-y divide-gray-200 bg-white">
+                </tbody>
+                <tfoot class="bg-gray-50">
+                  <tr>
+                    <td colspan="2" class="px-4 py-3 text-sm font-semibold text-gray-600 uppercase">Total</td>
+                    <td class="px-4 py-3 text-right text-sm font-bold text-gray-900" id="dpa-table-total-pagu">0</td>
+                    <td class="px-4 py-3 text-right text-sm font-bold text-gray-900" id="dpa-table-total-angkas">0</td>
+                    <td class="px-4 py-3 text-right text-sm font-bold text-gray-900" id="dpa-table-total-selisih">0</td>
+                    <td class="px-4 py-3"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- INPUT SPJ VIEW -->
+        <div id="view-inputspj" class="content-section">
+          <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Input SPJ</h2>
+            <p class="text-gray-500">Formulir pertanggungjawaban belanja</p>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Form Input -->
+            <div class="lg:col-span-1">
+              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 space-y-4">
+                <h3 class="font-bold text-blue-900 border-b pb-2 uppercase text-sm tracking-wider">Identitas SPJ</h3>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Nomor SPJ</label>
+                  <input type="text" id="spj-nomor" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Tanggal SPJ</label>
+                    <input type="date" id="spj-tanggal" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Bulan Kas</label>
+                    <select id="spj-bulan" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"></select>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">PPTK</label>
+                  <input type="text" id="spj-pptk" placeholder="Nama PPTK" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Jenis SPJ</label>
+                  <select id="spj-jenis" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                    <option value="NON SPPD">NON SPPD</option>
+                    <option value="SPPD">SPPD</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 space-y-4 mt-4">
+                <h3 class="font-bold text-blue-900 border-b pb-2 uppercase text-sm tracking-wider">Rincian Belanja</h3>
+                <div class="space-y-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Sub Kegiatan</label>
+                    <input list="list-sub-kegiatan" id="dd-sub-kegiatan" onchange="onSubKegiatanChanged()" autocomplete="off" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                    <datalist id="list-sub-kegiatan"></datalist>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Kode Rekening</label>
+                    <input list="list-kode-rekening" id="dd-kode-rekening" onchange="onKodeRekeningChanged()" disabled class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                    <datalist id="list-kode-rekening"></datalist>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Uraian Belanja</label>
+                    <input list="list-uraian-belanja" id="dd-uraian-belanja" onchange="onUraianBelanjaChanged()" disabled class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                    <datalist id="list-uraian-belanja"></datalist>
+                  </div>
+                  <div class="bg-blue-900 text-white px-3 py-2 rounded text-sm">
+                    <p class="text-blue-200 text-xs uppercase">Pagu Tersedia</p>
+                    <p class="font-mono font-bold text-lg" id="lbl-pagu-dpa">Rp 0</p>
+                  </div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Kegiatan</label>
+                      <input type="text" id="input-nama-kegiatan" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 mb-1">Pelaksana</label>
+                      <input type="text" id="input-pelaksana" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-blue-900 mb-1">Nilai Bruto (Rp)</label>
+                    <input type="number" id="input-nilai-bruto" class="w-full px-3 py-2 text-sm border border-blue-400 rounded font-mono font-bold focus:ring-2 focus:ring-blue-500" placeholder="Contoh: 1500000">
+                  </div>
+                  <button type="button" onclick="sisipkanItem()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded text-sm uppercase transition">
+                    + Sisipkan Item
+                  </button>
+                </div>
+                <div class="bg-gray-50 p-3 rounded border text-xs">
+                  <p class="font-semibold text-gray-600 uppercase mb-2">Antrean Item SPJ (<span id="item-count">0</span>)</p>
+                  <div id="tbody-temp-spj" class="space-y-2 max-h-40 overflow-y-auto">
+                    <p class="text-center italic text-gray-400 text-xs">Belum ada item</p>
+                  </div>
+                </div>
+                <button type="button" onclick="simpanSPJ()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded shadow-md uppercase text-sm transition">
+                  Simpan Dokumen SPJ
+                </button>
+              </div>
+            </div>
+
+            <!-- SPJ List -->
+            <div class="lg:col-span-2">
+              <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="p-4 border-b bg-gray-50">
+                  <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Buku Kendali SPJ</h3>
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100">
+                      <tr>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase">Nomor & Tanggal</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase">Bulan</th>
+                        <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 uppercase">Total Bruto</th>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase">Status</th>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tabel-spj" class="divide-y bg-white">
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MONITORING RFK VIEW -->
+        <div id="view-monitoring" class="content-section">
+          <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Monitoring RFK</h2>
+            <p class="text-gray-500">Realisasi Fungsional Keuangan per sub-kegiatan</p>
+          </div>
+          
+          <!-- Sub-kegiatan Selector -->
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+            <div class="flex items-center space-x-4">
+              <div class="flex-1">
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Pilih Sub Kegiatan</label>
+                <select id="monitoring-sub-kegiatan" onchange="loadMonitoringDetail(this.value)" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                  <option value="">-- Pilih Sub Kegiatan --</option>
+                </select>
+              </div>
+              <button onclick="exportMonitoring()" class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded text-sm uppercase font-semibold transition">
+                Export ke Excel
+              </button>
+            </div>
+          </div>
+
+          <!-- Monthly Table -->
+          <div id="monitoring-detail" class="hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div class="p-4 border-b bg-gradient-to-r from-blue-900 to-blue-800">
+                <h3 id="monitoring-title" class="font-bold text-white uppercase tracking-wider"></h3>
+                <p id="monitoring-subtitle" class="text-blue-200 text-xs mt-1"></p>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-3 py-3 text-center text-xs font-bold text-gray-600 uppercase">Bulan</th>
+                      <th class="px-3 py-3 text-right text-xs font-bold text-gray-600 uppercase">Anggaran Kas</th>
+                      <th class="px-3 py-3 text-right text-xs font-bold text-gray-600 uppercase">Realisasi</th>
+                      <th class="px-3 py-3 text-right text-xs font-bold text-gray-600 uppercase">Sisa</th>
+                      <th class="px-3 py-3 text-center text-xs font-bold text-gray-600 uppercase">% Serap</th>
+                      <th class="px-3 py-3 text-left text-xs font-bold text-gray-600 uppercase">Indikator</th>
+                      <th class="px-3 py-3 text-left text-xs font-bold text-gray-600 uppercase">Target</th>
+                      <th class="px-3 py-3 text-center text-xs font-bold text-gray-600 uppercase">Realisasi Kinerja</th>
+                      <th class="px-3 py-3 text-center text-xs font-bold text-gray-600 uppercase">% Kinerja</th>
+                      <th class="px-3 py-3 text-left text-xs font-bold text-gray-600 uppercase">Kendala</th>
+                    </tr>
+                  </thead>
+                  <tbody id="monitoring-table-body" class="divide-y bg-white">
+                  </tbody>
+                  <tfoot class="bg-gray-100">
+                    <tr>
+                      <td class="px-3 py-3 text-sm font-bold text-gray-700 uppercase">Total</td>
+                      <td class="px-3 py-3 text-right text-sm font-bold text-gray-900" id="mon-total-angkas">0</td>
+                      <td class="px-3 py-3 text-right text-sm font-bold text-emerald-600" id="mon-total-realisasi">0</td>
+                      <td class="px-3 py-3 text-right text-sm font-bold text-gray-900" id="mon-total-sisa">0</td>
+                      <td class="px-3 py-3 text-center text-sm font-bold text-gray-900" id="mon-total-persen">0%</td>
+                      <td class="px-3 py-3" colspan="5"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KENDALA VIEW -->
+        <div id="view-kendala" class="content-section">
+          <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Kendala & Tindak Lanjut</h2>
+            <p class="text-gray-500">Catatan permasalahan dan solusi penatausahaan</p>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1">
+              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 space-y-4">
+                <h3 class="font-bold text-gray-800 border-b pb-2 uppercase text-sm tracking-wider">Input Kendala</h3>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Sub Kegiatan</label>
+                  <select id="kendala-sub-kegiatan" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                    <option value="">-- Pilih --</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Bulan</label>
+                  <select id="kendala-bulan" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                    <option value="Januari">Januari</option>
+                    <option value="Februari">Februari</option>
+                    <option value="Maret">Maret</option>
+                    <option value="April">April</option>
+                    <option value="Mei">Mei</option>
+                    <option value="Juni">Juni</option>
+                    <option value="Juli">Juli</option>
+                    <option value="Agustus">Agustus</option>
+                    <option value="September">September</option>
+                    <option value="Oktober">Oktober</option>
+                    <option value="November">November</option>
+                    <option value="Desember">Desember</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Permasalahan</label>
+                  <textarea id="kendala-permasalahan" rows="4" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500" placeholder="Deskripsikan permasalahan yang dihadapi..."></textarea>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Solusi / Tindak Lanjut</label>
+                  <textarea id="kendala-solusi" rows="4" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500" placeholder="Deskripsikan solusi atau tindak lanjut..."></textarea>
+                </div>
+                <button onclick="simpanKendala()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded text-sm uppercase transition">
+                  Simpan Kendala
+                </button>
+              </div>
+            </div>
+            
+            <div class="lg:col-span-2">
+              <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="p-4 border-b bg-gray-50">
+                  <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Daftar Kendala</h3>
+                </div>
+                <div id="kendala-table" class="divide-y">
+                  <!-- Kendala items will be populated here -->
+                  <div class="p-8 text-center text-gray-400">Belum ada data kendala</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VALIDASI VIEW -->
+        <div id="view-validasi" class="content-section">
+          <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Validasi Data</h2>
+            <p class="text-gray-500">Cross-check DPA vs Anggaran Kas</p>
+          </div>
+          
+          <!-- Summary Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+              <p class="text-sm text-gray-500 uppercase font-semibold">Total DPA</p>
+              <p class="text-2xl font-bold text-gray-900 mt-1" id="val-total-pagu">Rp 0</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+              <p class="text-sm text-gray-500 uppercase font-semibold">Total Anggaran Kas</p>
+              <p class="text-2xl font-bold text-gray-900 mt-1" id="val-total-angkas">Rp 0</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+              <p class="text-sm text-gray-500 uppercase font-semibold">Selisih</p>
+              <p class="text-2xl font-bold mt-1" id="val-selisih">Rp 0</p>
+            </div>
+          </div>
+          
+          <!-- Validation Table -->
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-4 border-b bg-gray-50">
+              <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider">Validasi per Sub Kegiatan</h3>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase">Kode</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase">Sub Kegiatan</th>
+                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 uppercase">Pagu DPA</th>
+                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 uppercase">Anggaran Kas</th>
+                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 uppercase">Selisih</th>
+                    <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="validasi-table-body" class="divide-y bg-white">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- LAPORAN VIEW -->
+        <div id="view-laporan" class="content-section">
+          <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Laporan</h2>
+            <p class="text-gray-500">Export dan cetak laporan penatausahaan</p>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 class="font-bold text-blue-900 border-b pb-3 uppercase text-sm tracking-wider">Export Monitoring RFK</h3>
+              <p class="text-sm text-gray-600 mt-3 mb-4">Generate file Excel sesuai format RFK resmi</p>
+              <button onclick="exportMonitoring()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded text-sm uppercase transition shadow">
+                Export ke Excel (.xlsx)
+              </button>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 class="font-bold text-blue-900 border-b pb-3 uppercase text-sm tracking-wider">Laporan Summary</h3>
+              <div class="mt-4 space-y-3">
+                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span class="text-sm text-gray-600">Total Pagu Anggaran</span>
+                  <span class="text-sm font-bold text-gray-900" id="lap-total-pagu">-</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span class="text-sm text-gray-600">Total Anggaran Kas</span>
+                  <span class="text-sm font-bold text-gray-900" id="lap-total-angkas">-</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span class="text-sm text-gray-600">Total Realisasi SPJ</span>
+                  <span class="text-sm font-bold text-emerald-600" id="lap-total-realisasi">-</span>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                  <span class="text-sm text-gray-600">Persen Serapan</span>
+                  <span class="text-sm font-bold text-gray-900" id="lap-persen-serap">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" class="toast"></div>
+
+
+  <script>
+    // ==================== GLOBAL VARIABLES ====================
+    let currentUser = { email: '', role: 'VIEWER', nama: '' };
+    let masterHierarki = {};
+    let spjAntrean = [];
+    let monitoringData = [];
+    
+    const APP_CONFIG = {
+      timezone: 'Asia/Jakarta',
+      tahun: '2026'
+    };
+
+    const BULAN_INDONESIA = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+
+    // ==================== UTILITIES ====================
+    function formatRupiah(angka) {
+      if (!angka || angka === 0) return 'Rp 0';
+      return 'Rp ' + new Intl.NumberFormat('id-ID').format(angka);
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const date = new Date(dateStr);
+      const options = { day: 'numeric', month: 'short', year: 'numeric' };
+      return date.toLocaleDateString('id-ID', options);
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type} px-4 py-3 rounded-lg shadow-lg mb-2`;
+      toast.innerHTML = `<p class="font-semibold text-sm">${message}</p>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.transition = 'opacity 0.5s';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 500);
+      }, 3000);
+    }
+
+    function showLoading(show, text = 'Memproses...') {
+      const loader = document.getElementById('loading');
+      document.getElementById('loading-text').textContent = text;
+      loader.style.display = show ? 'flex' : 'none';
+    }
+
+    // ==================== AUTH & NAVIGATION ====================
+    function handleLogin() {
+      const user = document.getElementById('login-user').value.toLowerCase().trim();
+      const pass = document.getElementById('login-pass').value.trim();
+      const alertBox = document.getElementById('login-alert');
+      const alertText = document.getElementById('login-alert-text');
+      
+      alertBox.classList.add('hidden');
+      showLoading(true, 'Validasi akun...');
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) {
+            currentUser = res.user;
+            document.getElementById('txt-user').textContent = res.user.nama;
+            document.getElementById('txt-role').textContent = 'Akses: ' + res.user.role;
+            document.getElementById('workspace-header-sub').textContent = 'DINKES KOTA DEPOK - 2026';
+            
+            // Show/hide mobile nav based on role
+            if (['ADMIN', 'OPERATOR', 'PPTK'].includes(res.user.role)) {
+              document.getElementById('mobile-nav').style.display = 'flex';
+            } else {
+              document.getElementById('mobile-nav').style.display = 'none';
+            }
+
+            loadDashboard();
+            showView('dashboard');
+            showToast('Login berhasil!', 'success');
+            document.getElementById('screen-login').classList.add('hidden');
+            document.getElementById('screen-workspace').classList.remove('hidden');
+          } else {
+            alertText.textContent = res.message || 'Login gagal!';
+            alertBox.classList.remove('hidden');
+            showLoading(false);
+          }
+        })
+        .withFailureHandler(function(err) {
+          alertText.textContent = 'Error: ' + err.message;
+          alertBox.classList.remove('hidden');
+          showLoading(false);
+        })
+        .prosesLoginKustom(user, pass);
+    }
+
+    function handleLogout() {
+      currentUser = { email: '', role: 'VIEWER', nama: '' };
+      document.getElementById('screen-workspace').classList.add('hidden');
+      document.getElementById('screen-login').classList.remove('hidden');
+      showToast('Logout berhasil!', 'info');
+    }
+
+    function toggleChangePassword() {
+      const form = document.getElementById('change-pass-form');
+      form.classList.toggle('hidden');
+      if (!form.classList.contains('hidden')) {
+        document.getElementById('old-pass').value = '';
+        document.getElementById('new-pass').value = '';
+        document.getElementById('confirm-pass').value = '';
+      }
+    }
+
+    function handleUbahPassword() {
+      const oldPass = document.getElementById('old-pass').value;
+      const newPass = document.getElementById('new-pass').value;
+      const confirmPass = document.getElementById('confirm-pass').value;
+      
+      if (!oldPass || !newPass || !confirmPass) {
+        showToast('Semua field harus diisi!', 'error');
+        return;
+      }
+      
+      if (newPass !== confirmPass) {
+        showToast('Password baru tidak cocok!', 'error');
+        return;
+      }
+      
+      if (newPass.length < 6) {
+        showToast('Password baru minimal 6 karakter!', 'error');
+        return;
+      }
+      
+      showLoading(true, 'Mengubah password...');
+      
+      google.script.run
+        .withSuccessHandler(function(res) {
+          showLoading(false);
+          if (res.success) {
+            showToast(res.message || 'Password berhasil diubah!', 'success');
+            toggleChangePassword();
+          } else {
+            showToast(res.message || 'Gagal mengubah password!', 'error');
+          }
+        })
+        .withFailureHandler(function(err) {
+          showLoading(false);
+          showToast('Error: ' + err.message, 'error');
+        })
+        .ubahPassword(oldPass, newPass);
+    }
+
+    function showView(viewId) {
+      // Hide all sections
+      document.querySelectorAll('.content-section').forEach(el => {
+        el.classList.remove('active');
+      });
+      
+      // Show selected section
+      const target = document.getElementById('view-' + viewId);
+      if (target) {
+        target.classList.add('active');
+      }
+
+      // Update sidebar active state
+      document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.view === viewId) {
+          item.classList.add('active');
+        }
+      });
+
+      // Update mobile nav active state
+      document.querySelectorAll('[data-view]').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.view === viewId) {
+          item.classList.add('active');
+        }
+      });
+
+      // Load data for specific views
+      if (viewId === 'dashboard') loadDashboard();
+      if (viewId === 'dpa') loadDPAList();
+      if (viewId === 'monitoring') loadMonitoringList();
+      if (viewId === 'validasi') loadValidasi();
+    }
+
+    // ==================== DASHBOARD ====================
+    function loadDashboard() {
+      showLoading(true, 'Memuat dashboard...');
+      google.script.run
+        .withSuccessHandler(function(stats) {
+          document.getElementById('dash-pagu').textContent = formatRupiah(stats.totalPagu || 0);
+          document.getElementById('dash-angkas').textContent = formatRupiah(stats.totalAngkas || 0);
+          document.getElementById('dash-realisasi').textContent = formatRupiah(stats.totalRealisasi || 0);
+          document.getElementById('dash-servasPercent').textContent = stats.persenSerap + '% dari pagu';
+          document.getElementById('dash-total-spj').textContent = stats.jumlahSPJ || 0;
+          document.getElementById('dash-subkeg-count').textContent = stats.jumlahSubKegiatan + ' Sub Kegiatan';
+          
+          document.getElementById('dash-spj-draf').textContent = (stats.spjPerStatus.Draft || 0) + ' Draf';
+          document.getElementById('dash-spj-dibayar').textContent = (stats.spjPerStatus.Dibayar || 0) + ' Dibayar';
+          
+          renderDashboardChart(stats);
+          renderRecentSPJ();
+          
+          // Update report tab
+          document.getElementById('lap-total-pagu').textContent = formatRupiah(stats.totalPagu || 0);
+          document.getElementById('lap-total-angkas').textContent = formatRupiah(stats.totalAngkas || 0);
+          document.getElementById('lap-total-realisasi').textContent = formatRupiah(stats.totalRealisasi || 0);
+          document.getElementById('lap-persen-serap').textContent = stats.persenSerap + '%';
+          
+          showLoading(false);
+        })
+        .getDashboardStats();
+    }
+
+    function renderDashboardChart(stats) {
+      const chartContainer = document.getElementById('dashboard-chart');
+      google.script.run
+        .withSuccessHandler(function(dpaList) {
+          chartContainer.innerHTML = '';
+          if (!dpaList || dpaList.length === 0) {
+            chartContainer.innerHTML = '<p class="text-center text-gray-400 py-4">Belum ada data DPA</p>';
+            return;
+          }
+          
+          const maxPagu = Math.max(...dpaList.map(d => d.pagu || 1));
+          const maxAngkas = Math.max(...dpaList.map(d => d.angkas || 1));
+          const maxVal = Math.max(maxPagu, maxAngkas) || 1;
+          
+          dpaList.forEach((d, idx) => {
+            const paguPercent = (d.pagu / maxVal) * 100;
+            const angkasPercent = (d.angkas / maxVal) * 100;
+            
+            const row = document.createElement('div');
+            row.className = 'space-y-2';
+            row.innerHTML = `
+              <div class="flex justify-between text-xs">
+                <span class="font-semibold text-gray-700 truncate max-w-[150px]" title="${d.nama}">${d.kode}</span>
+                <span class="text-gray-500">${d.pagu > 0 ? (d.angkas / d.pagu * 100).toFixed(1) : 0}%</span>
+              </div>
+              <div class="w-full h-3 bg-gray-100 rounded-full overflow-hidden flex">
+                <div class="h-full bg-blue-700 transition-all" style="width: ${Math.max(paguPercent, 1)}%"></div>
+                <div class="h-full bg-emerald-500 transition-all" style="width: ${Math.max(angkasPercent, 1)}%"></div>
+              </div>
+              <div class="flex justify-between text-[10px] text-gray-400">
+                <span>Pagu: ${formatRupiah(d.pagu)}</span>
+                <span>Angkas: ${formatRupiah(d.angkas)}</span>
+              </div>
+            `;
+            chartContainer.appendChild(row);
+          });
+        })
+        .getDpaList();
+    }
+
+    function renderRecentSPJ() {
+      const container = document.getElementById('recent-spj-list');
+      google.script.run
+        .withSuccessHandler(function(spjList) {
+          container.innerHTML = '';
+          const recent = spjList.slice(0, 5);
+          
+          if (recent.length === 0) {
+            container.innerHTML = '<p class="text-center text-gray-400 text-sm">Belum ada SPJ</p>';
+            return;
+          }
+          
+          recent.forEach(spj => {
+            const row = document.createElement('div');
+            row.className = 'flex justify-between items-center py-2 border-b border-gray-100 last:border-0';
+            row.innerHTML = `
+              <div>
+                <p class="font-mono text-xs font-bold text-blue-900">${spj.nomor_spj}</p>
+                <p class="text-[10px] text-gray-500">${formatDate(spj.tanggal)} | ${spj.pptk}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-xs font-bold text-gray-900">${formatRupiah(spj.total)}</p>
+                <span class="status-badge ${spj.status === 'Dibayar' ? 'status-ok' : 'status-warning'}">
+                  ${spj.status}
+                </span>
+              </div>
+            `;
+            container.appendChild(row);
+          });
+        })
+        .getDaftarSpj();
+    }
+  </script>
+</body>
+</html>

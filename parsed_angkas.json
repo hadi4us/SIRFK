@@ -1,0 +1,116 @@
+[
+  {
+    "file": "/home/survim/.openclaw/media/inbound/Angkas_Pengelolaan_Surveilans---e2854255-4a83-491f-a413-5738097a9a77.pdf",
+    "sub_kegiatan_kode": "1.02.02.2.02.0020",
+    "sub_kegiatan_nama": "- Pengelolaan Surveilans Kesehatan",
+    "nilai_anggaran": 287590000,
+    "bulanan": {},
+    "triwulanan": {
+      "TW1": 70011000,
+      "TW2": 83281000,
+      "TW3": 0,
+      "TW4": 0
+    },
+    "semester": {},
+    "rincian": []
+  },
+  {
+    "file": "/home/survim/.openclaw/media/inbound/Angkas_Spesimen---811cbd9a-bb96-498b-8cab-465308f9cb3b.pdf",
+    "sub_kegiatan_kode": "1.02.02.2.02.0028",
+    "sub_kegiatan_nama": "- Pengambilan dan Pengiriman Spesimen Penyakit Potensial KLB ke Laboratorium Rujukan/Nasional",
+    "nilai_anggaran": 913658000,
+    "bulanan": {},
+    "triwulanan": {
+      "TW1": 163858000,
+      "TW2": 289900000,
+      "TW3": 249750000,
+      "TW4": 0
+    },
+    "semester": {},
+    "rincian": []
+  },
+  {
+    "file": "/home/survim/.openclaw/media/inbound/Angkas_KIPI---0147773f-64e2-4d20-9921-a83ff447bfb9.pdf",
+    "sub_kegiatan_kode": "1.02.02.2.02.0036",
+    "sub_kegiatan_nama": "- Investigasi Awal Kejadian Tidak Diharapkan (Kejadian Ikutan Pasca Imunisasi dan Pemberian Obat Massal)",
+    "nilai_anggaran": 18700000,
+    "bulanan": {
+      "Januari": 0,
+      "Februari": 0,
+      "Maret": 0,
+      "April": 400000,
+      "Mei": 400000,
+      "Juni": 400000,
+      "Juli": 400000,
+      "Agustus": 400000,
+      "September": 400000,
+      "Oktober": 8150000,
+      "November": 8150000,
+      "Desember": 0
+    },
+    "triwulanan": {
+      "TW1": 0,
+      "TW2": 1200000,
+      "TW3": 1200000,
+      "TW4": 16300000
+    },
+    "semester": {},
+    "rincian": []
+  },
+  {
+    "file": "/home/survim/.openclaw/media/inbound/Angkas_Kewaspadaan_Dini---84129cc7-989d-4e36-96b1-d9aaa9355768.pdf",
+    "sub_kegiatan_kode": "1.02.02.2.02.0037",
+    "sub_kegiatan_nama": "- Pelaksanaan Kewaspadaan Dini dan Respon Wabah",
+    "nilai_anggaran": 16630000,
+    "bulanan": {
+      "Januari": 0,
+      "Februari": 3300000,
+      "Maret": 0,
+      "April": 1500000,
+      "Mei": 1610000,
+      "Juni": 1500000,
+      "Juli": 1610000,
+      "Agustus": 1750000,
+      "September": 250000,
+      "Oktober": 3360000,
+      "November": 1750000,
+      "Desember": 0
+    },
+    "triwulanan": {
+      "TW1": 3300000,
+      "TW2": 4610000,
+      "TW3": 3610000,
+      "TW4": 0
+    },
+    "semester": {},
+    "rincian": []
+  },
+  {
+    "file": "/home/survim/.openclaw/media/inbound/Angkas_Layanan_Imunisasi---21673a6a-adbd-43c5-a55c-0c4aec9927e4.pdf",
+    "sub_kegiatan_kode": "1.02.02.2.02.0048",
+    "sub_kegiatan_nama": "- Pengelolaan Layanan Imunisasi",
+    "nilai_anggaran": 36585000,
+    "bulanan": {
+      "Januari": 370000,
+      "Februari": 30665000,
+      "Maret": 0,
+      "April": 2400000,
+      "Mei": 1250000,
+      "Juni": 0,
+      "Juli": 650000,
+      "Agustus": 0,
+      "September": 0,
+      "Oktober": 1250000,
+      "November": 0,
+      "Desember": 0
+    },
+    "triwulanan": {
+      "TW1": 31035000,
+      "TW2": 3650000,
+      "TW3": 650000,
+      "TW4": 1250000
+    },
+    "semester": {},
+    "rincian": []
+  }
+]

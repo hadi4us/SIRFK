@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <style>
+    .brand-color { background-color: #1e3a8a; } 
+    .accent-bg { background-color: #f1f5f9; }
+    .loading-screen { position: fixed; inset: 0; background: rgba(255,255,255,0.9); display: none; z-index: 9999; }
+    .text-xxs { font-size: 0.65rem; }
+  </style>
+</head>
+<body class="bg-gray-50 text-xs text-gray-800 antialiased">
+
+  <div id="loading" class="loading-screen items-center justify-center hidden">
+    <div class="text-center font-semibold text-blue-900">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-900 mx-auto mb-3"></div>
+      <p id="loading-text" class="tracking-wide">Sedang memproses permintaan...</p>
+    </div>
+  </div>
+
+  <div id="screen-login" class="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div class="max-w-md w-full space-y-6 p-8 bg-white rounded-xl shadow-lg border border-gray-200">
+      <div class="text-center">
+        <h2 class="text-xl font-extrabold text-blue-900 tracking-tight uppercase">SI-RFK KENDALI BELANJA</h2>
+        <p class="text-xxs text-gray-500 mt-1 uppercase font-semibold">Portal Login Keuangan (2026)</p>
+      </div>
+      <div id="login-alert" class="hidden bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded text-xxs font-medium"></div>
+      <form class="space-y-4" onsubmit="event.preventDefault(); jalankanAksiLogin();">
+        <div>
+          <label class="block text-xxs font-bold text-gray-600 uppercase mb-1">Username / Email OPD</label>
+          <input id="login-user" type="text" required class="w-full p-2.5 border rounded focus:ring-2 focus:ring-blue-500 text-xs bg-white">
+        </div>
+        <div>
+          <label class="block text-xxs font-bold text-gray-600 uppercase mb-1">Kata Sandi Akses</label>
+          <input id="login-pass" type="password" required class="w-full p-2.5 border rounded focus:ring-2 focus:ring-blue-500 text-xs bg-white">
+        </div>
+        <button type="submit" class="w-full py-2.5 px-4 font-bold rounded text-white brand-color hover:bg-blue-900 shadow transition uppercase tracking-wider text-xs">Masuk ke Aplikasi</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="screen-workspace" class="hidden">
+    <nav class="brand-color text-white p-4 shadow-md flex justify-between items-center">
+      <div>
+        <h1 class="text-base font-bold uppercase tracking-wider">SI-RFK KENDALI BELANJA</h1>
+      </div>
+      <div class="flex items-center space-x-3">
+        <div class="text-right text-xxs font-mono">
+          <p id="txt-user" class="bg-blue-950 px-2 py-0.5 rounded text-white"></p>
+          <p id="txt-role" class="font-bold text-yellow-400 mt-0.5 uppercase"></p>
+        </div>
+        <button onclick="jalankanAksiLogout()" class="bg-red-700 hover:bg-red-800 text-white font-bold px-2 py-1.5 rounded text-xxs uppercase tracking-tight transition">Keluar</button>
+      </div>
+    </nav>
+
+    <main class="container mx-auto p-4 max-w-7xl">
+      <div id="view-pimpinan" class="hidden mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+          <h3 class="text-gray-400 font-bold uppercase tracking-wider text-xxs">Total Alokasi Pagu Anggaran (DPA)</h3>
+          <p id="dash-pagu" class="text-2xl font-bold text-gray-900 mt-1">Rp 0</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+          <h3 class="text-gray-400 font-bold uppercase tracking-wider text-xxs">Total Penyerapan Realisasi Sah</h3>
+          <p id="dash-serapan" class="text-2xl font-bold text-green-600 mt-1">Rp 0</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div id="box-input" class="hidden lg:col-span-1 bg-white p-5 rounded-xl shadow-sm border border-gray-200 space-y-4">
+          <h2 class="font-bold text-blue-900 border-b pb-2 text-xs uppercase tracking-wider">Langkah 1: Identifikasi SPJ</h2>
+          
+          <form id="form-transaksi" onsubmit="event.preventDefault(); eksekusiSimpanSpj();" class="space-y-3">
+            <div>
+              <label class="block text-xxs font-bold text-gray-500 uppercase mb-1">Nomor Bukti SPJ (Bisa Diedit)</label>
+              <input type="text" id="nomor_spj" required class="w-full p-2 border border-blue-300 rounded font-mono font-bold text-blue-900 focus:ring-2 focus:ring-blue-500 bg-white">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xxs font-bold text-gray-500 uppercase mb-1">Tanggal SPJ</label>
+                <input type="date" id="tanggal_spj" required class="w-full p-2 border rounded text-xs bg-white">
+              </div>
+              <div>
+                <label class="block text-xxs font-bold text-gray-500 uppercase mb-1">Bulan Kas</label>
+                <select id="bulan" required class="w-full p-2 border rounded text-xs bg-white"></select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xxs font-bold text-gray-500 uppercase mb-1">Mekanisme</label>
+                <select id="jenis_spj" class="w-full p-2 border rounded text-xs bg-white">
+                  <option value="NON SPPD">NON SPPD</option>
+                  <option value="SPPD">SPPD</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xxs font-bold text-gray-500 uppercase mb-1">Pejabat PPTK</label>
+                <input type="text" id="pptk" required class="w-full p-2 border rounded bg-white" placeholder="Nama PPTK">
+              </div>
+            </div>
+
+            <h2 class="font-bold text-blue-900 border-b pb-1 text-xs uppercase tracking-wider pt-2">Langkah 2: Rincian (Autocomplete)</h2>
+            
+            <div class="accent-bg p-3 rounded-lg border border-gray-200 space-y-3">
+              <div>
+                <label class="block text-xxs font-bold text-gray-600 uppercase mb-1">Step A: Pilih Sub-Kegiatan</label>
+                <input list="list-sub-kegiatan" id="dd-sub-kegiatan" onchange="onSubKegiatanChanged()" autocomplete="off" class="w-full p-2 border border-gray-300 rounded bg-white text-xs" placeholder="Ketik/Cari Sub Kegiatan...">
+                <datalist id="list-sub-kegiatan"></datalist>
+              </div>
+
+              <div>
+                <label class="block text-xxs font-bold text-gray-600 uppercase mb-1">Step B: Pilih Kode Rekening</label>
+                <input list="list-kode-rekening" id="dd-kode-rekening" onchange="onKodeRekeningChanged()" autocomplete="off" class="w-full p-2 border border-gray-300 rounded bg-white text-xs" placeholder="Terkunci..." disabled>
+                <datalist id="list-kode-rekening"></datalist>
+              </div>
+
+              <div>
+                <label class="block text-xxs font-bold text-gray-600 uppercase mb-1">Step C: Uraian Belanja</label>
+                <input list="list-uraian-belanja" id="dd-uraian-belanja" onchange="onUraianBelanjaChanged()" autocomplete="off" class="w-full p-2 border border-gray-300 rounded bg-white text-xs" placeholder="Terkunci..." disabled>
+                <datalist id="list-uraian-belanja"></datalist>
+              </div>
+
+              <div class="bg-blue-900 text-white p-2.5 rounded shadow-inner text-xxs space-y-1">
+                <p class="opacity-70 uppercase tracking-wide">Batas Pagu Tersedia (DPA)</p>
+                <p class="text-sm font-mono font-bold" id="lbl-pagu">Rp 0</p>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 pt-2 border-t border-gray-300 mt-2">
+                <div>
+                  <label class="block text-xxs font-bold text-gray-600 uppercase mb-1">Nama Kegiatan</label>
+                  <input type="text" id="input-nama-keg" class="w-full p-2 border rounded bg-white" placeholder="Contoh: Rakor">
+                </div>
+                <div>
+                  <label class="block text-xxs font-bold text-gray-600 uppercase mb-1">Pelaksana (Opsional)</label>
+                  <input type="text" id="input-pelaksana" class="w-full p-2 border rounded bg-white" placeholder="Nama Toko/Pegawai">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xxs font-bold text-blue-950 uppercase mb-1">Step D: Masukkan Bruto Belanja (Rp)</label>
+                <input type="number" id="nilai-bruto" class="w-full p-2 border border-blue-400 rounded font-mono font-bold text-xs" placeholder="Contoh: 1500000">
+              </div>
+
+              <button type="button" onclick="sisipkanItemKeTabel()" class="w-full brand-color hover:bg-blue-900 text-white font-bold py-2 rounded text-xxs uppercase tracking-wider transition">
+                + Sisipkan Objek Belanja
+              </button>
+            </div>
+
+            <div class="bg-gray-50 p-2 rounded border text-xxs overflow-x-auto">
+              <p class="font-bold text-gray-600 mb-1 uppercase tracking-tight">Antrean Rekening SPJ Ini:</p>
+              <table class="w-full text-left divide-y border">
+                <thead>
+                  <tr class="bg-gray-200">
+                    <th class="p-1">Rekening & Kegiatan</th>
+                    <th class="p-1 text-right">Bruto</th>
+                    <th class="p-1 text-center">Hapus</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-temp-items" class="divide-y bg-white">
+                  <tr><td colspan="3" class="p-2 text-center italic text-gray-400">Belum ada item disisipkan.</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <button type="submit" class="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-2.5 rounded text-xs uppercase tracking-widest shadow shadow-md transition">
+              Simpan Dokumen & Kunci Realisasi
+            </button>
+          </form>
+        </div>
+
+        <div id="box-monitor" class="lg:col-span-2 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+          <h2 class="font-bold text-gray-800 border-b pb-2 mb-3 text-xs uppercase tracking-wider">Buku Kendali Administrasi SPJ OPD</h2>
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-left divide-y text-xs">
+              <thead class="bg-gray-100 text-gray-600 font-bold uppercase tracking-wider">
+                <tr>
+                  <th class="p-3">Identitas SPJ & PPTK</th>
+                  <th class="p-3 text-right">Total Bruto</th>
+                  <th class="p-3 text-center">Status Berkas</th>
+                  <th class="p-3 text-center">Aksi Otorisasi</th>
+                </tr>
+              </thead>
+              <tbody id="tabel-spj" class="divide-y"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // PASANG SECURE RADAR ERROR DI BAGIAN PALING ATAS ENGINE
+    window.onerror = function(pesan, sumber, baris, kolom, error) {
+      alert("TERJADI KESALAHAN ENGINE BROWSER: \n" + pesan + "\nPada Baris: " + baris);
+      document.getElementById('loading').style.display = 'none';
+      return true;
+    };
+
+    // DEKLARASI GLOBAL - HANYA BOLEH SATU KALI DI SINI
+    let masterHierarkiGlobal = {};
+    let selectedSubKegiatan = "";
+    let selectedKodeRekening = "";
+    let itemAntreanSpj = [];
+    let currentUserSession = { email: "", role: "VIEWER", nama: "" };
+    let currentTargetItem = null; 
+
+    function tunjukLoading(show, teks = "Sedang memproses...") {
+      const loader = document.getElementById('loading');
+      document.getElementById('loading-text').textContent = teks;
+      loader.style.display = show ? 'flex' : 'none';
+    }
+
+    function autoGenerateNomorSPJ() {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const randomID = Math.floor(1000 + Math.random() * 9000);
+      document.getElementById('nomor_spj').value = `SPJ/06/${month}/${year}/${randomID}`;
+    }
+
+    function jalankanAksiLogin() {
+      const user = document.getElementById('login-user').value;
+      const pass = document.getElementById('login-pass').value;
+      const alertBox = document.getElementById('login-alert');
+      
+      alertBox.classList.add('hidden');
+      tunjukLoading(true, "Memvalidasi Akun OPD...");
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) {
+            currentUserSession = res.user;
+            document.getElementById('txt-user').textContent = res.user.nama + " (" + res.user.email + ")";
+            document.getElementById('txt-role').textContent = "Akses: " + res.user.role;
+
+            if (['ADMIN', 'OPERATOR', 'PPTK'].includes(res.user.role)) {
+              document.getElementById('box-input').classList.remove('hidden');
+              document.getElementById('box-monitor').classList.remove('lg:col-span-3');
+              document.getElementById('box-monitor').classList.add('lg:col-span-2');
+            } else {
+              document.getElementById('box-input').classList.add('hidden');
+              document.getElementById('box-monitor').classList.remove('lg:col-span-2');
+              document.getElementById('box-monitor').classList.add('lg:col-span-3');
+            }
+
+            if (['PIMPINAN', 'ADMIN', 'BENDAHARA', 'VERIFIKATOR'].includes(res.user.role)) {
+              document.getElementById('view-pimpinan').classList.remove('hidden');
+              document.getElementById('dash-pagu').textContent = "Rp " + res.stats.pagu.toLocaleString('id-ID');
+              document.getElementById('dash-serapan').textContent = "Rp " + res.stats.serapan.toLocaleString('id-ID');
+            }
+
+            const selectBulan = document.getElementById('bulan');
+            selectBulan.innerHTML = '';
+            res.months.forEach(m => { selectBulan.appendChild(new Option(m, m)); });
+
+            document.getElementById('screen-login').classList.add('hidden');
+            document.getElementById('screen-workspace').classList.remove('hidden');
+            autoGenerateNomorSPJ(); 
+
+            loadDataHierarkiDpa();
+            refreshTabelUtamaSpj();
+          } else {
+            tunjukLoading(false);
+            alertBox.textContent = res.message;
+            alertBox.classList.remove('hidden');
+          }
+        })
+        .withFailureHandler(function(error) {
+          tunjukLoading(false);
+          alertBox.textContent = "Gagal memproses data: " + error.message;
+          alertBox.classList.remove('hidden');
+        })
+        .prosesLoginKustom(user, pass);
+    }
+
+    function jalankanAksiLogout() {
+      currentUserSession = { email: "", role: "VIEWER", nama: "" };
+      document.getElementById('login-pass').value = '';
+      document.getElementById('screen-workspace').classList.add('hidden');
+      document.getElementById('screen-login').classList.remove('hidden');
+    }
+
+    function loadDataHierarkiDpa() {
+      google.script.run.withSuccessHandler(function(hierarki) {
+        masterHierarkiGlobal = hierarki;
+        const datalistSub = document.getElementById('list-sub-kegiatan');
+        datalistSub.innerHTML = '';
+        
+        Object.keys(hierarki).forEach(sub => {
+          let opt = document.createElement('option');
+          opt.value = sub;
+          datalistSub.appendChild(opt);
+        });
+        tunjukLoading(false);
+      }).getDpaHierarkiTigaTingkat();
+    }
+
+    function onSubKegiatanChanged() {
+      const valInput = document.getElementById('dd-sub-kegiatan').value;
+      const inputRek = document.getElementById('dd-kode-rekening');
+      const datalistRek = document.getElementById('list-kode-rekening');
+      const inputUraian = document.getElementById('dd-uraian-belanja');
+      
+      document.getElementById('lbl-pagu').textContent = "Rp 0";
+      currentTargetItem = null;
+      inputRek.value = '';
+      inputUraian.value = '';
+      inputUraian.disabled = true;
+
+      if (!masterHierarkiGlobal[valInput]) {
+        inputRek.disabled = true;
+        inputRek.placeholder = "Pilih Sub-Kegiatan yang valid...";
+        return;
+      }
+
+      selectedSubKegiatan = valInput;
+      inputRek.disabled = false;
+      inputRek.placeholder = "Ketik/Pilih Kode Rekening...";
+      datalistRek.innerHTML = '';
+
+      const objekRekening = masterHierarkiGlobal[valInput];
+      Object.keys(objekRekening).forEach(rek => {
+        let labelNama = objekRekening[rek][0].uraian_belanja; 
+        let opt = document.createElement('option');
+        opt.value = rek + " - " + labelNama; 
+        datalistRek.appendChild(opt);
+      });
+    }
+
+    function onKodeRekeningChanged() {
+      const valInput = document.getElementById('dd-kode-rekening').value;
+      const inputUraian = document.getElementById('dd-uraian-belanja');
+      const datalistUraian = document.getElementById('list-uraian-belanja');
+      
+      document.getElementById('lbl-pagu').textContent = "Rp 0";
+      currentTargetItem = null;
+      inputUraian.value = '';
+
+      const actualKode = valInput.split(' - ')[0].trim();
+
+      if (!masterHierarkiGlobal[selectedSubKegiatan] || !masterHierarkiGlobal[selectedSubKegiatan][actualKode]) {
+        inputUraian.disabled = true;
+        inputUraian.placeholder = "Pilih Kode Rekening yang valid...";
+        return;
+      }
+
+      selectedKodeRekening = actualKode;
+      inputUraian.disabled = false;
+      inputUraian.placeholder = "Ketik/Pilih Uraian Belanja...";
+      datalistUraian.innerHTML = '';
+
+      const listKomponen = masterHierarkiGlobal[selectedSubKegiatan][actualKode];
+      listKomponen.forEach((item) => {
+        let opt = document.createElement('option');
+        opt.value = item.uraian_belanja;
+        datalistUraian.appendChild(opt);
+      });
+    }
+
+    function onUraianBelanjaChanged() {
+      const textUraian = document.getElementById('dd-uraian-belanja').value;
+      currentTargetItem = null;
+      
+      if (!textUraian || !selectedKodeRekening) {
+        document.getElementById('lbl-pagu').textContent = "Rp 0";
+        return;
+      }
+      
+      const listKomponen = masterHierarkiGlobal[selectedSubKegiatan][selectedKodeRekening];
+      const target = listKomponen.find(i => i.uraian_belanja === textUraian);
+      
+      if (target) {
+        currentTargetItem = target;
+        document.getElementById('lbl-pagu').textContent = "Rp " + target.pagu.toLocaleString('id-ID');
+      }
+    }
+
+    function sisipkanItemKeTabel() {
+      const bruto = Number(document.getElementById('nilai-bruto').value);
+      const inputNamaKegiatan = document.getElementById('input-nama-keg').value;
+      const inputPelaksana = document.getElementById('input-pelaksana').value;
+
+      if(!selectedSubKegiatan || !selectedKodeRekening || !currentTargetItem || bruto <= 0) {
+        return alert("Mohon lengkapi seluruh isian berjenjang.");
+      }
+
+      itemAntreanSpj.push({
+        sub_kegiatan: selectedSubKegiatan,
+        kode_rekening: selectedKodeRekening,
+        uraian_belanja: currentTargetItem.uraian_belanja,
+        pagu_referensi: currentTargetItem.pagu,
+        nilai_bruto: bruto,
+        nama_kegiatan: inputNamaKegiatan,
+        pelaksana: inputPelaksana
+      });
+
+      document.getElementById('nilai-bruto').value = '';
+      document.getElementById('input-nama-keg').value = '';
+      document.getElementById('input-pelaksana').value = '';
+      document.getElementById('dd-uraian-belanja').value = '';
+      document.getElementById('lbl-pagu').textContent = "Rp 0";
+      currentTargetItem = null;
+      
+      renderTabelAntreanSementra();
+    }
+
+    function renderTabelAntreanSementra() {
+      const tbody = document.getElementById('tbody-temp-items');
+      tbody.innerHTML = '';
+      if(itemAntreanSpj.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="p-2 text-center italic text-gray-400">Belum ada item disisipkan.</td></tr>';
+        return;
+      }
+      itemAntreanSpj.forEach((item, idx) => {
+        let tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="p-1 font-mono text-xxs">
+            <span class="font-bold text-blue-800">${item.kode_rekening}</span><br/>
+            Keg: ${item.nama_kegiatan || '-'} | Pel: ${item.pelaksana || '-'}
+          </td>
+          <td class="p-1 text-right font-mono font-bold text-blue-950">Rp ${item.nilai_bruto.toLocaleString('id-ID')}</td>
+          <td class="p-1 text-center"><button type="button" onclick="hapusItemAntrean(${idx})" class="text-red-600 font-bold">X</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function hapusItemAntrean(index) {
+      itemAntreanSpj.splice(index, 1);
+      renderTabelAntreanSementra();
+    }
+
+    function refreshTabelUtamaSpj() {
+      tunjukLoading(true, "Memperbarui Buku Kendali SPJ...");
+      google.script.run.withSuccessHandler(function(list) {
+        const tbody = document.getElementById('tabel-spj');
+        tbody.innerHTML = '';
+        
+        list.forEach(item => {
+          let actionBtn = '-';
+          if (['ADMIN', 'VERIFIKATOR', 'BENDAHARA'].includes(currentUserSession.role) && item.status !== 'Dibayar') {
+            let nextStatus = item.status === 'Draft' ? 'Diajukan' : item.status === 'Diajukan' ? 'Diverifikasi' : 'Dibayar';
+            actionBtn = `<button onclick="ubahStatusOtorisasiBerkas('${item.id_spj}', '${nextStatus}')" class="bg-blue-800 hover:bg-blue-900 text-white px-2 py-1 rounded text-xxs font-bold uppercase">Set ${nextStatus}</button>`;
+          }
+
+          let tr = document.createElement('tr');
+          tr.className = "hover:bg-gray-50 transition";
+          tr.innerHTML = `
+            <td class="p-3">
+              <span class="text-blue-900 font-mono font-bold block">${item.nomor_spj}</span>
+              <span class="text-gray-500 text-xxs uppercase font-semibold">${item.pptk} | Periode ${item.bulan}</span>
+            </td>
+            <td class="p-3 text-right font-mono font-bold text-gray-900">Rp ${item.total.toLocaleString('id-ID')}</td>
+            <td class="p-3 text-center"><span class="px-2.5 py-1 rounded text-xxs font-bold ${item.status === 'Dibayar' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${item.status}</span></td>
+            <td class="p-3 text-center">${actionBtn}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+        tunjukLoading(false);
+      }).getDaftarSpj();
+    }
+
+    function ubahStatusOtorisasiBerkas(idSpj, statusTujuan) {
+      if(!confirm("Ubah status berkas ke: " + statusTujuan + "?")) return;
+      tunjukLoading(true, "Mengubah Otorisasi Berkas...");
+      google.script.run.withSuccessHandler(function() {
+        refreshTabelUtamaSpj();
+      }).updateStatusSpj(idSpj, statusTujuan, currentUserSession.email);
+    }
+
+    function eksekusiSimpanSpj() {
+      if(itemAntreanSpj.length === 0) return alert("Kesalahan simpan: Antrean rincian objek belanja SPJ kosong.");
+      tunjukLoading(true, "Mengunci Anggaran SPJ Baru...");
+      
+      const header = {
+        nomor_spj: document.getElementById('nomor_spj').value,
+        tanggal_spj: document.getElementById('tanggal_spj').value,
+        bulan: document.getElementById('bulan').value,
+        jenis_spj: document.getElementById('jenis_spj').value,
+        pptk: document.getElementById('pptk').value,
+        status_spj: 'Draft',
+        total_bruto: itemAntreanSpj.reduce((acc, curr) => acc + curr.nilai_bruto, 0)
+      };
+
+      google.script.run.withSuccessHandler(function() {
+        document.getElementById('form-transaksi').reset();
+        
+        document.getElementById('dd-kode-rekening').disabled = true;
+        document.getElementById('dd-uraian-belanja').disabled = true;
+        document.getElementById('dd-kode-rekening').placeholder = "Terkunci...";
+        document.getElementById('dd-uraian-belanja').placeholder = "Terkunci...";
+        
+        itemAntreanSpj = [];
+        renderTabelAntreanSementra();
+        refreshTabelUtamaSpj();
+        autoGenerateNomorSPJ(); 
+        alert("Sukses: Data pertanggungjawaban berhasil dikunci ke Lembar Kerja.");
+      }).simpanSpj(header, itemAntreanSpj, currentUserSession.email);
+    }
+  </script>
+</body>
+</html>

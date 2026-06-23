@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SI-RFK Monitoring - APBD 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+              950: '#172554'
+            },
+            dark: {
+              bg: '#0f172a',
+              card: '#1e293b',
+              border: '#334155',
+              text: '#f1f5f9',
+              textMuted: '#94a3b8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .sidebar-link { @apply flex items-center px-3 py-2.5 text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-900 dark:hover:text-blue-400 rounded-lg transition-all duration-200 cursor-pointer; }
+    .sidebar-link.active { @apply bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-900 dark:text-blue-300 font-semibold border-r-4 border-blue-600 dark:border-blue-400; }
+    .nav-link-mobile { @apply flex flex-col items-center py-2 text-xs text-gray-500 hover:text-blue-600; }
+    .nav-link-mobile.active { @apply text-blue-600 font-semibold; }
+    .dark .nav-link-mobile { @apply text-gray-400 hover:text-blue-400; }
+    .dark .nav-link-mobile.active { @apply text-blue-400; }
+    .glass-panel { @apply bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-gray-200 dark:border-slate-700; }
+    .text-gradient { @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600; }
+    .dark .text-gradient { @apply from-blue-400 to-indigo-400; }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-dark:bg font-sans text-sm transition-colors duration-300">
+  <input type="checkbox" id="dark-mode-toggle" class="hidden" checked>
+
+  <!-- Dark Mode Toggle -->
+  <div class="fixed bottom-6 right-6 z-50">
+    <button onclick="toggleDarkMode()" class="bg-white dark:bg-slate-700 shadow-lg rounded-full p-3 text-gray-700 dark:text-gray-200 hover:scale-110 transition-all">
+      <i id="dark-mode-icon" class="fas fa-moon text-xl"></i>
+    </button>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading" class="fixed inset-0 bg-white/95 dark:bg-slate-900/95 z-[9999] flex items-center justify-center hidden">
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+      <p id="loading-text" class="text-blue-900 dark:text-blue-300 font-semibold">Memproses...</p>
+    </div>
+  </div>
+
+  <!-- LOGIN SCREEN -->
+  <div id="screen-login" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors">
+    <div class="max-w-md w-full glass-panel rounded-2xl shadow-2xl overflow-hidden">
+      <!-- Login Header -->
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-center">
+        <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
+          <i class="fas fa-chart-pie text-4xl text-white"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-white uppercase tracking-wider mb-2">SI-RFK Monitoring</h2>
+        <p class="text-blue-100 text-sm">Portal Penatausahaan Keuangan Daerah Tahun 2026</p>
+      </div>
+
+      <!-- Login Form -->
+      <div class="p-8">
+        <div id="login-alert" class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mb-6">
+          <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span id="login-alert-text"></span>
+          </div>
+        </div>
+        
+        <form class="space-y-6" onsubmit="event.preventDefault(); handleLogin();">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+              <i class="fas fa-envelope mr-2 text-blue-600 dark:text-blue-400"></i>Username / Email
+            </label>
+            <input id="login-user" type="text" required class="w-full px-4 py-3 bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:text-white">
+          </div>
+          
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+              <i class="fas fa-lock mr-2 text-blue-600 dark:text-blue-400"></i>Password
+            </label>
+            <input id="login-pass" type="password" required class="w-full px-4 py-3 bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:text-white">
+          </div>
+          
+          <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-lg shadow-lg transition-all transform hover:scale-[1.02] hover:shadow-xl">
+            <i class="fas fa-sign-in-alt mr-2"></i>Masuk ke Aplikasi
+          </button>
+        </form>
+
+        <!-- Password Change Toggle -->
+        <div class="mt-6 pt-6 border-t border-gray-200 dark:border-slate-700">
+          <div class="text-center">
+            <button type="button" onclick="toggleChangePassword()" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition">
+              <i class="fas fa-key mr-1"></i>Ubah Password
+            </button>
+          </div>
+
+          <!-- Change Password Form (Hidden) -->
+          <div id="change-pass-form" class="hidden space-y-4 mt-6 pt-6 border-t border-gray-200 dark:border-slate-700">
+            <h3 class="font-bold text-gray-800 dark:text-gray-200 uppercase text-xs mb-4">
+              <i class="fas fa-shield-alt mr-2 text-emerald-600 dark:text-emerald-400"></i>Ganti Password
+            </h3>
+            
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Password Lama</label>
+              <input id="old-pass" type="password" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:text-white">
+            </div>
+            
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Password Baru</label>
+              <input id="new-pass" type="password" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:text-white">
+            </div>
+            
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Konfirmasi Baru</label>
+              <input id="confirm-pass" type="password" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:text-white">
+            </div>
+            
+            <button type="button" onclick="handleUbahPassword()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-2 rounded text-xs uppercase transition shadow">
+              <i class="fas fa-save mr-1"></i>Simpan Password Baru
+            </button>
+            
+            <button type="button" onclick="toggleChangePassword()" class="w-full bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-300 font-semibold py-2 rounded text-xs uppercase transition">
+              Batal
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="bg-gray-50 dark:bg-slate-800/50 p-4 text-center border-t border-gray-200 dark:border-slate-700">
+        <p class="text-xs text-gray-500 dark:text-gray-400">Sistem Informasi Rekening Fungsional Keuangan</p>
+        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Dinas Kesehatan Kota Depok - 2026</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKSPACE SCREEN -->
+  <div id="screen-workspace" class="hidden flex flex-col min-h-screen overflow-hidden">
+    <!-- TOP NAV -->
+    <nav class="bg-white dark:bg-slate-900 shadow-md border-b border-gray-200 dark:border-slate-700 z-50">
+      <div class="flex items-center justify-between px-4 py-3">
+        <div class="flex items-center space-x-4">
+          <button id="sidebar-toggle" class="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800">
+            <i class="fas fa-bars text-gray-700 dark:text-gray-300 text-xl"></i>
+          </button>
+          <div>
+            <h1 class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center">
+              <i class="fas fa-chart-pie mr-2 text-blue-600 dark:text-blue-400"></i>
+              SI-RFK Monitoring
+            </h1>
+            <p class="text-xs text-gray-500 dark:text-gray-400">APBD 2026 - DINKES KOTA DEPOK</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div class="hidden md:block text-right">
+            <p id="txt-user" class="text-sm font-semibold text-gray-900 dark:text-white">-</p>
+            <p id="txt-role" class="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-full inline-block mt-1">-</p>
+          </div>
+          <button onclick="handleLogout()" class="bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 px-4 py-2 rounded-lg text-sm font-semibold transition shadow-sm">
+            <i class="fas fa-sign-out-alt mr-2"></i>Keluar
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="flex flex-1 overflow-hidden">
+      <!-- SIDEBAR (Desktop) -->
+      <aside id="sidebar" class="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 overflow-y-auto border-r border-gray-200 dark:border-slate-700 transition-all duration-300">
+        <div class="p-5 border-b border-gray-200 dark:border-slate-700">
+          <div class="text-center">
+            <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg">
+              <span class="text-white font-bold text-xl">DS</span>
+            </div>
+            <p class="text-sm font-semibold text-gray-800 dark:text-white">DINKES KOTA DEPOK</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">APBD 2026</p>
+          </div>
+        </div>
+        
+        <nav class="flex-1 py-4 space-y-0.5 px-2">
+          <div class="px-3 mb-2 text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">
+            <i class="fas fa-th-large mr-2"></i>Menu Utama
+          </div>
+          
+          <a onclick="showView('dashboard')" class="sidebar-link active" data-view="dashboard">
+            <i class="fas fa-home w-5 h-5 mr-3 text-blue-600 dark:text-blue-400 flex-shrink-0"></i>
+            <span class="flex-1 font-medium text-sm">Dashboard</span>
+          </a>
+          
+          <a onclick="showView('dpa')" class="sidebar-link" data-view="dpa">
+            <i class="fas fa-file-invoice-dollar w-5 h-5 mr-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0"></i>
+            <span class="flex-1 font-medium text-sm">DPA & Anggaran</span>
+          </a>
+          
+          <a onclick="showView('inputspj')" class="sidebar-link" data-view="inputspj">
+            <i class="fas fa-file-medical w-5 h-5 mr-3 text-amber-600 dark:text-amber-400 flex-shrink-0"></i>
+            <span class="flex-1 font-medium text-sm">Input SPJ</span>
+          </a>
+          
+          <a onclick="showView('monitoring')" class="sidebar-link" data-view="monitoring">
+            <i class="fas fa-chart-bar w-5 h-5 mr-3 text-purple-600 dark:text-purple-400 flex-shrink-0"></i>
+            <span class="flex-1 font-medium text-sm">Monitoring RFK</span>
+          </a>
+          
+          <div class="px-3 mb-2 text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mt-4">
+            <i class="fas fa-tools mr-2"></i>Operasional
+          </div>
+          
+          <a onclick="showView('kendala')" class="sidebar-link" data-view="kendala">
+            <i class="fas fa-exclamation-circle w-5 h-5 mr-3 text-orange-600 dark:text-orange-400 flex-shrink-0"></i>
+            <span class="flex-1 font-medium text-sm">Kendala & Tindak Lanjut</span>
+          </a>
+          
+          <a onclick="showView('validasi')" class="sidebar-link" data-view="validasi">
+            <i class="fas fa-check-circle w-5 h-5 mr-3 text-green-600 dark:text-green-400 flex-shrink-0"></i>
+            <span class="flex-1 font-medium text-sm">Validasi Data</span>
+          </a>
+          
+          <a onclick="showView('laporan')" class="sidebar-link" data-view="laporan">
+            <i class="fas fa-file-export w-5 h-5 mr-3 text-indigo-600 dark:text-indigo-400 flex-shrink-0"></i>
+            <span class="flex-1 font-medium text-sm">Laporan</span>
+          </a>
+        </nav>
+        
+        <div class="p-4 border-t border-gray-200 dark:border-slate-700 text-center">
+          <p class="text-xs text-gray-500 dark:text-gray-400">v1.2 - Professional UI</p>
+        </div>
+      </aside>
+
+      <!-- MOBILE NAV (Bottom) -->
+      <div id="mobile-nav" class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 z-40 shadow-lg">
+        <div class="flex justify-around py-3">
+          <a onclick="showView('dashboard')" class="nav-link-mobile" data-view="dashboard">
+            <i class="fas fa-home text-xl mb-1"></i>
+            <span>Dashboard</span>
+          </a>
+          <a onclick="showView('dpa')" class="nav-link-mobile" data-view="dpa">
+            <i class="fas fa-file-invoice-dollar text-xl mb-1"></i>
+            <span>DPA</span>
+          </a>
+          <a onclick="showView('monitoring')" class="nav-link-mobile" data-view="monitoring">
+            <i class="fas fa-chart-bar text-xl mb-1"></i>
+            <span>RFK</span>
+          </a>
+          <a onclick="showView('kendala')" class="nav-link-mobile" data-view="kendala">
+            <i class="fas fa-exclamation-circle text-xl mb-1"></i>
+            <span>Kendala</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT -->
+      <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-dark:bg p-4 pb-24 md:pb-4 transition-colors">
+        
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="view-section active space-y-6">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Monitoring</h2>
+              <p class="text-gray-500 dark:text-gray-400">Ringkasan penatausahaan keuangan daerah</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-semibold">
+                <i class="fas fa-calendar-day mr-1"></i>2026
+              </span>
+            </div>
+          </div>
+
+          <!-- Stats Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            <!-- Total Pagu -->
+            <div class="glass-panel p-5 rounded-xl shadow-lg">
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Pagu Anggaran</p>
+                  <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1" id="dash-pagu">Rp 0</p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-2" id="dash-subkeg-count">5 Sub Kegiatan</p>
+                </div>
+                <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <i class="fas fa-coins text-blue-600 dark:text-blue-400 text-2xl"></i>
+                </div>
+              </div>
+              <div class="flex items-center text-xs">
+                <span class="text-emerald-600 dark:text-emerald-400 font-semibold" id="dash-pagu-badge">✓ Tersedia</span>
+              </div>
+            </div>
+
+            <!-- Anggaran Kas -->
+            <div class="glass-panel p-5 rounded-xl shadow-lg">
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Anggaran Kas</p>
+                  <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1" id="dash-angkas">Rp 0</p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">Realisasi per triwulan</p>
+                </div>
+                <div class="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                  <i class="fas fa-money-bill-wave text-emerald-600 dark:text-emerald-400 text-2xl"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Realisasi SPJ -->
+            <div class="glass-panel p-5 rounded-xl shadow-lg">
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Realisasi SPJ</p>
+                  <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1" id="dash-realisasi">Rp 0</p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-2" id="dash-servasPercent">0% dari pagu</p>
+                </div>
+                <div class="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                  <i class="fas fa-check-double text-indigo-600 dark:text-indigo-400 text-2xl"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- SPJ Count -->
+            <div class="glass-panel p-5 rounded-xl shadow-lg">
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Dokumen SPJ</p>
+                  <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1" id="dash-total-spj">0</p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                    <span id="dash-spj-draf" class="text-amber-600 dark:text-amber-400">0 Draf</span> | 
+                    <span id="dash-spj-dibayar" class="text-emerald-600 dark:text-emerald-400">0 Dibayar</span>
+                  </p>
+                </div>
+                <div class="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                  <i class="fas fa-file-invoice text-amber-600 dark:text-amber-400 text-2xl"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Content Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Chart Container -->
+            <div class="lg:col-span-2 glass-panel p-6 rounded-xl shadow-lg">
+              <h3 class="font-bold text-gray-800 dark:text-gray-200 mb-6 uppercase text-sm tracking-wider border-b border-gray-200 dark:border-slate-700 pb-3">
+                <i class="fas fa-chart-bar mr-2 text-blue-600 dark:text-blue-400"></i>
+                Perbandingan Anggaran Kas vs Realisasi per Sub-Kegiatan
+              </h3>
+              <div class="relative h-64">
+                <canvas id="dashboardChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Recent SPJ -->
+            <div class="glass-panel p-6 rounded-xl shadow-lg">
+              <h3 class="font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase text-sm tracking-wider border-b border-gray-200 dark:border-slate-700 pb-3">
+                <i class="fas fa-clock mr-2 text-indigo-600 dark:text-indigo-400"></i>
+                Status SPJ Terakhir
+              </h3>
+              <div id="recent-spj-list" class="space-y-3">
+                <!-- Recent SPJ items -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DPA & ANGGARAN KAS VIEW -->
+        <div id="view-dpa" class="view-section space-y-6">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">DPA & Anggaran Kas</h2>
+              <p class="text-gray-500 dark:text-gray-400">Data Rencana Anggaran Belanja dan distribusi anggaran kas</p>
+            </div>
+            <button onclick="loadDPAList()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
+              <i class="fas fa-sync-alt mr-2"></i>Refresh
+            </button>
+          </div>
+          
+          <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                <thead class="bg-gradient-to-r from-blue-600 to-indigo-600">
+                  <tr>
+                    <th class="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Kode Sub</th>
+                    <th class="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Nama Sub Kegiatan</th>
+                    <th class="px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Total Pagu</th>
+                    <th class="px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Anggaran Kas</th>
+                    <th class="px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Selisih</th>
+                    <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="dpa-table-body" class="divide-y divide-gray-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                </tbody>
+                <tfoot class="bg-gray-50 dark:bg-slate-800/50">
+                  <tr>
+                    <td colspan="2" class="px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase">Total</td>
+                    <td class="px-4 py-3 text-right text-sm font-bold text-gray-900 dark:text-white" id="dpa-table-total-pagu">0</td>
+                    <td class="px-4 py-3 text-right text-sm font-bold text-gray-900 dark:text-white" id="dpa-table-total-angkas">0</td>
+                    <td class="px-4 py-3 text-right text-sm font-bold text-gray-900 dark:text-white" id="dpa-table-total-selisih">0</td>
+                    <td class="px-4 py-3"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- INPUT SPJ VIEW -->
+        <div id="view-inputspj" class="view-section space-y-6">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Input SPJ</h2>
+              <p class="text-gray-500 dark:text-gray-400">Formulir pertanggungjawaban belanja</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Form Input -->
+            <div class="lg:col-span-1 space-y-6">
+              <div class="glass-panel p-5 rounded-xl shadow-lg">
+                <h3 class="font-bold text-blue-900 dark:text-blue-300 border-b border-gray-200 dark:border-slate-700 pb-3 uppercase text-sm tracking-wider">
+                  <i class="fas fa-info-circle mr-2"></i>Identitas SPJ
+                </h3>
+                <div class="space-y-4 mt-4">
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Nomor SPJ</label>
+                    <input type="text" id="spj-nomor" placeholder="SPJ-2026-XXX" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:text-white">
+                  </div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Tanggal SPJ</label>
+                      <input type="date" id="spj-tanggal" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Bulan Kas</label>
+                      <select id="spj-bulan" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
+                        <option value="">-- Bulan --</option>
+                        <option value="Januari">Januari</option>
+                        <option value="Februari">Februari</option>
+                        <option value="Maret">Maret</option>
+                        <option value="April">April</option>
+                        <option value="Mei">Mei</option>
+                        <option value="Juni">Juni</option>
+                        <option value="Juli">Juli</option>
+                        <option value="Agustus">Agustus</option>
+                        <option value="September">September</option>
+                        <option value="Oktober">Oktober</option>
+                        <option value="November">November</option>
+                        <option value="Desember">Desember</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">PPTK</label>
+                    <input type="text" id="spj-pptk" placeholder="Nama PPTK" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Jenis SPJ</label>
+                    <select id="spj-jenis" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
+                      <option value="NON SPPD">NON SPPD</option>
+                      <option value="SPPD">SPPD</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="glass-panel p-5 rounded-xl shadow-lg">
+                <h3 class="font-bold text-blue-900 dark:text-blue-300 border-b border-gray-200 dark:border-slate-700 pb-3 uppercase text-sm tracking-wider">
+                  <i class="fas fa-list mr-2"></i>Rincian Belanja
+                </h3>
+                <div class="space-y-4 mt-4">
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Sub Kegiatan</label>
+                    <input list="list-sub-kegiatan" id="dd-sub-kegiatan" onchange="onSubKegiatanChanged()" autocomplete="off" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
+                    <datalist id="list-sub-kegiatan"></datalist>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Kode Rekening</label>
+                    <input list="list-kode-rekening" id="dd-kode-rekening" disabled class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
+                    <datalist id="list-kode-rekening"></datalist>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Uraian Belanja</label>
+                    <input list="list-uraian-belanja" id="dd-uraian-belanja" disabled class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
+                    <datalist id="list-uraian-belanja"></datalist>
+                  </div>
+                  <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3 py-3 rounded-lg">
+                    <p class="text-blue-100 text-xs uppercase font-semibold">Pagu Tersedia</p>
+                    <p class="font-mono font-bold text-lg" id="lbl-pagu-dpa">Rp 0</p>
+                  </div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Nama Kegiatan</label>
+                      <input type="text" id="input-nama-kegiatan" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Pelaksana</label>
+                      <input type="text" id="input-pelaksana" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-blue-700 dark:text-blue-300 mb-2">Nilai Bruto (Rp)</label>
+                    <input type="number" id="input-nilai-bruto" class="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-blue-400 dark:border-blue-600 rounded font-mono font-bold focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder="Contoh: 1500000">
+                  </div>
+                  <button type="button" onclick="sisipkanItem()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-2 rounded text-sm uppercase transition shadow">
+                    <i class="fas fa-plus-circle mr-2"></i>Sisipkan Item
+                  </button>
+                </div>
+                
+                <div class="bg-gray-50 dark:bg-slate-800/50 p-4 rounded-lg border border-gray-200 dark:border-slate-700 mt-4">
+                  <p class="font-semibold text-gray-700 dark:text-gray-300 uppercase text-xs mb-3 flex items-center">
+                    <i class="fas fa-clipboard-list mr-2 text-blue-600 dark:text-blue-400"></i>
+                    Antrean Item SPJ (<span id="item-count">0</span>)
+                  </p>
+                  <div id="tbody-temp-spj" class="space-y-2 max-h-40 overflow-y-auto">
+                    <p class="text-center italic text-gray-400 dark:text-gray-500 text-xs">Belum ada item</p>
+                  </div>
+                </div>
+                
+                <button type="button" onclick="simpanSPJ()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-3 rounded shadow-lg uppercase text-sm transition mt-4">
+                  <i class="fas fa-save mr-2"></i>Simpan Dokumen SPJ
+                </button>
+              </div>
+            </div>
+
+            <!-- SPJ List -->
+            <div class="lg:col-span-2">
+              <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
+                <div class="p-4 border-b bg-gradient-to-r from-gray-800 to-gray-900">
+                  <h3 class="font-bold text-white uppercase text-sm tracking-wider flex items-center">
+                    <i class="fas fa-book mr-2"></i>Buku Kendali SPJ
+                  </h3>
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                    <thead class="bg-gray-100 dark:bg-slate-800">
+                      <tr>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Nomor & Tanggal</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Bulan</th>
+                        <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Total Bruto</th>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Status</th>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tabel-spj" class="divide-y bg-white dark:bg-slate-900">
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MONITORING RFK VIEW -->
+        <div id="view-monitoring" class="view-section space-y-6">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Monitoring RFK</h2>
+              <p class="text-gray-500 dark:text-gray-400">Realisasi Fungsional Keuangan per sub-kegiatan</p>
+            </div>
+            <button onclick="exportMonitoring()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
+              <i class="fas fa-file-excel mr-2"></i>Export ke Excel
+            </button>
+          </div>
+          
+          <!-- Sub-kegiatan Selector -->
+          <div class="glass-panel p-4 rounded-xl shadow-lg">
+            <div class="flex items-center space-x-4">
+              <div class="flex-1">
+                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                  <i class="fas fa-layer-group mr-1"></i>Pilih Sub Kegiatan
+                </label>
+                <select id="monitoring-sub-kegiatan" onchange="loadMonitoringDetail(this.value)" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
+                  <option value="">-- Pilih Sub Kegiatan --</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Monthly Table -->
+          <div id="monitoring-detail" class="glass-panel rounded-xl shadow-lg overflow-hidden hidden">
+            <div class="p-4 border-b bg-gradient-to-r from-blue-900 to-indigo-900">
+              <h3 id="monitoring-title" class="font-bold text-white uppercase tracking-wider"></h3>
+              <p id="monitoring-subtitle" class="text-blue-100 text-xs mt-1"></p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                <thead class="bg-gray-50 dark:bg-slate-800">
+                  <tr>
+                    <th class="px-3 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Bulan</th>
+                    <th class="px-3 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Anggaran Kas</th>
+                    <th class="px-3 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Realisasi</th>
+                    <th class="px-3 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Sisa</th>
+                    <th class="px-3 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">% Serap</th>
+                    <th class="px-3 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Indikator</th>
+                    <th class="px-3 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Target</th>
+                    <th class="px-3 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Realisasi Kinerja</th>
+                    <th class="px-3 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">% Kinerja</th>
+                    <th class="px-3 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Kendala</th>
+                  </tr>
+                </thead>
+                <tbody id="monitoring-table-body" class="divide-y bg-white dark:bg-slate-900">
+                </tbody>
+                <tfoot class="bg-gray-50 dark:bg-slate-800/50">
+                  <tr>
+                    <td class="px-3 py-3 text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">Total</td>
+                    <td class="px-3 py-3 text-right text-sm font-bold text-gray-900 dark:text-white" id="mon-total-angkas">0</td>
+                    <td class="px-3 py-3 text-right text-sm font-bold text-emerald-600 dark:text-emerald-400" id="mon-total-realisasi">0</td>
+                    <td class="px-3 py-3 text-right text-sm font-bold text-gray-900 dark:text-white" id="mon-total-sisa">0</td>
+                    <td class="px-3 py-3 text-center text-sm font-bold text-gray-900 dark:text-white" id="mon-total-persen">0%</td>
+                    <td class="px-3 py-3" colspan="5"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- KENDALA VIEW -->
+        <div id="view-kendala" class="view-section space-y-6">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Kendala & Tindak Lanjut</h2>
+              <p class="text-gray-500 dark:text-gray-400">Catatan permasalahan dan solusi penatausahaan</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1">
+              <div class="glass-panel p-5 rounded-xl shadow-lg">
+                <h3 class="font-bold text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-slate-700 pb-3 uppercase text-sm tracking-wider">
+                  <i class="fas fa-edit mr-2 text-orange-600 dark:text-orange-400"></i>Input Kendala
+                </h3>
+                <div class="space-y-4 mt-4">
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Sub Kegiatan</label>
+                    <select id="kendala-sub-kegiatan" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:text-white">
+                      <option value="">-- Pilih --</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Bulan</label>
+                    <select id="kendala-bulan" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:text-white">
+                      <option value="Januari">Januari</option>
+                      <option value="Februari">Februari</option>
+                      <option value="Maret">Maret</option>
+                      <option value="April">April</option>
+                      <option value="Mei">Mei</option>
+                      <option value="Juni">Juni</option>
+                      <option value="Juli">Juli</option>
+                      <option value="Agustus">Agustus</option>
+                      <option value="September">September</option>
+                      <option value="Oktober">Oktober</option>
+                      <option value="November">November</option>
+                      <option value="Desember">Desember</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Permasalahan</label>
+                    <textarea id="kendala-permasalahan" rows="4" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:text-white" placeholder="Deskripsikan permasalahan..."></textarea>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Solusi / Tindak Lanjut</label>
+                    <textarea id="kendala-solusi" rows="4" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:text-white" placeholder="Deskripsikan solusi..."></textarea>
+                  </div>
+                  <button onclick="simpanKendala()" class="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-2 rounded text-sm uppercase transition shadow">
+                    <i class="fas fa-save mr-2"></i>Simpan Kendala
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="lg:col-span-2">
+              <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
+                <div class="p-4 border-b bg-gray-100 dark:bg-slate-800">
+                  <h3 class="font-bold text-gray-800 dark:text-gray-200 uppercase text-sm tracking-wider flex items-center">
+                    <i class="fas fa-list mr-2 text-gray-600 dark:text-gray-400"></i>Daftar Kendala
+                  </h3>
+                </div>
+                <div id="kendala-table" class="divide-y">
+                  <div class="p-8 text-center text-gray-400 dark:text-gray-500">Belum ada data kendala</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VALIDASI VIEW -->
+        <div id="view-validasi" class="view-section space-y-6">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Validasi Data</h2>
+              <p class="text-gray-500 dark:text-gray-400">Cross-check DPA vs Anggaran Kas</p>
+            </div>
+            <button onclick="loadValidasi()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
+              <i class="fas fa-sync-alt mr-2"></i>Refresh
+            </button>
+          </div>
+          
+          <!-- Summary Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="glass-panel p-6 rounded-xl shadow-lg">
+              <p class="text-sm text-gray-500 dark:text-gray-400 uppercase font-semibold mb-1">Total DPA</p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white" id="val-total-pagu">Rp 0</p>
+            </div>
+            <div class="glass-panel p-6 rounded-xl shadow-lg">
+              <p class="text-sm text-gray-500 dark:text-gray-400 uppercase font-semibold mb-1">Total Anggaran Kas</p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white" id="val-total-angkas">Rp 0</p>
+            </div>
+            <div class="glass-panel p-6 rounded-xl shadow-lg">
+              <p class="text-sm text-gray-500 dark:text-gray-400 uppercase font-semibold mb-1">Selisih</p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white" id="val-selisih">Rp 0</p>
+            </div>
+          </div>
+          
+          <!-- Validation Table -->
+          <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
+            <div class="p-4 border-b bg-gray-100 dark:bg-slate-800">
+              <h3 class="font-bold text-gray-800 dark:text-gray-200 uppercase text-sm tracking-wider flex items-center">
+                <i class="fas fa-check-double mr-2 text-emerald-600 dark:text-emerald-400"></i>Validasi per Sub Kegiatan
+              </h3>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                <thead class="bg-gray-50 dark:bg-slate-800">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Kode</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Sub Kegiatan</th>
+                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Pagu DPA</th>
+                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Anggaran Kas</th>
+                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Selisih</th>
+                    <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="validasi-table-body" class="divide-y bg-white dark:bg-slate-900">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- LAPORAN VIEW -->
+        <div id="view-laporan" class="view-section space-y-6">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Laporan</h2>
+              <p class="text-gray-500 dark:text-gray-400">Export dan cetak laporan penatausahaan</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="glass-panel p-6 rounded-xl shadow-lg">
+              <h3 class="font-bold text-blue-900 dark:text-blue-300 border-b border-gray-200 dark:border-slate-700 pb-3 uppercase text-sm tracking-wider flex items-center">
+                <i class="fas fa-file-excel mr-2"></i>Export Monitoring RFK
+              </h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-3 mb-4">Generate file Excel sesuai format RFK resmi</p>
+              <button onclick="exportMonitoring()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded text-sm uppercase transition shadow">
+                <i class="fas fa-file-export mr-2"></i>Export ke Excel (.xlsx)
+              </button>
+            </div>
+            
+            <div class="glass-panel p-6 rounded-xl shadow-lg">
+              <h3 class="font-bold text-blue-900 dark:text-blue-300 border-b border-gray-200 dark:border-slate-700 pb-3 uppercase text-sm tracking-wider flex items-center">
+                <i class="fas fa-chart-pie mr-2"></i>Laporan Summary
+              </h3>
+              <div class="mt-4 space-y-3">
+                <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-slate-700">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Total Pagu Anggaran</span>
+                  <span class="text-sm font-bold text-gray-900 dark:text-white" id="lap-total-pagu">-</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-slate-700">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Total Anggaran Kas</span>
+                  <span class="text-sm font-bold text-gray-900 dark:text-white" id="lap-total-angkas">-</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-slate-700">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Total Realisasi SPJ</span>
+                  <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400" id="lap-total-realisasi">-</span>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Persen Serapan</span>
+                  <span class="text-sm font-bold text-gray-900 dark:text-white" id="lap-persen-serap">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-[10000] space-y-2"></div>
+
+
+  <script>
+    // ==================== GLOBAL VARIABLES ====================
+    let currentUser = { email: '', role: 'VIEWER', nama: '' };
+    let masterHierarki = {};
+    let spjAntrean = [];
+    let monitoringData = [];
+    let dashboardChart = null;
+    
+    const APP_CONFIG = {
+      timezone: 'Asia/Jakarta',
+      tahun: '2026'
+    };
+
+    const BULAN_INDONESIA = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+
+    // ==================== UTILITIES ====================
+    function formatRupiah(angka) {
+      if (!angka || angka === 0) return 'Rp 0';
+      return 'Rp ' + new Intl.NumberFormat('id-ID').format(angka);
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const date = new Date(dateStr);
+      const options = { day: 'numeric', month: 'short', year: 'numeric' };
+      return date.toLocaleDateString('id-ID', options);
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const icons = {
+        info: 'fa-info-circle text-blue-500',
+        success: 'fa-check-circle text-green-500',
+        error: 'fa-exclamation-circle text-red-500'
+      };
+      toast.className = `flex items-center px-4 py-3 rounded-lg shadow-lg mb-2 bg-white dark:bg-slate-800 border-l-4 ${
+        type === 'success' ? 'border-green-500' : type === 'error' ? 'border-red-500' : 'border-blue-500'
+      } animate-fade-in`;
+      toast.innerHTML = `
+        <i class="fas ${icons[type] || icons.info} text-xl mr-3"></i>
+        <p class="font-semibold text-sm text-gray-800 dark:text-gray-200">${message}</p>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.transition = 'all 0.5s';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 500);
+      }, 3000);
+    }
+
+    function showLoading(show, text = 'Memproses...') {
+      const loader = document.getElementById('loading');
+      document.getElementById('loading-text').textContent = text;
+      loader.style.display = show ? 'flex' : 'none';
+    }
+
+    // ==================== DARK MODE ====================
+    function toggleDarkMode() {
+      const isDark = document.body.classList.toggle('dark');
+      const icon = document.getElementById('dark-mode-icon');
+      icon.className = isDark ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl';
+      showToast(isDark ? 'Mode gelap diaktifkan' : 'Mode terang diaktifkan', 'info');
+    }
+
+    // ==================== AUTH & NAVIGATION ====================
+    function handleLogin() {
+      const user = document.getElementById('login-user').value.toLowerCase().trim();
+      const pass = document.getElementById('login-pass').value.trim();
+      const alertBox = document.getElementById('login-alert');
+      const alertText = document.getElementById('login-alert-text');
+      
+      alertBox.classList.add('hidden');
+      showLoading(true, 'Validasi akun...');
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) {
+            currentUser = res.user;
+            document.getElementById('txt-user').textContent = res.user.nama;
+            document.getElementById('txt-role').textContent = res.user.role;
+            
+            if (['ADMIN', 'OPERATOR', 'PPTK'].includes(res.user.role)) {
+              document.getElementById('mobile-nav').style.display = 'flex';
+            } else {
+              document.getElementById('mobile-nav').style.display = 'none';
+            }
+
+            loadDashboard();
+            showView('dashboard');
+            showToast('Login berhasil!', 'success');
+            document.getElementById('screen-login').classList.add('hidden');
+            document.getElementById('screen-workspace').classList.remove('hidden');
+          } else {
+            alertText.textContent = res.message || 'Login gagal!';
+            alertBox.classList.remove('hidden');
+            showLoading(false);
+          }
+        })
+        .withFailureHandler(function(err) {
+          alertText.textContent = 'Error: ' + err.message;
+          alertBox.classList.remove('hidden');
+          showLoading(false);
+        })
+        .prosesLoginKustom(user, pass);
+    }
+
+    function handleLogout() {
+      currentUser = { email: '', role: 'VIEWER', nama: '' };
+      document.getElementById('screen-workspace').classList.add('hidden');
+      document.getElementById('screen-login').classList.remove('hidden');
+      showToast('Logout berhasil!', 'info');
+    }
+
+    function toggleChangePassword() {
+      const form = document.getElementById('change-pass-form');
+      form.classList.toggle('hidden');
+      if (!form.classList.contains('hidden')) {
+        document.getElementById('old-pass').value = '';
+        document.getElementById('new-pass').value = '';
+        document.getElementById('confirm-pass').value = '';
+      }
+    }
+
+    function handleUbahPassword() {
+      const oldPass = document.getElementById('old-pass').value;
+      const newPass = document.getElementById('new-pass').value;
+      const confirmPass = document.getElementById('confirm-pass').value;
+      
+      if (!oldPass || !newPass || !confirmPass) {
+        showToast('Semua field harus diisi!', 'error');
+        return;
+      }
+      
+      if (newPass !== confirmPass) {
+        showToast('Password baru tidak cocok!', 'error');
+        return;
+      }
+      
+      if (newPass.length < 6) {
+        showToast('Password baru minimal 6 karakter!', 'error');
+        return;
+      }
+      
+      showLoading(true, 'Mengubah password...');
+      
+      google.script.run
+        .withSuccessHandler(function(res) {
+          showLoading(false);
+          if (res.success) {
+            showToast(res.message || 'Password berhasil diubah!', 'success');
+            toggleChangePassword();
+          } else {
+            showToast(res.message || 'Gagal mengubah password!', 'error');
+          }
+        })
+        .withFailureHandler(function(err) {
+          showLoading(false);
+          showToast('Error: ' + err.message, 'error');
+        })
+        .ubahPassword(oldPass, newPass);
+    }
+
+    function showView(viewId) {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById('view-' + viewId);
+      if (target) target.classList.add('active');
+
+      document.querySelectorAll('.sidebar-link').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.view === viewId) item.classList.add('active');
+      });
+
+      document.querySelectorAll('.nav-link-mobile').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.view === viewId) item.classList.add('active');
+      });
+
+      if (viewId === 'dashboard') loadDashboard();
+      if (viewId === 'dpa') loadDPAList();
+      if (viewId === 'monitoring') loadMonitoringList();
+      if (viewId === 'validasi') loadValidasi();
+    }
+
+    // ==================== DASHBOARD ====================
+    function loadDashboard() {
+      showLoading(true, 'Memuat dashboard...');
+      google.script.run
+        .withSuccessHandler(function(stats) {
+          document.getElementById('dash-pagu').textContent = formatRupiah(stats.totalPagu || 0);
+          document.getElementById('dash-angkas').textContent = formatRupiah(stats.totalAngkas || 0);
+          document.getElementById('dash-realisasi').textContent = formatRupiah(stats.totalRealisasi || 0);
+          document.getElementById('dash-servasPercent').textContent = stats.persenSerap + '% dari pagu';
+          document.getElementById('dash-total-spj').textContent = stats.jumlahSPJ || 0;
+          document.getElementById('dash-subkeg-count').textContent = stats.jumlahSubKegiatan + ' Sub Kegiatan';
+          
+          document.getElementById('dash-spj-draf').textContent = (stats.spjPerStatus.Draft || 0) + ' Draf';
+          document.getElementById('dash-spj-dibayar').textContent = (stats.spjPerStatus.Dibayar || 0) + ' Dibayar';
+          
+          renderDashboardChart(stats);
+          renderRecentSPJ();
+          
+          document.getElementById('lap-total-pagu').textContent = formatRupiah(stats.totalPagu || 0);
+          document.getElementById('lap-total-angkas').textContent = formatRupiah(stats.totalAngkas || 0);
+          document.getElementById('lap-total-realisasi').textContent = formatRupiah(stats.totalRealisasi || 0);
+          document.getElementById('lap-persen-serap').textContent = stats.persenSerap + '%';
+          
+          showLoading(false);
+        })
+        .getDashboardStats();
+    }
+
+    function renderDashboardChart(stats) {
+      const ctx = document.getElementById('dashboardChart');
+      if (ctx) {
+        if (dashboardChart) dashboardChart.destroy();
+        
+        google.script.run
+          .withSuccessHandler(function(dpaList) {
+            const labels = dpaList.map(d => d.kode);
+            const paguData = dpaList.map(d => d.pagu || 0);
+            const angkasData = dpaList.map(d => d.angkas || 0);
+            
+            const isDark = document.body.classList.contains('dark');
+            const textColor = isDark ? '#f1f5f9' : '#374151';
+            const gridColor = isDark ? '#334155' : '#e5e7eb';
+            
+            dashboardChart = new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [
+                  {
+                    label: 'Pagu (Rp)',
+                    data: paguData,
+                    backgroundColor: '#3b82f6',
+                    borderColor: '#2563eb',
+                    borderWidth: 1,
+                    borderRadius: 4
+                  },
+                  {
+                    label: 'Anggaran Kas (Rp)',
+                    data: angkasData,
+                    backgroundColor: '#10b981',
+                    borderColor: '#059669',
+                    borderWidth: 1,
+                    borderRadius: 4
+                  }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    labels: { color: textColor }
+                  },
+                  title: { display: false }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      color: textColor,
+                      callback: function(value) {
+                        return 'Rp ' + (value / 1000000) + 'J';
+                      }
+                    },
+                    grid: { color: gridColor }
+                  },
+                  x: {
+                    ticks: { color: textColor },
+                    grid: { display: false }
+                  }
+                }
+              }
+            });
+          })
+          .getDpaList();
+      }
+    }
+
+    function renderRecentSPJ() {
+      const container = document.getElementById('recent-spj-list');
+      google.script.run
+        .withSuccessHandler(function(spjList) {
+          container.innerHTML = '';
+          const recent = spjList.slice(0, 5);
+          
+          if (recent.length === 0) {
+            container.innerHTML = '<p class="text-center text-gray-400 dark:text-gray-500 text-sm py-4">Belum ada SPJ</p>';
+            return;
+          }
+          
+          recent.forEach(spj => {
+            const row = document.createElement('div');
+            row.className = 'flex justify-between items-center py-3 border-b border-gray-100 dark:border-slate-700 last:border-0';
+            row.innerHTML = `
+              <div>
+                <p class="font-mono text-xs font-bold text-blue-900 dark:text-blue-400">${spj.nomor_spj}</p>
+                <p class="text-[10px] text-gray-500 dark:text-gray-400">${formatDate(spj.tanggal)} | ${spj.pptk}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-xs font-bold text-gray-900 dark:text-white">${formatRupiah(spj.total)}</p>
+                <span class="inline-block px-2 py-1 rounded text-[10px] font-semibold ${
+                  spj.status === 'Dibayar' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                }">
+                  ${spj.status}
+                </span>
+              </div>
+            `;
+            container.appendChild(row);
+          });
+        })
+        .getDaftarSpj();
+    }

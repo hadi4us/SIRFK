@@ -53,7 +53,7 @@ const RFK_CACHE_KEYS = [
   'rfk_monitoring_v13',
   'rfk_kendala_v13',
   'rfk_validasi_v13',
-  'rfk_dpa_hierarki_v13',
+  'rfk_dpa_hierarki_v14',
   'rfk_spj_list_v13'
 ];
 
@@ -887,7 +887,7 @@ function getDpaList() { return cacheJson_('rfk_dpa_list_v14', getDpaList_uncache
 function getMonitoringRFKData() { return cacheJson_('rfk_monitoring_v13', getMonitoringRFKData_uncached_); }
 function getKendalaList() { return cacheJson_('rfk_kendala_v13', getKendalaList_uncached_); }
 function getValidasiAngkas() { return cacheJson_('rfk_validasi_v13', getValidasiAngkas_uncached_); }
-function getDpaHierarkiTigaTingkat() { return cacheJson_('rfk_dpa_hierarki_v13', getDpaHierarkiTigaTingkat_uncached_, 300); }
+function getDpaHierarkiTigaTingkat() { return cacheJson_('rfk_dpa_hierarki_v14', getDpaHierarkiTigaTingkat_uncached_, 300); }
 function getDaftarSpj() { return cacheJson_('rfk_spj_list_v13', getDaftarSpj_uncached_); }
 
 function getDashboardStats_uncached_() {
@@ -1184,6 +1184,9 @@ function getDpaHierarkiTigaTingkat_uncached_() {
       sub_kegiatan_nama: item.sub_kegiatan_nama,
       kode_rekening: kodeRek,
       uraian_belanja: item.uraian_belanja,
+      detail_kegiatan: item.detail_kegiatan,
+      sub_rincian: item.sub_rincian,
+      display_text: [item.uraian_belanja, item.detail_kegiatan, item.sub_rincian].filter(Boolean).join(' — '),
       pagu: item.pagu_total,
       sumber_dana: item.sumber_dana
     });

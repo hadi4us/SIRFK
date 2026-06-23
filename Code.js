@@ -49,7 +49,7 @@ const APP = {
 
 const RFK_CACHE_KEYS = [
   'rfk_dashboard_v13',
-  'rfk_dpa_list_v13',
+  'rfk_dpa_list_v14',
   'rfk_monitoring_v13',
   'rfk_kendala_v13',
   'rfk_validasi_v13',
@@ -593,6 +593,11 @@ function getDpaRows_() {
   const sheet = getSheet_(APP.SHEETS.MASTER_DPA);
   if (!sheet || sheet.getLastRow() < 2) return [];
   const data = sheet.getDataRange().getValues();
+  const headerMap = getHeaderIndexMap_(sheet);
+  const idxDetail = headerMap[normalizeKey_('detail_kegiatan')];
+  const idxSubRincian = headerMap[normalizeKey_('sub_rincian')];
+  const idxLevel = headerMap[normalizeKey_('level_rincian')];
+  const idxSource = headerMap[normalizeKey_('source_pdf')];
   const rows = [];
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
@@ -612,7 +617,11 @@ function getDpaRows_() {
       uraian_belanja: safeString_(row[COL_DPA.URAIAN_BELANJA]),
       pagu_total: asNumber_(row[COL_DPA.PAGU_TOTAL]),
       sumber_dana: safeString_(row[COL_DPA.SUMBER_DANA]),
-      tahun: safeString_(row[COL_DPA.TAHUN] || APP.TAHUN_DEFAULT)
+      tahun: safeString_(row[COL_DPA.TAHUN] || APP.TAHUN_DEFAULT),
+      detail_kegiatan: idxDetail !== undefined ? safeString_(row[idxDetail]) : '',
+      sub_rincian: idxSubRincian !== undefined ? safeString_(row[idxSubRincian]) : '',
+      level_rincian: idxLevel !== undefined ? safeString_(row[idxLevel]) : '',
+      source_pdf: idxSource !== undefined ? safeString_(row[idxSource]) : ''
     });
   }
   return rows;
@@ -874,7 +883,7 @@ function getRealisasiAggregates_(statusFilter) {
  * Public read functions
  ***************************************************************************/
 function getDashboardStats() { return cacheJson_('rfk_dashboard_v13', getDashboardStats_uncached_); }
-function getDpaList() { return cacheJson_('rfk_dpa_list_v13', getDpaList_uncached_); }
+function getDpaList() { return cacheJson_('rfk_dpa_list_v14', getDpaList_uncached_); }
 function getMonitoringRFKData() { return cacheJson_('rfk_monitoring_v13', getMonitoringRFKData_uncached_); }
 function getKendalaList() { return cacheJson_('rfk_kendala_v13', getKendalaList_uncached_); }
 function getValidasiAngkas() { return cacheJson_('rfk_validasi_v13', getValidasiAngkas_uncached_); }
@@ -928,12 +937,46 @@ function getDpaList_uncached_() {
   const angkasMap = getAngkasMap_();
   const validAgg = getRealisasiAggregates_(APP.REALISASI_VALID_STATUSES);
   const list = [];
+  const angkasDetailByKey = {};
+  Object.keys(angkasMap).forEach(function(subKode) {
+    const details = Array.isArray(angkasMap[subKode].details) ? angkasMap[subKode].details : [];
+    details.forEach(function(d) {
+      const key = [subKode, d.kode_rekening, d.uraian_belanja].map(normalizeKey_).join('|');
+      if (!angkasDetailByKey[key]) angkasDetailByKey[key] = { total: 0, metode_alokasi: '', sub_rincian: '', detail_kegiatan: '' };
+      angkasDetailByKey[key].total += asNumber_(d.total);
+      if (d.metode_alokasi) angkasDetailByKey[key].metode_alokasi = d.metode_alokasi;
+      if (d.sub_rincian) angkasDetailByKey[key].sub_rincian = d.sub_rincian;
+      if (d.detail_kegiatan) angkasDetailByKey[key].detail_kegiatan = d.detail_kegiatan;
+    });
+  });
 
   Object.keys(maps.subCodeInfo).sort().forEach(function(kode) {
     const info = maps.subCodeInfo[kode];
     const angkas = angkasMap[kode] || { total: 0, totalBulanan: 0, totalTw: 0 };
     const realisasi = validAgg.bySub[kode] || 0;
     const selisihPaguAngkas = info.pagu - asNumber_(angkas.total);
+    const rincian = maps.rows.filter(function(row) { return row.sub_kegiatan_kode === kode; }).map(function(row) {
+      const dpaKey = row.id_dpa || [row.sub_kegiatan_kode, row.kode_rekening, row.uraian_belanja].map(normalizeKey_).join('|');
+      const exactKey = [row.sub_kegiatan_kode, row.kode_rekening, row.uraian_belanja].map(normalizeKey_).join('|');
+      const angkasDetail = angkasDetailByKey[exactKey] || {};
+      const pagu = asNumber_(row.pagu_total);
+      const angkasNilai = asNumber_(angkasDetail.total);
+      const realisasiNilai = asNumber_(validAgg.byDpa[dpaKey]);
+      return {
+        idDpa: row.id_dpa,
+        kodeRekening: row.kode_rekening,
+        uraianBelanja: row.uraian_belanja,
+        detailKegiatan: row.detail_kegiatan || angkasDetail.detail_kegiatan || row.uraian_belanja,
+        namaUraianKegiatan: row.detail_kegiatan || angkasDetail.detail_kegiatan || row.uraian_belanja,
+        subRincian: row.sub_rincian || angkasDetail.sub_rincian || '-',
+        pagu: pagu,
+        angkas: angkasNilai,
+        realisasi: realisasiNilai,
+        sisaKas: angkasNilai - realisasiNilai,
+        metodeAlokasi: angkasDetail.metode_alokasi || '',
+        sumberDana: row.sumber_dana
+      };
+    });
     list.push({
       kode: kode,
       nama: info.nama,
@@ -947,7 +990,8 @@ function getDpaList_uncached_() {
       sisaPagu: info.pagu - realisasi,
       sisaKas: asNumber_(angkas.total) - realisasi,
       persen: info.pagu > 0 ? round2_(asNumber_(angkas.total) / info.pagu * 100) : 0,
-      persenSerap: info.pagu > 0 ? round2_(realisasi / info.pagu * 100) : 0
+      persenSerap: info.pagu > 0 ? round2_(realisasi / info.pagu * 100) : 0,
+      rincian: rincian
     });
   });
   return list;

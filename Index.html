@@ -514,9 +514,15 @@
             </div>
           </div>
           
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="grid grid-cols-1 gap-6">
             <!-- Form Input -->
-            <div class="lg:col-span-1 space-y-6">
+            <div class="space-y-6">
+              <div class="flex justify-end">
+                <button type="button" onclick="toggleSpjForm()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow">
+                  <i id="spj-form-toggle-icon" class="fas fa-chevron-up mr-2"></i><span id="spj-form-toggle-text">Sembunyikan Form Input</span>
+                </button>
+              </div>
+              <div id="spj-form-panel" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div class="glass-panel p-5 rounded-xl shadow-lg">
                 <h3 class="font-bold text-blue-900 dark:text-blue-300 border-b border-gray-200 dark:border-slate-700 pb-3 uppercase text-sm tracking-wider">
                   <i class="fas fa-info-circle mr-2"></i>Identitas SPJ
@@ -624,12 +630,13 @@
             </div>
 
             <!-- SPJ List -->
-            <div class="lg:col-span-2">
+            <div>
               <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
-                <div class="p-4 border-b bg-gradient-to-r from-gray-800 to-gray-900">
+                <div class="p-4 border-b bg-gradient-to-r from-gray-800 to-gray-900 flex items-center justify-between gap-3">
                   <h3 class="font-bold text-white uppercase text-sm tracking-wider flex items-center">
                     <i class="fas fa-book mr-2"></i>Buku Kendali SPJ
                   </h3>
+                  <button type="button" onclick="loadSPJList(true)" class="px-3 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white text-xs font-bold"><i class="fas fa-sync-alt mr-1"></i>Refresh</button>
                 </div>
                 <div class="overflow-x-auto">
                   <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
@@ -1164,6 +1171,31 @@
       const saved = localStorage.getItem('sidebarVisible');
       const desktop = window.matchMedia('(min-width: 768px)').matches;
       setSidebarVisible(saved === null ? desktop : saved === '1');
+      restoreSpjFormState();
+    }
+
+    function setSpjFormVisible(visible) {
+      const panel = document.getElementById('spj-form-panel');
+      const icon = document.getElementById('spj-form-toggle-icon');
+      const text = document.getElementById('spj-form-toggle-text');
+      if (!panel) return;
+      panel.classList.toggle('hidden', !visible);
+      localStorage.setItem('spjFormVisible', visible ? '1' : '0');
+      if (icon && text) {
+        icon.className = visible ? 'fas fa-chevron-up mr-2' : 'fas fa-chevron-down mr-2';
+        text.textContent = visible ? 'Sembunyikan Form Input' : 'Tampilkan Form Input';
+      }
+    }
+
+    function toggleSpjForm() {
+      const panel = document.getElementById('spj-form-panel');
+      const isVisible = panel && !panel.classList.contains('hidden');
+      setSpjFormVisible(!isVisible);
+    }
+
+    function restoreSpjFormState() {
+      const saved = localStorage.getItem('spjFormVisible');
+      setSpjFormVisible(saved === null || saved === '1');
     }
 
     // ==================== AUTH & NAVIGATION ====================
@@ -2314,8 +2346,14 @@
     window.showLoading = showLoading;
     window.toggleDarkMode = toggleDarkMode;
     window.setSidebarVisible = setSidebarVisible;
+    window.restoreSpjFormState = restoreSpjFormState;
+    window.toggleSpjForm = toggleSpjForm;
+    window.setSpjFormVisible = setSpjFormVisible;
     window.toggleSidebar = toggleSidebar;
     window.restoreSidebarState = restoreSidebarState;
+    window.restoreSpjFormState = restoreSpjFormState;
+    window.toggleSpjForm = toggleSpjForm;
+    window.setSpjFormVisible = setSpjFormVisible;
     window.handleLogin = handleLogin;
     window.handleLogout = handleLogout;
     window.resetChangePasswordForm = resetChangePasswordForm;

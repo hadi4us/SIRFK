@@ -747,6 +747,18 @@
               <p class="text-gray-500 dark:text-gray-400">Catatan permasalahan dan solusi penatausahaan</p>
             </div>
           </div>
+
+          <div class="glass-panel rounded-xl shadow-lg overflow-hidden mb-6">
+            <div class="p-4 border-b bg-red-50 dark:bg-red-900/20">
+              <h3 class="font-bold text-red-700 dark:text-red-300 uppercase text-sm tracking-wider flex items-center">
+                <i class="fas fa-triangle-exclamation mr-2"></i>Kegiatan Bermasalah Prioritas
+              </h3>
+              <p class="text-xs text-red-600 dark:text-red-300 mt-1">Menampilkan rincian uraian kegiatan yang realisasi/pagu/angkasnya tidak sesuai.</p>
+            </div>
+            <div id="kendala-issues-table" class="divide-y bg-white dark:bg-slate-900">
+              <div class="p-6 text-center text-gray-400">Memuat kegiatan bermasalah...</div>
+            </div>
+          </div>
           
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-1">
@@ -803,6 +815,35 @@
                 <div id="kendala-table" class="divide-y">
                   <div class="p-8 text-center text-gray-400 dark:text-gray-500">Belum ada data kendala</div>
                 </div>
+              </div>
+            </div>
+          </div>
+          <div id="kendala-modal" class="hidden fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+            <div class="max-w-lg mx-auto bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+              <div class="px-5 py-4 bg-orange-600 text-white flex items-start justify-between gap-3">
+                <div>
+                  <h3 class="font-bold text-lg"><i class="fas fa-edit mr-2"></i>Input Kendala</h3>
+                  <p id="kendala-modal-title" class="text-xs text-orange-100 mt-1"></p>
+                </div>
+                <button type="button" onclick="closeKendalaModal()" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm font-bold">Tutup</button>
+              </div>
+              <div class="p-5 space-y-4">
+                <input type="hidden" id="modal-kendala-subkode">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Bulan</label>
+                  <select id="modal-kendala-bulan" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded dark:text-white"></select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Permasalahan</label>
+                  <textarea id="modal-kendala-permasalahan" rows="4" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded dark:text-white"></textarea>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Solusi / Tindak Lanjut</label>
+                  <textarea id="modal-kendala-solusi" rows="4" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded dark:text-white" placeholder="Rencana tindak lanjut..."></textarea>
+                </div>
+                <button onclick="simpanKendalaModal()" class="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 to-red-700 text-white font-bold py-2 rounded text-sm uppercase transition shadow">
+                  <i class="fas fa-save mr-2"></i>Simpan Kendala
+                </button>
               </div>
             </div>
           </div>
@@ -1651,6 +1692,7 @@
           fillSelect(document.getElementById('kendala-sub-kegiatan'), monitoringData, 'kode', function(row) { return row.kode + ' - ' + row.nama; }, '-- Pilih --');
           const detail = document.getElementById('monitoring-detail');
           if (detail) detail.classList.add('hidden');
+          loadKendalaIssues();
           loadKendalaList(false);
           showLoading(false);
         })
@@ -1786,6 +1828,93 @@
     }
 
     // ==================== KENDALA ====================
+    function getKendalaIssues() {
+      const issues = [];
+      (monitoringData || []).forEach(function(sub) {
+        (sub.rincian || []).forEach(function(row) {
+          const pagu = Number(row.pagu || 0);
+          const angkas = Number(row.angkas || 0);
+          const problems = [];
+          if (Math.abs(pagu - angkas) > 1) problems.push('Pagu DPA tidak sama dengan Angkas RAK');
+          (row.monthly || []).forEach(function(m) {
+            if (m.statusJadwal === 'SEBELUM_JADWAL') problems.push('Realisasi sebelum jadwal: ' + m.bulan);
+            if (m.statusJadwal === 'MELEBIHI_JADWAL') problems.push('Realisasi melebihi angkas: ' + m.bulan);
+          });
+          if (problems.length) issues.push({ sub: sub, row: row, problems: problems });
+        });
+      });
+      return issues;
+    }
+
+    function loadKendalaIssues() {
+      const wrap = document.getElementById('kendala-issues-table');
+      if (!wrap) return;
+      const issues = getKendalaIssues();
+      wrap.innerHTML = '';
+      if (!issues.length) {
+        wrap.innerHTML = '<div class="p-6 text-center text-emerald-600 dark:text-emerald-400 font-semibold">Tidak ada kegiatan bermasalah.</div>';
+        return;
+      }
+      issues.forEach(function(issue, idx) {
+        const row = issue.row;
+        const card = document.createElement('div');
+        card.className = 'p-4 hover:bg-red-50/60 dark:hover:bg-slate-800/70 transition';
+        card.innerHTML = '<div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3">' +
+          '<div class="min-w-0"><p class="font-mono text-[11px] font-bold text-blue-900 dark:text-blue-300">' + escapeHtml(issue.sub.kode) + ' / ' + escapeHtml(row.kodeRekening || '') + '</p>' +
+          '<p class="text-sm font-bold text-gray-800 dark:text-gray-100 mt-1">' + escapeHtml(row.namaUraianKegiatan || row.uraianBelanja || '-') + '</p>' +
+          '<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">' + escapeHtml(row.uraianBelanja || '-') + ' | ' + escapeHtml(row.subRincian || '-') + '</p>' +
+          '<p class="text-xs mt-2"><b>Pagu:</b> ' + formatRupiah(row.pagu || 0) + ' | <b>Angkas:</b> ' + formatRupiah(row.angkas || 0) + ' | <b>Realisasi:</b> ' + formatRupiah(row.realisasi || 0) + '</p>' +
+          '<div class="mt-2 flex flex-wrap gap-1">' + issue.problems.map(function(p) { return '<span class="px-2 py-1 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-[10px] font-bold">' + escapeHtml(p) + '</span>'; }).join('') + '</div></div>' +
+          '<button type="button" onclick="openKendalaModal(' + idx + ')" class="shrink-0 px-3 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold"><i class="fas fa-edit mr-1"></i>Input Kendala</button>' +
+          '</div>';
+        wrap.appendChild(card);
+      });
+      window.kendalaIssuesCache = issues;
+    }
+
+    function openKendalaModal(idx) {
+      const issue = (window.kendalaIssuesCache || [])[idx];
+      if (!issue) return;
+      const firstBadMonth = (issue.row.monthly || []).find(function(m) { return m.statusJadwal && m.statusJadwal !== 'SESUAI_JADWAL'; });
+      document.getElementById('modal-kendala-subkode').value = issue.sub.kode;
+      document.getElementById('kendala-modal-title').textContent = issue.sub.kode + ' — ' + (issue.row.namaUraianKegiatan || issue.row.uraianBelanja || '-');
+      const bulan = document.getElementById('modal-kendala-bulan');
+      bulan.innerHTML = APP_CONFIG.bulan.map(function(b) { return '<option value="' + b + '">' + b + '</option>'; }).join('');
+      bulan.value = firstBadMonth ? firstBadMonth.bulan : APP_CONFIG.bulan[0];
+      document.getElementById('modal-kendala-permasalahan').value = issue.problems.join('; ') + '. ' + (issue.row.namaUraianKegiatan || issue.row.uraianBelanja || '-');
+      document.getElementById('modal-kendala-solusi').value = '';
+      document.getElementById('kendala-modal').classList.remove('hidden');
+    }
+
+    function closeKendalaModal() {
+      document.getElementById('kendala-modal').classList.add('hidden');
+    }
+
+    function simpanKendalaModal() {
+      const data = {
+        subKode: document.getElementById('modal-kendala-subkode').value,
+        bulan: document.getElementById('modal-kendala-bulan').value,
+        tahun: APP_CONFIG.tahun,
+        permasalahan: document.getElementById('modal-kendala-permasalahan').value.trim(),
+        solusi: document.getElementById('modal-kendala-solusi').value.trim(),
+        status: 'Belum Ditangani',
+        inputBy: currentUser.email || currentUser.nama || 'web'
+      };
+      if (!data.subKode || !data.permasalahan) { showToast('Sub kegiatan dan permasalahan wajib lengkap.', 'error'); return; }
+      showLoading(true, 'Menyimpan kendala...');
+      google.script.run
+        .withSuccessHandler(function(res) {
+          showLoading(false);
+          if (res && res.success) {
+            closeKendalaModal();
+            showToast('Kendala berhasil disimpan', 'success');
+            loadKendalaList(false);
+          } else showToast('Gagal menyimpan kendala', 'error');
+        })
+        .withFailureHandler(failToast('Gagal menyimpan kendala'))
+        .simpanKendala(data, currentSessionToken);
+    }
+
     function loadKendalaList(showSpinner) {
       if (showSpinner) showLoading(true, 'Memuat kendala...');
       google.script.run
@@ -2254,6 +2383,11 @@
     window.loadMonitoringDetail = loadMonitoringDetail;
     window.exportMonitoring = exportMonitoring;
     window.loadValidasi = loadValidasi;
+    window.getKendalaIssues = getKendalaIssues;
+    window.loadKendalaIssues = loadKendalaIssues;
+    window.openKendalaModal = openKendalaModal;
+    window.closeKendalaModal = closeKendalaModal;
+    window.simpanKendalaModal = simpanKendalaModal;
     window.loadKendalaList = loadKendalaList;
     window.simpanKendala = simpanKendala;
     window.ensureMonthInputs = ensureMonthInputs;

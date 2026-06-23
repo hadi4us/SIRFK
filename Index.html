@@ -1995,6 +1995,60 @@
         .getDaftarSpj();
     }
 
+    // Apps Script HTMLService may isolate top-level declarations.
+    // Inline HTML handlers need explicit window exports.
+    window.refreshSettingsUserInfo = refreshSettingsUserInfo;
+    window.formatRupiah = formatRupiah;
+    window.formatDate = formatDate;
+    window.showToast = showToast;
+    window.showLoading = showLoading;
+    window.toggleDarkMode = toggleDarkMode;
+    window.handleLogin = handleLogin;
+    window.handleLogout = handleLogout;
+    window.resetChangePasswordForm = resetChangePasswordForm;
+    window.handleUbahPassword = handleUbahPassword;
+    window.showView = showView;
+    window.loadDashboard = loadDashboard;
+    window.renderDashboardChart = renderDashboardChart;
+    window.renderRecentSPJ = renderRecentSPJ;
+    window.escapeHtml = escapeHtml;
+    window.failToast = failToast;
+    window.statusBadge = statusBadge;
+    window.fillSelect = fillSelect;
+    window.toggleDpaRincian = toggleDpaRincian;
+    window.renderDpaRincianRow = renderDpaRincianRow;
+    window.loadDPAList = loadDPAList;
+    window.loadMonitoringList = loadMonitoringList;
+    window.loadMonitoringDetail = loadMonitoringDetail;
+    window.exportMonitoring = exportMonitoring;
+    window.loadValidasi = loadValidasi;
+    window.loadKendalaList = loadKendalaList;
+    window.simpanKendala = simpanKendala;
+    window.ensureMonthInputs = ensureMonthInputs;
+    window.showMasterTab = showMasterTab;
+    window.loadMasterData = loadMasterData;
+    window.renderMasterDpaTable = renderMasterDpaTable;
+    window.resetMasterDpaForm = resetMasterDpaForm;
+    window.editMasterDpa = editMasterDpa;
+    window.saveMasterDpa = saveMasterDpa;
+    window.deleteMasterDpa = deleteMasterDpa;
+    window.renderMasterAngkasTable = renderMasterAngkasTable;
+    window.resetMasterAngkasForm = resetMasterAngkasForm;
+    window.editMasterAngkas = editMasterAngkas;
+    window.saveMasterAngkas = saveMasterAngkas;
+    window.deleteMasterAngkas = deleteMasterAngkas;
+    window.clearServerCacheFromUi = clearServerCacheFromUi;
+    window.loadSPJWorkspace = loadSPJWorkspace;
+    window.onSubKegiatanChanged = onSubKegiatanChanged;
+    window.onKodeRekeningChanged = onKodeRekeningChanged;
+    window.onUraianBelanjaChanged = onUraianBelanjaChanged;
+    window.getSelectedDpaItem = getSelectedDpaItem;
+    window.sisipkanItem = sisipkanItem;
+    window.renderSpjAntrean = renderSpjAntrean;
+    window.hapusItemSPJ = hapusItemSPJ;
+    window.simpanSPJ = simpanSPJ;
+    window.loadSPJList = loadSPJList;
+
     document.addEventListener('DOMContentLoaded', function() {
       const kode = document.getElementById('dd-kode-rekening');
       const uraian = document.getElementById('dd-uraian-belanja');

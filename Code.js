@@ -1071,13 +1071,33 @@ function getDpaList_uncached_() {
       const monthly = APP.MONTHS.map(function(monthName, idx) {
         let angkasBulan = asNumber_((angkasDetail.bulanan || [])[idx]);
         const realisasiBulan = asNumber_(monthlyRealisasi[idx]);
+        
+        let statusJadwal = 'SESUAI_JADWAL';
+        if (realisasiBulan > 0) {
+          if (angkasBulan > 0) {
+            if (realisasiBulan > angkasBulan + 1) {
+              statusJadwal = 'MELEBIHI_JADWAL';
+            }
+          } else {
+            const hasPastAngkas = (angkasDetail.bulanan || []).slice(0, idx).some(function(val) { return asNumber_(val) > 0; });
+            const hasFutureAngkas = (angkasDetail.bulanan || []).slice(idx + 1).some(function(val) { return asNumber_(val) > 0; });
+            if (hasPastAngkas) {
+              statusJadwal = 'TERLAMBAT';
+            } else if (hasFutureAngkas) {
+              statusJadwal = 'SEBELUM_JADWAL';
+            } else {
+              statusJadwal = 'TANPA_ANGGARAN';
+            }
+          }
+        }
+
         return {
           bulan: monthName,
           angkas: angkasBulan,
           realisasi: realisasiBulan,
           sisa: angkasBulan - realisasiBulan,
-          statusJadwal: realisasiBulan > 0 && angkasBulan <= 0 ? 'SEBELUM_JADWAL' : realisasiBulan > angkasBulan + 1 ? 'MELEBIHI_JADWAL' : 'SESUAI_JADWAL',
-          sesuaiJadwal: realisasiBulan <= angkasBulan + 1
+          statusJadwal: statusJadwal,
+          sesuaiJadwal: statusJadwal === 'SESUAI_JADWAL' || statusJadwal === 'TERLAMBAT'
         };
       });
       return {
@@ -1219,13 +1239,33 @@ function getMonitoringRFKData_uncached_() {
       const monthly = APP.MONTHS.map(function(monthName, idx) {
         let angkasBulan = asNumber_((angkasDetail.bulanan || [])[idx]);
         const realisasiBulan = asNumber_(monthlyRealisasi[idx]);
+        
+        let statusJadwal = 'SESUAI_JADWAL';
+        if (realisasiBulan > 0) {
+          if (angkasBulan > 0) {
+            if (realisasiBulan > angkasBulan + 1) {
+              statusJadwal = 'MELEBIHI_JADWAL';
+            }
+          } else {
+            const hasPastAngkas = (angkasDetail.bulanan || []).slice(0, idx).some(function(val) { return asNumber_(val) > 0; });
+            const hasFutureAngkas = (angkasDetail.bulanan || []).slice(idx + 1).some(function(val) { return asNumber_(val) > 0; });
+            if (hasPastAngkas) {
+              statusJadwal = 'TERLAMBAT';
+            } else if (hasFutureAngkas) {
+              statusJadwal = 'SEBELUM_JADWAL';
+            } else {
+              statusJadwal = 'TANPA_ANGGARAN';
+            }
+          }
+        }
+
         return {
           bulan: monthName,
           angkas: angkasBulan,
           realisasi: realisasiBulan,
           sisa: angkasBulan - realisasiBulan,
-          statusJadwal: realisasiBulan > 0 && angkasBulan <= 0 ? 'SEBELUM_JADWAL' : realisasiBulan > angkasBulan + 1 ? 'MELEBIHI_JADWAL' : 'SESUAI_JADWAL',
-          sesuaiJadwal: realisasiBulan <= angkasBulan + 1
+          statusJadwal: statusJadwal,
+          sesuaiJadwal: statusJadwal === 'SESUAI_JADWAL' || statusJadwal === 'TERLAMBAT'
         };
       });
       return {

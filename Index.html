@@ -399,6 +399,7 @@
               </div>
             </div>
           </div>
+        </div>
           
           <!-- DPA & ANGGARAN KAS VIEW -->
         <div id="view-dpa" class="view-section space-y-6">
@@ -856,104 +857,6 @@
             </div>
           </div>
 
-          <!-- Integrated Master Panel -->
-          <!-- MASTER DATA VIEW -->
-        <div id="master-integration-panel" class="hidden space-y-6 border-t-2 border-dashed border-gray-200 dark:border-slate-700 pt-6 mt-6">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
-            <div>
-              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Master DPA & RAK (Rencana Anggaran Kas)</h2>
-              <p class="text-gray-500 dark:text-gray-400">Input, edit, dan hapus rincian DPA serta distribusi RAK sampai detail kegiatan.</p>
-            </div>
-            <div class="flex gap-2">
-              <button onclick="loadMasterData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
-                <i class="fas fa-sync-alt mr-2"></i>Muat Ulang
-              </button>
-              <button onclick="clearServerCacheFromUi()" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
-                <i class="fas fa-broom mr-2"></i>Bersihkan Cache
-              </button>
-            </div>
-          </div>
-
-          <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
-            <div class="flex border-b border-gray-200 dark:border-slate-700">
-              <button id="btn-tab-master-dpa" onclick="showMasterTab('dpa')" class="px-5 py-3 text-sm font-bold text-blue-700 dark:text-blue-300 border-b-2 border-blue-600">
-                <i class="fas fa-file-invoice-dollar mr-2"></i>Master DPA
-              </button>
-              <button id="btn-tab-master-angkas" onclick="showMasterTab('angkas')" class="px-5 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 border-b-2 border-transparent">
-                <i class="fas fa-calendar-alt mr-2"></i>Master RAK
-              </button>
-            </div>
-
-            <div id="master-dpa-panel" class="p-5 space-y-5">
-              <form onsubmit="event.preventDefault(); saveMasterDpa();" class="bg-blue-50/70 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/40 p-4">
-                <input type="hidden" id="mdpa-id">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div><label class="block text-xs font-semibold mb-1">Kode Sub Kegiatan</label><input id="mdpa-sub-kode" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Nama Sub Kegiatan</label><input id="mdpa-sub-nama" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div><label class="block text-xs font-semibold mb-1">Kode Rekening</label><input id="mdpa-kode-rekening" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Uraian Belanja</label><input id="mdpa-uraian" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Detail Kegiatan</label><input id="mdpa-detail" placeholder="Contoh: Rapat Evaluasi Pengelola Program..." class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Pagu DPA</label><input id="mdpa-pagu" type="number" min="0" step="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Sub Rincian</label><textarea id="mdpa-sub-rincian" rows="2" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></textarea></div>
-                  <div><label class="block text-xs font-semibold mb-1">Sumber Dana</label><input id="mdpa-sumber" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Tahun</label><input id="mdpa-tahun" value="2026" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Status</label><select id="mdpa-status" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"><option>Aktif</option><option>Nonaktif</option></select></div>
-                  <div><label class="block text-xs font-semibold mb-1">Volume</label><input id="mdpa-volume" type="number" min="0" step="0.01" value="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Satuan</label><input id="mdpa-satuan" value="Paket/Kegiatan" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Source PDF</label><input id="mdpa-source" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                </div>
-                <div class="flex flex-wrap gap-2 mt-4">
-                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-save mr-2"></i>Simpan DPA</button>
-                  <button type="button" onclick="resetMasterDpaForm()" class="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-undo mr-2"></i>Reset</button>
-                </div>
-              </form>
-              <div class="overflow-x-auto border border-gray-200 dark:border-slate-700 rounded-xl">
-                <table class="min-w-full text-xs">
-                  <thead class="bg-blue-600 text-white"><tr><th class="px-3 py-2 text-left">Kode Sub</th><th class="px-3 py-2 text-left">Kode Rekening</th><th class="px-3 py-2 text-left">Uraian / Detail Kegiatan</th><th class="px-3 py-2 text-right">Pagu</th><th class="px-3 py-2 text-center">Aksi</th></tr></thead>
-                  <tbody id="master-dpa-body" class="divide-y divide-gray-100 dark:divide-slate-800"></tbody>
-                </table>
-              </div>
-            </div>
-
-            <div id="master-angkas-panel" class="hidden p-5 space-y-5">
-              <form onsubmit="event.preventDefault(); saveMasterAngkas();" class="bg-emerald-50/70 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-900/40 p-4">
-                <input type="hidden" id="mak-id">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div><label class="block text-xs font-semibold mb-1">Kode Sub Kegiatan</label><input id="mak-sub-kode" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Nama Sub Kegiatan</label><input id="mak-sub-nama" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div><label class="block text-xs font-semibold mb-1">Kode Rekening</label><input id="mak-kode-rekening" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Uraian Belanja</label><input id="mak-uraian" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Detail Kegiatan</label><input id="mak-detail" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Pagu DPA</label><input id="mak-pagu-ref" type="number" min="0" step="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Sub Rincian</label><textarea id="mak-sub-rincian" rows="2" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></textarea></div>
-                  <div><label class="block text-xs font-semibold mb-1">Metode Alokasi</label><input id="mak-metode" value="Input manual" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Tahun</label><input id="mak-tahun" value="2026" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Source PDF</label><input id="mak-source" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                </div>
-                <div class="mt-4">
-                  <p class="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 uppercase">Distribusi RAK Bulanan</p>
-                  <div id="mak-month-grid" class="grid grid-cols-2 md:grid-cols-6 gap-2"></div>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Triwulan (TW) dan total dihitung otomatis dari RAK bulanan saat disimpan.</p>
-                  <p id="mak-live-total-label" class="text-xs font-bold text-blue-700 dark:text-blue-300 mt-1">Akumulasi RAK Input: Rp 0</p>
-                </div>
-                <div class="flex flex-wrap gap-2 mt-4">
-                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-save mr-2"></i>Simpan RAK</button>
-                  <button type="button" onclick="resetMasterAngkasForm()" class="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-undo mr-2"></i>Reset</button>
-                </div>
-              </form>
-              <div class="overflow-x-auto border border-gray-200 dark:border-slate-700 rounded-xl">
-                <table class="min-w-full text-xs">
-                  <thead class="bg-emerald-600 text-white"><tr><th class="px-3 py-2 text-left">Kode Sub</th><th class="px-3 py-2 text-left">Kode Rekening</th><th class="px-3 py-2 text-left">Uraian / Detail Kegiatan</th><th class="px-3 py-2 text-right">Total RAK</th><th class="px-3 py-2 text-center">Aksi</th></tr></thead>
-                  <tbody id="master-angkas-body" class="divide-y divide-gray-100 dark:divide-slate-800"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-        
-        </div>
         </div>
 
         <!-- WORKFLOW SPJ VIEW -->
@@ -1100,104 +1003,6 @@
             </div>
           </div>
 
-          <!-- Integrated Master Panel -->
-          <!-- MASTER DATA VIEW -->
-        <div id="master-integration-panel" class="hidden space-y-6 border-t-2 border-dashed border-gray-200 dark:border-slate-700 pt-6 mt-6">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
-            <div>
-              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Master DPA & RAK (Rencana Anggaran Kas)</h2>
-              <p class="text-gray-500 dark:text-gray-400">Input, edit, dan hapus rincian DPA serta distribusi RAK sampai detail kegiatan.</p>
-            </div>
-            <div class="flex gap-2">
-              <button onclick="loadMasterData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
-                <i class="fas fa-sync-alt mr-2"></i>Muat Ulang
-              </button>
-              <button onclick="clearServerCacheFromUi()" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
-                <i class="fas fa-broom mr-2"></i>Bersihkan Cache
-              </button>
-            </div>
-          </div>
-
-          <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
-            <div class="flex border-b border-gray-200 dark:border-slate-700">
-              <button id="btn-tab-master-dpa" onclick="showMasterTab('dpa')" class="px-5 py-3 text-sm font-bold text-blue-700 dark:text-blue-300 border-b-2 border-blue-600">
-                <i class="fas fa-file-invoice-dollar mr-2"></i>Master DPA
-              </button>
-              <button id="btn-tab-master-angkas" onclick="showMasterTab('angkas')" class="px-5 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 border-b-2 border-transparent">
-                <i class="fas fa-calendar-alt mr-2"></i>Master RAK
-              </button>
-            </div>
-
-            <div id="master-dpa-panel" class="p-5 space-y-5">
-              <form onsubmit="event.preventDefault(); saveMasterDpa();" class="bg-blue-50/70 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/40 p-4">
-                <input type="hidden" id="mdpa-id">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div><label class="block text-xs font-semibold mb-1">Kode Sub Kegiatan</label><input id="mdpa-sub-kode" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Nama Sub Kegiatan</label><input id="mdpa-sub-nama" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div><label class="block text-xs font-semibold mb-1">Kode Rekening</label><input id="mdpa-kode-rekening" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Uraian Belanja</label><input id="mdpa-uraian" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Detail Kegiatan</label><input id="mdpa-detail" placeholder="Contoh: Rapat Evaluasi Pengelola Program..." class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Pagu DPA</label><input id="mdpa-pagu" type="number" min="0" step="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Sub Rincian</label><textarea id="mdpa-sub-rincian" rows="2" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></textarea></div>
-                  <div><label class="block text-xs font-semibold mb-1">Sumber Dana</label><input id="mdpa-sumber" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Tahun</label><input id="mdpa-tahun" value="2026" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Status</label><select id="mdpa-status" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"><option>Aktif</option><option>Nonaktif</option></select></div>
-                  <div><label class="block text-xs font-semibold mb-1">Volume</label><input id="mdpa-volume" type="number" min="0" step="0.01" value="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Satuan</label><input id="mdpa-satuan" value="Paket/Kegiatan" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Source PDF</label><input id="mdpa-source" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                </div>
-                <div class="flex flex-wrap gap-2 mt-4">
-                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-save mr-2"></i>Simpan DPA</button>
-                  <button type="button" onclick="resetMasterDpaForm()" class="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-undo mr-2"></i>Reset</button>
-                </div>
-              </form>
-              <div class="overflow-x-auto border border-gray-200 dark:border-slate-700 rounded-xl">
-                <table class="min-w-full text-xs">
-                  <thead class="bg-blue-600 text-white"><tr><th class="px-3 py-2 text-left">Kode Sub</th><th class="px-3 py-2 text-left">Kode Rekening</th><th class="px-3 py-2 text-left">Uraian / Detail Kegiatan</th><th class="px-3 py-2 text-right">Pagu</th><th class="px-3 py-2 text-center">Aksi</th></tr></thead>
-                  <tbody id="master-dpa-body" class="divide-y divide-gray-100 dark:divide-slate-800"></tbody>
-                </table>
-              </div>
-            </div>
-
-            <div id="master-angkas-panel" class="hidden p-5 space-y-5">
-              <form onsubmit="event.preventDefault(); saveMasterAngkas();" class="bg-emerald-50/70 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-900/40 p-4">
-                <input type="hidden" id="mak-id">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div><label class="block text-xs font-semibold mb-1">Kode Sub Kegiatan</label><input id="mak-sub-kode" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Nama Sub Kegiatan</label><input id="mak-sub-nama" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div><label class="block text-xs font-semibold mb-1">Kode Rekening</label><input id="mak-kode-rekening" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Uraian Belanja</label><input id="mak-uraian" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Detail Kegiatan</label><input id="mak-detail" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Pagu DPA</label><input id="mak-pagu-ref" type="number" min="0" step="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Sub Rincian</label><textarea id="mak-sub-rincian" rows="2" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></textarea></div>
-                  <div><label class="block text-xs font-semibold mb-1">Metode Alokasi</label><input id="mak-metode" value="Input manual" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Tahun</label><input id="mak-tahun" value="2026" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Source PDF</label><input id="mak-source" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                </div>
-                <div class="mt-4">
-                  <p class="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 uppercase">Distribusi RAK Bulanan</p>
-                  <div id="mak-month-grid" class="grid grid-cols-2 md:grid-cols-6 gap-2"></div>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Triwulan (TW) dan total dihitung otomatis dari RAK bulanan saat disimpan.</p>
-                  <p id="mak-live-total-label" class="text-xs font-bold text-blue-700 dark:text-blue-300 mt-1">Akumulasi RAK Input: Rp 0</p>
-                </div>
-                <div class="flex flex-wrap gap-2 mt-4">
-                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-save mr-2"></i>Simpan RAK</button>
-                  <button type="button" onclick="resetMasterAngkasForm()" class="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-undo mr-2"></i>Reset</button>
-                </div>
-              </form>
-              <div class="overflow-x-auto border border-gray-200 dark:border-slate-700 rounded-xl">
-                <table class="min-w-full text-xs">
-                  <thead class="bg-emerald-600 text-white"><tr><th class="px-3 py-2 text-left">Kode Sub</th><th class="px-3 py-2 text-left">Kode Rekening</th><th class="px-3 py-2 text-left">Uraian / Detail Kegiatan</th><th class="px-3 py-2 text-right">Total RAK</th><th class="px-3 py-2 text-center">Aksi</th></tr></thead>
-                  <tbody id="master-angkas-body" class="divide-y divide-gray-100 dark:divide-slate-800"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-        
-        </div>
         </div>
 
         <!-- SETTINGS VIEW -->
@@ -1256,7 +1061,6 @@
         </div>
       </main>
     </div>
-  </div>
 
   <!-- DPA Detail Modal -->
   <div id="dpa-detail-modal" class="hidden fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm p-3 md:p-6 overflow-y-auto">

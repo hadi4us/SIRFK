@@ -3015,13 +3015,8 @@
 
     function actionButtonsForSpj(item) {
       const role = (currentUser.role || '').toUpperCase();
-      const canEdit = ['ADMIN','OPERATOR','PPTK'].includes(role) && ['Draft','Diajukan'].includes(item.status);
-      const canDelete = ['ADMIN','OPERATOR'].includes(role) && item.status !== 'Batal';
       const canApprove = ['ADMIN','OPERATOR','PPTK','VERIFIKATOR','BENDAHARA'].includes(role);
       let html = '';
-      if (canEdit) html += '<button onclick="editSpj(&quot;' + escapeHtml(item.id_spj) + '&quot;)" class="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">Edit</button>';
-      if (canDelete) html += '<button onclick="hapusSpjUi(&quot;' + escapeHtml(item.id_spj) + '&quot;)" class="px-2 py-1 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">Hapus</button>';
-      html += '<button onclick="openUploadDokumen(&quot;' + escapeHtml(item.id_spj) + '&quot;)" class="px-2 py-1 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">Upload</button>';
       if (canApprove) html += '<select onchange="ubahStatusSpj(&quot;' + escapeHtml(item.id_spj) + '&quot;, this.value)" class="px-2 py-1 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white text-[11px]"><option value="">Ubah status</option><option value="Diajukan">Diajukan</option><option value="Diverifikasi">Diverifikasi</option><option value="Dibayar">Dibayar</option><option value="Ditolak">Ditolak</option><option value="Batal">Batal</option></select>';
       return html;
     }
@@ -3052,13 +3047,38 @@
       const h = (data && data.header) || {};
       const details = (data && data.details) || [];
       const docs = (data && data.dokumen) || [];
-      const canVerify = ['ADMIN','OPERATOR','PPTK','VERIFIKATOR','BENDAHARA'].includes((currentUser.role || '').toUpperCase());
+      const role = (currentUser.role || '').toUpperCase();
+      const canVerify = ['ADMIN','OPERATOR','PPTK','VERIFIKATOR','BENDAHARA'].includes(role);
+      
+      const canEdit = ['ADMIN','OPERATOR','PPTK'].includes(role) && ['Draft','Diajukan'].includes(h.status);
+      const canDelete = ['ADMIN','OPERATOR'].includes(role) && h.status !== 'Batal';
+      
+      let actionButtonsHtml = '';
+      if (canEdit) {
+        actionButtonsHtml += '<button onclick="editSpj(\'' + escapeHtml(h.id_spj) + '\')" class="px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow flex items-center gap-1.5"><i class="fas fa-edit"></i> Edit</button>';
+      }
+      if (canDelete) {
+        actionButtonsHtml += '<button onclick="hapusSpjUi(\'' + escapeHtml(h.id_spj) + '\')" class="px-3 py-1.5 rounded bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow flex items-center gap-1.5"><i class="fas fa-trash-alt"></i> Hapus</button>';
+      }
+      if (docs.length === 0) {
+        actionButtonsHtml += '<button onclick="openUploadDokumen(\'' + escapeHtml(h.id_spj) + '\')" class="px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow flex items-center gap-1.5"><i class="fas fa-upload"></i> Upload</button>';
+      }
+
+      let actionsCard = '';
+      if (actionButtonsHtml) {
+        actionsCard = '<div class="glass-panel p-4 rounded-xl flex flex-wrap gap-3 items-center justify-start bg-gray-50 dark:bg-slate-800/30">' +
+          '<span class="text-xs font-bold text-gray-500 uppercase mr-2 flex items-center gap-1"><i class="fas fa-cog"></i> Aksi SPJ:</span>' +
+          actionButtonsHtml +
+        '</div>';
+      }
+
       content.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">' +
         '<div class="glass-panel p-4 rounded-xl"><p class="text-[11px] uppercase font-bold text-gray-500">Nomor SPJ</p><p class="font-mono font-bold text-blue-700 dark:text-blue-300">' + escapeHtml(h.nomor_spj || '-') + '</p></div>' +
         '<div class="glass-panel p-4 rounded-xl"><p class="text-[11px] uppercase font-bold text-gray-500">Tanggal / Bulan</p><p class="font-bold text-gray-900 dark:text-white">' + escapeHtml(h.tanggal_spj || '-') + ' / ' + escapeHtml(h.bulan || '-') + '</p></div>' +
         '<div class="glass-panel p-4 rounded-xl"><p class="text-[11px] uppercase font-bold text-gray-500">Status Saat Ini</p><span class="inline-block mt-1 px-2 py-1 rounded text-[10px] font-bold ' + statusBadge(h.status || 'Draft') + '">' + escapeHtml(h.status || '-') + '</span></div>' +
         '<div class="glass-panel p-4 rounded-xl"><p class="text-[11px] uppercase font-bold text-gray-500">Total Bruto</p><p class="font-mono font-bold text-emerald-600 dark:text-emerald-400">' + formatRupiah(h.total || 0) + '</p></div>' +
       '</div>' +
+      actionsCard +
       '<div class="glass-panel rounded-xl overflow-hidden"><div class="px-4 py-3 bg-gray-100 dark:bg-slate-800 font-bold text-gray-800 dark:text-gray-100 uppercase text-xs">Rincian Belanja</div><div class="overflow-x-auto"><table class="min-w-full text-xs"><thead class="bg-gray-50 dark:bg-slate-900"><tr><th class="px-3 py-2 text-left">Uraian Belanja / Rincian Uraian Kegiatan</th><th class="px-3 py-2 text-left">Pelaksana</th><th class="px-3 py-2 text-right">Nilai</th></tr></thead><tbody>' +
         (details.length ? details.map(function(d){ return '<tr class="border-t dark:border-slate-800"><td class="px-3 py-2"><p class="font-semibold">' + escapeHtml(d.kode_rekening || '-') + '</p><p>' + escapeHtml(d.uraian_belanja || '-') + '</p><p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Detail: ' + escapeHtml(d.detail_kegiatan || '-') + '</p><p class="text-[11px] text-gray-500 dark:text-gray-400">Sub rincian: ' + escapeHtml(d.sub_rincian || '-') + '</p></td><td class="px-3 py-2">' + escapeHtml(d.pelaksana || '-') + '</td><td class="px-3 py-2 text-right font-mono">' + formatRupiah(d.nilai_bruto || 0) + '</td></tr>'; }).join('') : '<tr><td colspan="3" class="px-3 py-6 text-center text-gray-400">Tidak ada rincian.</td></tr>') +
       '</tbody></table></div></div>' +
@@ -3098,6 +3118,7 @@
       showLoading(true, 'Memuat data edit...');
       google.script.run.withSuccessHandler(function(data) {
         showLoading(false);
+        closeSpjReviewModal();
         openSpjModal();
         const h = data.header || {};
         document.getElementById('spj-nomor').value = h.nomor_spj || '';
@@ -3114,7 +3135,12 @@
     function hapusSpjUi(idSpj) {
       if (!confirm('Hapus/batalkan SPJ ini?')) return;
       showLoading(true, 'Menghapus SPJ...');
-      google.script.run.withSuccessHandler(function() { showLoading(false); showToast('SPJ dibatalkan.', 'success'); loadSPJList(true, true); }).withFailureHandler(failToast('Gagal hapus SPJ')).hapusSpj(idSpj, currentSessionToken);
+      google.script.run.withSuccessHandler(function() { 
+        showLoading(false); 
+        showToast('SPJ dibatalkan.', 'success'); 
+        closeSpjReviewModal();
+        loadSPJList(true, true); 
+      }).withFailureHandler(failToast('Gagal hapus SPJ')).hapusSpj(idSpj, currentSessionToken);
     }
 
     function openUploadDokumen(idSpj) {
@@ -3126,7 +3152,12 @@
         const reader = new FileReader();
         reader.onload = function(e) {
           showLoading(true, 'Upload dokumen digital...');
-          google.script.run.withSuccessHandler(function(res) { showLoading(false); showToast('Dokumen terupload ke Drive.', 'success'); loadSPJList(false, true); }).withFailureHandler(failToast('Gagal upload dokumen')).uploadDokumenSpj({ id_spj: idSpj, nama_file: file.name, mime_type: file.type, base64: e.target.result }, currentSessionToken);
+          google.script.run.withSuccessHandler(function(res) { 
+            showLoading(false); 
+            showToast('Dokumen terupload ke Drive.', 'success'); 
+            closeSpjReviewModal();
+            loadSPJList(false, true); 
+          }).withFailureHandler(failToast('Gagal upload dokumen')).uploadDokumenSpj({ id_spj: idSpj, nama_file: file.name, mime_type: file.type, base64: e.target.result }, currentSessionToken);
         };
         reader.readAsDataURL(file);
       };
@@ -3260,6 +3291,9 @@
     window.reviewSpj = reviewSpj;
     window.closeSpjReviewModal = closeSpjReviewModal;
     window.submitReviewStatus = submitReviewStatus;
+    window.editSpj = editSpj;
+    window.hapusSpjUi = hapusSpjUi;
+    window.openUploadDokumen = openUploadDokumen;
 
     document.addEventListener('DOMContentLoaded', function() {
       restoreSidebarState();

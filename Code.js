@@ -1513,6 +1513,8 @@ function getRekapPelaksanaSppd() {
   const c = {
     idSpj: col_('id_spj', COL_SPJ_DETAIL.ID_SPJ),
     bulan: col_('bulan', COL_SPJ_DETAIL.BULAN),
+    subKode: col_('sub_kegiatan_kode', COL_SPJ_DETAIL.SUB_KODE),
+    subNama: col_('sub_kegiatan_nama', COL_SPJ_DETAIL.SUB_NAMA),
     kodeRekening: col_('kode_rekening', COL_SPJ_DETAIL.KODE_REKENING),
     uraianBelanja: col_('uraian_belanja', COL_SPJ_DETAIL.URAIAN_BELANJA),
     pelaksana: col_('pelaksana', COL_SPJ_DETAIL.PELAKSANA),
@@ -1535,11 +1537,11 @@ function getRekapPelaksanaSppd() {
     const pelaksana = safeString_(row[c.pelaksana]) || 'Tanpa Nama Pelaksana';
     const monthIdx = monthIndex[normalizeKey_(row[c.bulan])];
     if (monthIdx === undefined) return;
-    const dpa = maps.byId[safeString_(row[c.idDpa])] || null;
-    const kodeSub = dpa ? safeString_(dpa.sub_kegiatan_kode) : safeString_(row[COL_SPJ_DETAIL.SUB_KODE]);
-    const namaSub = dpa ? safeString_(dpa.sub_kegiatan_nama) : safeString_(row[COL_SPJ_DETAIL.SUB_NAMA]);
-    const kodeRekening = safeString_(row[c.kodeRekening]);
-    const uraian = safeString_(row[c.uraianBelanja]);
+    const dpa = resolveDpaFromDetailRow_(row, maps) || maps.byId[safeString_(row[c.idDpa])] || null;
+    const kodeSub = dpa ? safeString_(dpa.sub_kegiatan_kode) : safeString_(row[c.subKode]);
+    const namaSub = dpa ? safeString_(dpa.sub_kegiatan_nama) : safeString_(row[c.subNama]);
+    const kodeRekening = dpa && safeString_(dpa.kode_rekening) ? safeString_(dpa.kode_rekening) : safeString_(row[c.kodeRekening]);
+    const uraian = dpa && safeString_(dpa.uraian_belanja) ? safeString_(dpa.uraian_belanja) : safeString_(row[c.uraianBelanja]);
     const detail = dpa ? safeString_(dpa.detail_kegiatan) : '';
     const subRincian = dpa ? safeString_(dpa.sub_rincian) : '';
     const kegiatanKey = kodeSub || namaSub || 'TANPA_SUB_KEGIATAN';

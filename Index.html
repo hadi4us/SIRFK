@@ -1613,7 +1613,8 @@
       const useOverlay = showOverlay !== false;
       if (useOverlay) showLoading(true, 'Memuat dashboard...');
       google.script.run
-        .withSuccessHandler(function(stats) {
+        .withSuccessHandler(function(payload) {
+          const stats = (payload && payload.stats) || {};
           document.getElementById('dash-pagu').textContent = formatRupiah(stats.totalPagu || 0);
           document.getElementById('dash-angkas').textContent = formatRupiah(stats.totalAngkas || 0);
           document.getElementById('dash-realisasi').textContent = formatRupiah(stats.totalRealisasi || 0);
@@ -1621,13 +1622,13 @@
           document.getElementById('dash-total-spj').textContent = stats.jumlahSPJ || 0;
           document.getElementById('dash-subkeg-count').textContent = stats.jumlahSubKegiatan + ' Sub Kegiatan';
           
-          document.getElementById('dash-spj-draf').textContent = (stats.spjPerStatus.Draft || 0) + ' Draf';
-          document.getElementById('dash-spj-dibayar').textContent = (stats.spjPerStatus.Dibayar || 0) + ' Dibayar';
+          document.getElementById('dash-spj-draf').textContent = ((stats.spjPerStatus || {}).Draft || 0) + ' Draf';
+          document.getElementById('dash-spj-dibayar').textContent = ((stats.spjPerStatus || {}).Dibayar || 0) + ' Dibayar';
           
           renderPeriodBadges(stats.periodTargets || {});
           renderDashboardAnalysis(stats);
-          setTimeout(function() { renderDashboardChart(stats); }, 700);
-          setTimeout(function() { renderRecentSPJ(); }, 300);
+          setTimeout(function() { renderDashboardChart((payload && payload.chart) || []); }, 120);
+          renderRecentSPJ((payload && payload.recentSpj) || []);
           
           document.getElementById('lap-total-pagu').textContent = formatRupiah(stats.totalPagu || 0);
           document.getElementById('lap-total-angkas').textContent = formatRupiah(stats.totalAngkas || 0);
@@ -1637,7 +1638,7 @@
           if (useOverlay) showLoading(false);
         })
         .withFailureHandler(failToast('Gagal memuat dashboard'))
-        .getDashboardStats();
+        .getDashboardPayload();
     }
 
     function renderPeriodBadges(periodTargets) {
@@ -1687,28 +1688,26 @@
       ].join('');
     }
 
-    function renderDashboardChart(stats) {
+    function renderDashboardChart(dpaList) {
       const canvas = document.getElementById('dashboardChart');
       if (canvas) {
         const requestId = ++dashboardChartRequestId;
+        if (requestId !== dashboardChartRequestId) return;
+        const existingChart = Chart.getChart(canvas);
+        if (existingChart) existingChart.destroy();
+        if (dashboardChart) dashboardChart.destroy();
+        dashboardChart = null;
+        dpaList = Array.isArray(dpaList) ? dpaList : [];
+        const labels = dpaList.map(d => d.kode);
+        const paguData = dpaList.map(d => d.pagu || 0);
+        const angkasData = dpaList.map(d => d.angkas || 0);
+        const realisasiData = dpaList.map(d => d.realisasi || 0);
         
-        google.script.run
-          .withSuccessHandler(function(dpaList) {
-            if (requestId !== dashboardChartRequestId) return;
-            const existingChart = Chart.getChart(canvas);
-            if (existingChart) existingChart.destroy();
-            if (dashboardChart) dashboardChart.destroy();
-            dashboardChart = null;
-            const labels = dpaList.map(d => d.kode);
-            const paguData = dpaList.map(d => d.pagu || 0);
-            const angkasData = dpaList.map(d => d.angkas || 0);
-            const realisasiData = dpaList.map(d => d.realisasi || 0);
-            
-            const isDark = document.body.classList.contains('dark');
-            const textColor = isDark ? '#f1f5f9' : '#374151';
-            const gridColor = isDark ? '#334155' : '#e5e7eb';
-            
-            dashboardChart = new Chart(canvas, {
+        const isDark = document.body.classList.contains('dark');
+        const textColor = isDark ? '#f1f5f9' : '#374151';
+        const gridColor = isDark ? '#334155' : '#e5e7eb';
+        
+        dashboardChart = new Chart(canvas, {
               type: 'bar',
               data: {
                 labels: labels,
@@ -1765,50 +1764,31 @@
                   }
                 }
               }
-            });
-          })
-          .withFailureHandler(failToast('Gagal memuat grafik'))
-          .getDpaList();
+        });
       }
     }
 
-    function renderRecentSPJ() {
+    function renderRecentSPJ(spjList) {
       const container = document.getElementById('recent-spj-list');
       if (!container) return;
-      container.innerHTML = '<p class="text-center text-gray-400 dark:text-gray-500 text-sm py-4">Memuat SPJ terakhir...</p>';
-      google.script.run
-        .withSuccessHandler(function(spjList) {
-          container.innerHTML = '';
-          const rows = Array.isArray(spjList) ? spjList : [];
-          const recent = rows.slice(0, 5);
-          
-          if (recent.length === 0) {
-            container.innerHTML = '<p class="text-center text-gray-400 dark:text-gray-500 text-sm py-4">Belum ada SPJ</p>';
-            return;
-          }
-          
-          recent.forEach(spj => {
-            const row = document.createElement('div');
-            row.className = 'flex justify-between items-center py-3 border-b border-gray-100 dark:border-slate-700 last:border-0';
-            row.innerHTML = `
-              <div>
-                <p class="font-mono text-xs font-bold text-blue-900 dark:text-blue-400">${spj.nomor_spj}</p>
-                <p class="text-[10px] text-gray-500 dark:text-gray-400">${formatDate(spj.tanggal)} | ${spj.pptk}</p>
-              </div>
-              <div class="text-right">
-                <p class="text-xs font-bold text-gray-900 dark:text-white">${formatRupiah(spj.total)}</p>
-                <span class="inline-block px-2 py-1 rounded text-[10px] font-semibold ${
-                  spj.status === 'Dibayar' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                }">
-                  ${spj.status}
-                </span>
-              </div>
-            `;
-            container.appendChild(row);
-          });
-        })
-        .withFailureHandler(failToast('Gagal memuat SPJ terbaru'))
-        .getDaftarSpj();
+      container.innerHTML = '';
+      const recent = (Array.isArray(spjList) ? spjList : []).slice(0, 5);
+      if (recent.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-400 dark:text-gray-500 text-sm py-4">Belum ada SPJ</p>';
+        return;
+      }
+      container.innerHTML = recent.map(function(spj) {
+        return '<div class="flex justify-between items-center py-3 border-b border-gray-100 dark:border-slate-700 last:border-0">' +
+          '<div>' +
+            '<p class="font-mono text-xs font-bold text-blue-900 dark:text-blue-400">' + escapeHtml(spj.nomor_spj) + '</p>' +
+            '<p class="text-[10px] text-gray-500 dark:text-gray-400">' + escapeHtml(formatDate(spj.tanggal)) + ' | ' + escapeHtml(spj.pptk) + '</p>' +
+          '</div>' +
+          '<div class="text-right">' +
+            '<p class="text-xs font-bold text-gray-900 dark:text-white">' + formatRupiah(spj.total) + '</p>' +
+            '<span class="inline-block px-2 py-1 rounded text-[10px] font-semibold ' + (spj.status === 'Dibayar' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400') + '">' + escapeHtml(spj.status) + '</span>' +
+          '</div>' +
+        '</div>';
+      }).join('');
     }
 
     // ==================== DATA HELPERS & FALLBACKS ====================

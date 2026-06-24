@@ -51,6 +51,7 @@ const APP = {
 
 const RFK_CACHE_KEYS = [
   'rfk_dashboard_v13',
+  'rfk_dashboard_payload_v1',
   'rfk_dpa_list_v16',
   'rfk_monitoring_v19',
   'rfk_monitoring_summary_v1',
@@ -939,6 +940,7 @@ function getRealisasiAggregates_(statusFilter) {
  * Public read functions
  ***************************************************************************/
 function getDashboardStats() { return cacheJson_('rfk_dashboard_v13', getDashboardStats_uncached_); }
+function getDashboardPayload() { return cacheJson_('rfk_dashboard_payload_v1', getDashboardPayload_uncached_, 300); }
 function getDpaList() { return cacheJson_('rfk_dpa_list_v16', getDpaList_uncached_); }
 function getMonitoringRFKData() { return cacheJson_('rfk_monitoring_v19', getMonitoringRFKData_uncached_); }
 function getMonitoringRFKSummary() { return cacheJson_('rfk_monitoring_summary_v1', getMonitoringRFKSummary_uncached_, 300); }
@@ -1034,6 +1036,22 @@ function getDashboardStats_uncached_() {
     rowsCounted: validAgg.rowsCounted,
     rowsSkipped: validAgg.rowsSkipped,
     periodTargets: periodTargets
+  };
+}
+
+function getDashboardPayload_uncached_() {
+  const dpaList = getDpaList_uncached_();
+  return {
+    stats: getDashboardStats_uncached_(),
+    chart: dpaList.map(function(d) {
+      return {
+        kode: d.kode,
+        pagu: d.pagu || 0,
+        angkas: d.angkas || 0,
+        realisasi: d.realisasi || 0
+      };
+    }),
+    recentSpj: getDaftarSpj_uncached_().slice(0, 5)
   };
 }
 

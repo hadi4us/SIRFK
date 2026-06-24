@@ -1808,7 +1808,7 @@
           });
         })
         .withFailureHandler(failToast('Gagal memuat SPJ terbaru'))
-        .getDaftarSpjFresh();
+        .getDaftarSpj();
     }
 
     // ==================== DATA HELPERS & FALLBACKS ====================
@@ -2161,17 +2161,15 @@
 
       const rincianBody = document.getElementById('monitoring-rincian-body');
       const rincianFoot = document.getElementById('monitoring-rincian-foot');
-      rincianBody.innerHTML = '';
       let detailPagu = 0, detailAngkas = 0, detailRealisasi = 0, detailSisa = 0;
-      (item.rincian || []).forEach(function(row) {
+      const rincianRows = (item.rincian || []).map(function(row) {
         const pagu = Number(row.pagu || 0);
         const angkas = Number(row.angkas || 0);
         const realisasi = Number(row.realisasi || 0);
         const sisa = Number(row.sisaKas || 0);
         detailPagu += pagu; detailAngkas += angkas; detailRealisasi += realisasi; detailSisa += sisa;
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-blue-50/60 dark:hover:bg-slate-800/70 transition';
-        tr.innerHTML = '<td class="px-3 py-2 align-top font-mono text-[11px] text-blue-900 dark:text-blue-300 whitespace-nowrap">' + escapeHtml(row.kodeRekening || '') + '</td>' +
+        return '<tr class="hover:bg-blue-50/60 dark:hover:bg-slate-800/70 transition">' +
+          '<td class="px-3 py-2 align-top font-mono text-[11px] text-blue-900 dark:text-blue-300 whitespace-nowrap">' + escapeHtml(row.kodeRekening || '') + '</td>' +
           '<td class="px-3 py-2 align-top text-xs text-gray-700 dark:text-gray-200 min-w-[220px]">' + escapeHtml(row.uraianBelanja || '') + '</td>' +
           '<td class="px-3 py-2 align-top text-xs text-gray-800 dark:text-gray-100 min-w-[320px] font-semibold">' + escapeHtml(row.namaUraianKegiatan || '-') + '</td>' +
           '<td class="px-3 py-2 align-top text-[11px] text-gray-500 dark:text-gray-400 min-w-[260px]">' + escapeHtml(row.subRincian || '-') + '</td>' +
@@ -2180,10 +2178,10 @@
           '<td class="px-3 py-2 align-top text-right font-mono text-xs text-indigo-600 dark:text-indigo-400 whitespace-nowrap">' + formatRupiah(realisasi) + '</td>' +
           '<td class="px-3 py-2 align-top text-right font-mono text-xs ' + (sisa < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white') + ' whitespace-nowrap">' + formatRupiah(sisa) + '</td>' +
           '<td class="px-3 py-2 align-top min-w-[520px]">' + renderMonitoringMonthlyChips(row.monthly || []) + '</td>' +
-          '<td class="px-3 py-2 align-top text-center text-xs font-bold">' + (row.persenSerap || 0) + '%</td>';
-        rincianBody.appendChild(tr);
+          '<td class="px-3 py-2 align-top text-center text-xs font-bold">' + (row.persenSerap || 0) + '%</td>' +
+        '</tr>';
       });
-      if (!(item.rincian || []).length) rincianBody.innerHTML = '<tr><td colspan="9" class="px-4 py-6 text-center text-gray-400">Belum ada rincian uraian kegiatan.</td></tr>';
+      rincianBody.innerHTML = rincianRows.length ? rincianRows.join('') : '<tr><td colspan="9" class="px-4 py-6 text-center text-gray-400">Belum ada rincian uraian kegiatan.</td></tr>';
       rincianFoot.innerHTML = '<tr><td colspan="4" class="px-3 py-3 text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">Total Rincian</td>' +
         '<td class="px-3 py-3 text-right text-sm font-bold text-gray-900 dark:text-white">' + formatRupiah(detailPagu) + '</td>' +
         '<td class="px-3 py-3 text-right text-sm font-bold text-emerald-600 dark:text-emerald-400">' + formatRupiah(detailAngkas) + '</td>' +
@@ -3194,7 +3192,7 @@
         const dashboardView = document.getElementById('view-dashboard');
         const needsSpj = (inputView && inputView.classList.contains('active')) || (dashboardView && dashboardView.classList.contains('active'));
         if (needsSpj) loadSPJList(false, true);
-      }, 15000);
+      }, 60000);
     }
 
     function loadSPJList(showSpinner, fresh) {
@@ -3224,7 +3222,8 @@
           if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-red-500">Gagal memuat Buku Kendali SPJ: ' + escapeHtml(msg) + '</td></tr>';
           showToast('Gagal memuat daftar SPJ: ' + msg, 'error');
         });
-      runner.getDaftarSpjFresh();
+      if (fresh === true) runner.getDaftarSpjFresh();
+      else runner.getDaftarSpj();
     }
 
     // Apps Script HTMLService may isolate top-level declarations.

@@ -53,9 +53,11 @@ const RFK_CACHE_KEYS = [
   'rfk_dashboard_v13',
   'rfk_dpa_list_v16',
   'rfk_monitoring_v19',
+  'rfk_monitoring_summary_v1',
   'rfk_kendala_v13',
   'rfk_validasi_v13',
   'rfk_dpa_hierarki_v14',
+  'rfk_pelaksana_list_v1',
   'rfk_spj_list_v13'
 ];
 

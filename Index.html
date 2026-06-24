@@ -453,96 +453,195 @@
         <div id="master-integration-panel" class="hidden space-y-6 border-t-2 border-dashed border-gray-200 dark:border-slate-700 pt-6 mt-6">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
             <div>
-              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Master DPA & RAK (Rencana Anggaran Kas)</h2>
-              <p class="text-gray-500 dark:text-gray-400">Input, edit, dan hapus rincian DPA serta distribusi RAK sampai detail kegiatan.</p>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Workspace Master DPA & RAK Terpadu</h2>
+              <p class="text-gray-500 dark:text-gray-400">Review, input, dan edit rincian DPA serta alokasi RAK bulanan secara langsung dalam satu tampilan.</p>
             </div>
             <div class="flex gap-2">
               <button onclick="loadMasterData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
-                <i class="fas fa-sync-alt mr-2"></i>Muat Ulang
+                <i class="fas fa-sync-alt mr-2"></i>Muat Ulang Data
               </button>
               <button onclick="clearServerCacheFromUi()" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
-                <i class="fas fa-broom mr-2"></i>Bersihkan Cache
+                <i class="fas fa-broom mr-2"></i>Clear Cache
               </button>
             </div>
           </div>
 
-          <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
-            <div class="flex border-b border-gray-200 dark:border-slate-700">
-              <button id="btn-tab-master-dpa" onclick="showMasterTab('dpa')" class="px-5 py-3 text-sm font-bold text-blue-700 dark:text-blue-300 border-b-2 border-blue-600">
-                <i class="fas fa-file-invoice-dollar mr-2"></i>Master DPA
-              </button>
-              <button id="btn-tab-master-angkas" onclick="showMasterTab('angkas')" class="px-5 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 border-b-2 border-transparent">
-                <i class="fas fa-calendar-alt mr-2"></i>Master RAK
-              </button>
+          <div class="glass-panel rounded-xl shadow-lg p-5 space-y-6">
+            <!-- HEADER FORM TERPADU -->
+            <div class="border-b border-gray-200 dark:border-slate-700 pb-3 flex items-center justify-between">
+              <div>
+                <h3 id="form-integrated-title" class="font-bold text-gray-800 dark:text-gray-200 text-base flex items-center">
+                  <i class="fas fa-edit text-blue-600 dark:text-blue-400 mr-2"></i>Form Input & Alokasi Terpadu DPA vs RAK
+                </h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Isi rincian DPA sekaligus distribusikan RAK bulanan.</p>
+              </div>
+              <span id="badge-edit-mode" class="hidden px-2.5 py-1 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wider">Mode Edit</span>
             </div>
 
-            <div id="master-dpa-panel" class="p-5 space-y-5">
-              <form onsubmit="event.preventDefault(); saveMasterDpa();" class="bg-blue-50/70 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/40 p-4">
-                <input type="hidden" id="mdpa-id">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div><label class="block text-xs font-semibold mb-1">Kode Sub Kegiatan</label><input id="mdpa-sub-kode" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Nama Sub Kegiatan</label><input id="mdpa-sub-nama" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div><label class="block text-xs font-semibold mb-1">Kode Rekening</label><input id="mdpa-kode-rekening" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Uraian Belanja</label><input id="mdpa-uraian" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Detail Kegiatan</label><input id="mdpa-detail" placeholder="Contoh: Rapat Evaluasi Pengelola Program..." class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Pagu DPA</label><input id="mdpa-pagu" type="number" min="0" step="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Sub Rincian</label><textarea id="mdpa-sub-rincian" rows="2" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></textarea></div>
-                  <div><label class="block text-xs font-semibold mb-1">Sumber Dana</label><input id="mdpa-sumber" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Tahun</label><input id="mdpa-tahun" value="2026" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Status</label><select id="mdpa-status" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"><option>Aktif</option><option>Nonaktif</option></select></div>
-                  <div><label class="block text-xs font-semibold mb-1">Volume</label><input id="mdpa-volume" type="number" min="0" step="0.01" value="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Satuan</label><input id="mdpa-satuan" value="Paket/Kegiatan" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Source PDF</label><input id="mdpa-source" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+            <form onsubmit="event.preventDefault(); saveIntegratedDpaRak();" class="space-y-6">
+              <input type="hidden" id="int-dpa-id">
+              <input type="hidden" id="int-rak-id">
+              
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- SISI KIRI: DATA BELANJA DPA (7 KOLOM) -->
+                <div class="lg:col-span-7 bg-blue-50/40 dark:bg-blue-950/10 rounded-xl border border-blue-100 dark:border-blue-900/30 p-4 space-y-4">
+                  <h4 class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wider border-b border-blue-100 dark:border-blue-900/40 pb-2 flex items-center">
+                    <i class="fas fa-file-invoice-dollar mr-2"></i>1. Informasi Belanja DPA
+                  </h4>
+                  
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label class="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 mb-1">Kode Sub Kegiatan</label>
+                      <input id="int-sub-kode" class="w-full px-3 py-1.5 text-xs rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required>
+                    </div>
+                    <div class="md:col-span-2">
+                      <label class="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 mb-1">Nama Sub Kegiatan</label>
+                      <input id="int-sub-nama" class="w-full px-3 py-1.5 text-xs rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required>
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 mb-1">Kode Rekening</label>
+                      <input id="int-kode-rekening" class="w-full px-3 py-1.5 text-xs rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required>
+                    </div>
+                    <div class="md:col-span-2">
+                      <label class="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 mb-1">Uraian Belanja</label>
+                      <input id="int-uraian" class="w-full px-3 py-1.5 text-xs rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required>
+                    </div>
+                    <div class="md:col-span-3">
+                      <label class="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 mb-1">Detail Rincian Kegiatan</label>
+                      <input id="int-detail" placeholder="Contoh: Belanja Bahan Bakar Minyak / Perjalanan Dinas Program..." class="w-full px-3 py-1.5 text-xs rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required>
+                    </div>
+                    <div class="md:col-span-3">
+                      <label class="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 mb-1">Sub Rincian (Detail Komponen)</label>
+                      <textarea id="int-sub-rincian" rows="2" placeholder="Contoh: BBM 50 liter, Tiket Kereta Api..." class="w-full px-3 py-1.5 text-xs rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></textarea>
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 mb-1">Volume</label>
+                      <input id="int-volume" type="number" min="0" step="0.01" value="1" oninput="calculateIntPagu()" class="w-full px-3 py-1.5 text-xs rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 mb-1">Satuan</label>
+                      <input id="int-satuan" value="Paket/Kegiatan" oninput="calculateIntPagu()" class="w-full px-3 py-1.5 text-xs rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 mb-1">Pagu Total (Rp)</label>
+                      <input id="int-pagu" type="number" min="0" step="1" oninput="updateLiveIntegratedRakStatus()" class="w-full px-3 py-1.5 text-xs rounded border bg-white dark:bg-slate-800 font-mono font-bold text-blue-700 dark:text-blue-300 border-blue-400 focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 mb-1">Sumber Dana</label>
+                      <input id="int-sumber" value="PAD" class="w-full px-3 py-1.5 text-xs rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 mb-1">Source PDF</label>
+                      <input id="int-source" class="w-full px-3 py-1.5 text-xs rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 mb-1">Tahun</label>
+                      <input id="int-tahun" value="2026" class="w-full px-3 py-1.5 text-xs rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                    </div>
+                  </div>
                 </div>
-                <div class="flex flex-wrap gap-2 mt-4">
-                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-save mr-2"></i>Simpan DPA</button>
-                  <button type="button" onclick="resetMasterDpaForm()" class="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-undo mr-2"></i>Reset</button>
+
+                <!-- SISI KANAN: ALOKASI RAK BULANAN (5 KOLOM) -->
+                <div class="lg:col-span-5 bg-emerald-50/40 dark:bg-emerald-950/10 rounded-xl border border-emerald-100 dark:border-emerald-900/30 p-4 flex flex-col justify-between space-y-4">
+                  <div>
+                    <h4 class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider border-b border-emerald-100 dark:border-emerald-900/40 pb-2 flex items-center justify-between">
+                      <span><i class="fas fa-calendar-alt mr-2"></i>2. Alokasi Bulanan RAK</span>
+                      <span class="text-[10px] text-gray-500 dark:text-gray-400 font-normal">Metode: Input / Auto</span>
+                    </h4>
+                    
+                    <!-- PINTASAN AUTO ALOKASI -->
+                    <div class="flex items-center gap-2 mt-3 mb-3">
+                      <span class="text-[10px] text-gray-500 font-semibold uppercase">⚡ Auto:</span>
+                      <button type="button" onclick="autoAllocateIntRak('rata12')" class="bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 px-2 py-1 rounded text-[10px] font-bold border border-indigo-200 transition">
+                        <i class="fas fa-divide mr-1"></i>Bagi 12
+                      </button>
+                      <button type="button" onclick="autoAllocateIntRak('triwulan')" class="bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 text-teal-700 dark:text-teal-300 px-2 py-1 rounded text-[10px] font-bold border border-teal-200 transition">
+                        <i class="fas fa-chart-pie mr-1"></i>TW1-4
+                      </button>
+                      <button type="button" onclick="autoAllocateIntRak('clear')" class="bg-red-50 dark:bg-red-900/20 hover:bg-red-100 text-red-600 dark:text-red-300 px-2 py-1 rounded text-[10px] font-bold border border-red-200 transition">
+                        <i class="fas fa-trash-alt mr-1"></i>Clear
+                      </button>
+                    </div>
+
+                    <!-- MONTH GRID -->
+                    <div id="int-rak-month-grid" class="grid grid-cols-2 md:grid-cols-3 gap-2"></div>
+                  </div>
+
+                  <!-- LIVE RECONCILIATION CARD -->
+                  <div class="border-t border-emerald-100 dark:border-emerald-900/40 pt-4 mt-3">
+                    <div id="int-rak-reconciliation-card" class="bg-gray-100 dark:bg-slate-800 rounded-lg p-3 space-y-2 border border-gray-200 dark:border-slate-700">
+                      <div class="flex justify-between text-xs">
+                        <span class="text-gray-500 font-medium">Pagu Belanja DPA:</span>
+                        <span id="int-lbl-pagu-dpa" class="font-bold text-gray-800 dark:text-gray-200">Rp 0</span>
+                      </div>
+                      <div class="flex justify-between text-xs">
+                        <span class="text-gray-500 font-medium">Total RAK Teralokasi:</span>
+                        <span id="int-lbl-total-rak" class="font-bold text-gray-800 dark:text-gray-200">Rp 0</span>
+                      </div>
+                      <div class="flex justify-between text-xs border-t border-gray-200 dark:border-slate-700 pt-1.5">
+                        <span class="text-gray-600 font-bold">Selisih Rekonsiliasi:</span>
+                        <span id="int-lbl-selisih" class="font-bold">Rp 0</span>
+                      </div>
+                      <div id="int-status-badge" class="text-center text-[10px] font-bold py-1 rounded mt-1 bg-yellow-100 text-yellow-800 border border-yellow-200">
+                        Pagu DPA belum diisi
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </form>
-              <div class="overflow-x-auto border border-gray-200 dark:border-slate-700 rounded-xl">
-                <table class="min-w-full text-xs">
-                  <thead class="bg-blue-600 text-white"><tr><th class="px-3 py-2 text-left">Kode Sub</th><th class="px-3 py-2 text-left">Kode Rekening</th><th class="px-3 py-2 text-left">Uraian / Detail Kegiatan</th><th class="px-3 py-2 text-right">Pagu</th><th class="px-3 py-2 text-center">Aksi</th></tr></thead>
-                  <tbody id="master-dpa-body" class="divide-y divide-gray-100 dark:divide-slate-800"></tbody>
-                </table>
+              </div>
+
+              <!-- BUTTON ACTION -->
+              <div class="flex items-center justify-between border-t border-gray-200 dark:border-slate-700 pt-4 gap-3">
+                <p class="text-xs text-gray-500 italic flex items-center">
+                  <i class="fas fa-info-circle text-blue-500 mr-1"></i>
+                  Data tersimpan secara real-time ke sheet MASTER_DPA dan MASTER_ANGGARAN_KAS.
+                </p>
+                <div class="flex gap-2">
+                  <button type="button" onclick="resetIntegratedForm()" class="bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-xs font-bold transition shadow-sm">
+                    <i class="fas fa-undo mr-1"></i>Reset Form
+                  </button>
+                  <button type="submit" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase transition shadow">
+                    <i class="fas fa-save mr-1"></i>Simpan Perubahan
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- TABEL MASTER TERPADU -->
+          <div class="glass-panel rounded-xl shadow-lg overflow-hidden mt-6">
+            <div class="p-4 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <h3 class="font-bold text-gray-800 dark:text-gray-200 text-sm flex items-center">
+                <i class="fas fa-database text-blue-600 dark:text-blue-400 mr-2"></i>Daftar Rincian Belanja Master
+              </h3>
+              <div class="flex items-center gap-2 max-w-sm w-full relative">
+                <i class="fas fa-search text-gray-400 text-xs ml-2.5 absolute left-1"></i>
+                <input id="search-master-integrated" oninput="filterMasterTable()" placeholder="Cari Kode, Uraian, Detail Belanja..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded border bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:ring-1 focus:ring-blue-500">
               </div>
             </div>
-
-            <div id="master-angkas-panel" class="hidden p-5 space-y-5">
-              <form onsubmit="event.preventDefault(); saveMasterAngkas();" class="bg-emerald-50/70 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-900/40 p-4">
-                <input type="hidden" id="mak-id">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div><label class="block text-xs font-semibold mb-1">Kode Sub Kegiatan</label><input id="mak-sub-kode" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Nama Sub Kegiatan</label><input id="mak-sub-nama" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div><label class="block text-xs font-semibold mb-1">Kode Rekening</label><input id="mak-kode-rekening" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Uraian Belanja</label><input id="mak-uraian" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Detail Kegiatan</label><input id="mak-detail" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Pagu DPA</label><input id="mak-pagu-ref" type="number" min="0" step="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Sub Rincian</label><textarea id="mak-sub-rincian" rows="2" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></textarea></div>
-                  <div><label class="block text-xs font-semibold mb-1">Metode Alokasi</label><input id="mak-metode" value="Input manual" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Tahun</label><input id="mak-tahun" value="2026" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Source PDF</label><input id="mak-source" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                </div>
-                <div class="mt-4">
-                  <p class="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 uppercase">Distribusi RAK Bulanan</p>
-                  <div id="mak-month-grid" class="grid grid-cols-2 md:grid-cols-6 gap-2"></div>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Triwulan (TW) dan total dihitung otomatis dari RAK bulanan saat disimpan.</p>
-                  <p id="mak-live-total-label" class="text-xs font-bold text-blue-700 dark:text-blue-300 mt-1">Akumulasi RAK Input: Rp 0</p>
-                </div>
-                <div class="flex flex-wrap gap-2 mt-4">
-                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-save mr-2"></i>Simpan RAK</button>
-                  <button type="button" onclick="resetMasterAngkasForm()" class="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-undo mr-2"></i>Reset</button>
-                </div>
-              </form>
-              <div class="overflow-x-auto border border-gray-200 dark:border-slate-700 rounded-xl">
-                <table class="min-w-full text-xs">
-                  <thead class="bg-emerald-600 text-white"><tr><th class="px-3 py-2 text-left">Kode Sub</th><th class="px-3 py-2 text-left">Kode Rekening</th><th class="px-3 py-2 text-left">Uraian / Detail Kegiatan</th><th class="px-3 py-2 text-right">Total RAK</th><th class="px-3 py-2 text-center">Aksi</th></tr></thead>
-                  <tbody id="master-angkas-body" class="divide-y divide-gray-100 dark:divide-slate-800"></tbody>
-                </table>
-              </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-xs">
+                <thead class="bg-gray-100 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
+                  <tr>
+                    <th class="px-3 py-2.5 text-left text-gray-600 dark:text-gray-300 font-bold uppercase">Sub Kegiatan</th>
+                    <th class="px-3 py-2.5 text-left text-gray-600 dark:text-gray-300 font-bold uppercase">Rekening</th>
+                    <th class="px-3 py-2.5 text-left text-gray-600 dark:text-gray-300 font-bold uppercase">Uraian / Rincian Kegiatan</th>
+                    <th class="px-3 py-2.5 text-right text-gray-600 dark:text-gray-300 font-bold uppercase">Pagu DPA</th>
+                    <th class="px-3 py-2.5 text-right text-gray-600 dark:text-gray-300 font-bold uppercase">Total RAK</th>
+                    <th class="px-3 py-2.5 text-right text-gray-600 dark:text-gray-300 font-bold uppercase">Selisih</th>
+                    <th class="px-3 py-2.5 text-center text-gray-600 dark:text-gray-300 font-bold uppercase">Status</th>
+                    <th class="px-3 py-2.5 text-center text-gray-600 dark:text-gray-300 font-bold uppercase">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="master-integrated-body" class="divide-y divide-gray-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                  <tr>
+                    <td colspan="8" class="text-center py-6 text-gray-400 italic">Memuat data master...</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
-        </div>
-      </div>
+        </div>      </div>
 
         <!-- INPUT SPJ VIEW -->
         <div id="view-inputspj" class="view-section space-y-6">
@@ -2274,213 +2373,352 @@
     }
 
 
-    // ==================== MASTER DATA DPA / ANGGARAN KAS ====================
+    // ==================== MASTER DATA DPA / ANGGARAN KAS TERPADU ====================
     let masterDpaRows = [];
     let masterAngkasRows = [];
+    let integratedMasterRows = [];
     const MASTER_MONTHS = ['januari','februari','maret','april','mei','juni','juli','agustus','september','oktober','november','desember'];
     const MASTER_MONTH_LABELS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
-    function updateLiveMasterRakTotal() {
-      let sum = 0;
-      MASTER_MONTHS.forEach(function(m) {
-        const el = document.getElementById('mak-bulan-' + m);
-        if (el) sum += Number(el.value || 0);
-      });
-      const lbl = document.getElementById('mak-live-total-label');
-      if (lbl) lbl.textContent = 'Akumulasi RAK Input: ' + formatRupiah(sum);
-    }
-
-    function ensureMonthInputs() {
-      const wrap = document.getElementById('mak-month-grid');
+    function ensureIntMonthInputs() {
+      const wrap = document.getElementById('int-rak-month-grid');
       if (!wrap || wrap.dataset.ready === '1') return;
       wrap.dataset.ready = '1';
       wrap.innerHTML = MASTER_MONTHS.map(function(m, idx) {
-        return '<div><label class="block text-[10px] font-semibold mb-1">' + MASTER_MONTH_LABELS[idx] + '</label><input id="mak-bulan-' + m + '" oninput="updateLiveMasterRakTotal()" type="number" min="0" step="1" value="0" class="w-full px-2 py-1.5 rounded border text-xs dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>';
+        return '<div>' +
+          '<label class="block text-[10px] font-semibold text-gray-500 mb-1">' + MASTER_MONTH_LABELS[idx] + '</label>' +
+          '<input id="int-bulan-' + m + '" oninput="updateLiveIntegratedRakStatus()" type="number" min="0" step="1" value="0" class="w-full px-2 py-1 text-xs rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white font-mono">' +
+        '</div>';
       }).join('');
     }
 
-    function showMasterTab(tab) {
-      ensureMonthInputs();
-      const isDpa = tab === 'dpa';
-      document.getElementById('master-dpa-panel').classList.toggle('hidden', !isDpa);
-      document.getElementById('master-angkas-panel').classList.toggle('hidden', isDpa);
-      document.getElementById('btn-tab-master-dpa').className = isDpa ? 'px-5 py-3 text-sm font-bold text-blue-700 dark:text-blue-300 border-b-2 border-blue-600' : 'px-5 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 border-b-2 border-transparent';
-      document.getElementById('btn-tab-master-angkas').className = !isDpa ? 'px-5 py-3 text-sm font-bold text-emerald-700 dark:text-emerald-300 border-b-2 border-emerald-600' : 'px-5 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 border-b-2 border-transparent';
+    function calculateIntPagu() {
+      const vol = Number(document.getElementById('int-volume').value || 1);
+    }
+
+    function updateLiveIntegratedRakStatus() {
+      ensureIntMonthInputs();
+      const paguInput = Number(document.getElementById('int-pagu').value || 0);
+      
+      let totalRak = 0;
+      MASTER_MONTHS.forEach(function(m) {
+        const el = document.getElementById('int-bulan-' + m);
+        if (el) totalRak += Number(el.value || 0);
+      });
+
+      const selisih = paguInput - totalRak;
+
+      const lblPagu = document.getElementById('int-lbl-pagu-dpa');
+      const lblTotal = document.getElementById('int-lbl-total-rak');
+      const lblSelisih = document.getElementById('int-lbl-selisih');
+      const badge = document.getElementById('int-status-badge');
+
+      if (lblPagu) lblPagu.textContent = formatRupiah(paguInput);
+      if (lblTotal) lblTotal.textContent = formatRupiah(totalRak);
+      
+      if (lblSelisih) {
+        lblSelisih.textContent = formatRupiah(Math.abs(selisih));
+        if (selisih === 0) {
+          lblSelisih.className = 'font-bold text-emerald-600 dark:text-emerald-400';
+        } else if (selisih > 0) {
+          lblSelisih.className = 'font-bold text-amber-600 dark:text-amber-400';
+        } else {
+          lblSelisih.className = 'font-bold text-red-600 dark:text-red-400';
+        }
+      }
+
+      if (badge) {
+        if (paguInput === 0) {
+          badge.textContent = 'Pagu DPA belum diisi';
+          badge.className = 'text-center text-[10px] font-bold py-1 rounded mt-1 bg-gray-100 text-gray-800 border border-gray-200 dark:bg-slate-800 dark:text-gray-300';
+        } else if (selisih === 0) {
+          badge.textContent = 'Cocok (Pagu DPA = RAK)';
+          badge.className = 'text-center text-[10px] font-bold py-1 rounded mt-1 bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400';
+        } else if (selisih > 0) {
+          badge.textContent = 'Belum Teralokasi: ' + formatRupiah(selisih);
+          badge.className = 'text-center text-[10px] font-bold py-1 rounded mt-1 bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-950/20 dark:text-amber-400';
+        } else {
+          badge.textContent = 'RAK Melebihi Pagu: ' + formatRupiah(Math.abs(selisih));
+          badge.className = 'text-center text-[10px] font-bold py-1 rounded mt-1 bg-red-100 text-red-800 border border-red-200 dark:bg-red-950/20 dark:text-red-400';
+        }
+      }
+    }
+
+    function autoAllocateIntRak(type) {
+      ensureIntMonthInputs();
+      const paguInput = Number(document.getElementById('int-pagu').value || 0);
+      if (paguInput <= 0 && type !== 'clear') {
+        showToast('Tentukan Pagu DPA terlebih dahulu!', 'warning');
+        return;
+      }
+
+      if (type === 'clear') {
+        MASTER_MONTHS.forEach(function(m) {
+          const el = document.getElementById('int-bulan-' + m);
+          if (el) el.value = 0;
+        });
+      } else if (type === 'rata12') {
+        const base = Math.floor(paguInput / 12);
+        const remainder = paguInput - (base * 12);
+        MASTER_MONTHS.forEach(function(m, idx) {
+          const el = document.getElementById('int-bulan-' + m);
+          if (el) {
+            el.value = idx === 11 ? (base + remainder) : base;
+          }
+        });
+      } else if (type === 'triwulan') {
+        const base = Math.floor(paguInput / 4);
+        const remainder = paguInput - (base * 4);
+        MASTER_MONTHS.forEach(function(m, idx) {
+          const el = document.getElementById('int-bulan-' + m);
+          if (el) {
+            if (m === 'januari') el.value = base;
+            else if (m === 'april') el.value = base;
+            else if (m === 'juli') el.value = base;
+            else if (m === 'oktober') el.value = base + remainder;
+            else el.value = 0;
+          }
+        });
+      }
+      
+      updateLiveIntegratedRakStatus();
+      showToast('Auto alokasi berhasil diterapkan.', 'info');
     }
 
     function loadMasterData() {
-      ensureMonthInputs();
-      showLoading(true, 'Memuat master DPA dan RAK...');
+      ensureIntMonthInputs();
+      showLoading(true, 'Memuat Master DPA & RAK Terpadu...');
       google.script.run
-        .withSuccessHandler(function(rows) {
-          masterDpaRows = Array.isArray(rows) ? rows : [];
-          renderMasterDpaTable();
+        .withSuccessHandler(function(dpaRows) {
+          masterDpaRows = Array.isArray(dpaRows) ? dpaRows : [];
           google.script.run
-            .withSuccessHandler(function(akRows) {
-              masterAngkasRows = Array.isArray(akRows) ? akRows : [];
-              renderMasterAngkasTable();
+            .withSuccessHandler(function(rakRows) {
+              masterAngkasRows = Array.isArray(rakRows) ? rakRows : [];
+              joinDpaAndRak();
+              renderMasterIntegratedTable();
               showLoading(false);
             })
-            .withFailureHandler(failToast('Gagal memuat Master RAK'))
+            .withFailureHandler(failToast('Gagal memuat master RAK'))
             .getMasterAngkasRows(currentSessionToken);
         })
-        .withFailureHandler(failToast('Gagal memuat Master DPA'))
+        .withFailureHandler(failToast('Gagal memuat master DPA'))
         .getMasterDpaRows(currentSessionToken);
     }
 
-    function renderMasterDpaTable() {
-      const body = document.getElementById('master-dpa-body');
+    function joinDpaAndRak() {
+      integratedMasterRows = [];
+      const rakMap = {};
+      masterAngkasRows.forEach(function(r) {
+        const key = (r.sub_kegiatan_kode || '') + '||' + (r.kode_rekening || '') + '||' + (r.detail_kegiatan || '');
+        rakMap[key] = r;
+      });
+
+      masterDpaRows.forEach(function(d) {
+        if (d.status === 'Nonaktif') return;
+        const key = (d.sub_kode || '') + '||' + (d.kode_rekening || '') + '||' + (d.detail_kegiatan || '');
+        const matchedRak = rakMap[key] || null;
+        integratedMasterRows.push({
+          dpa: d,
+          rak: matchedRak,
+          rakTotal: matchedRak ? matchedRak.total : 0,
+          selisih: d.pagu_total - (matchedRak ? matchedRak.total : 0)
+        });
+      });
+    }
+
+    function renderMasterIntegratedTable() {
+      const body = document.getElementById('master-integrated-body');
       if (!body) return;
-      if (!masterDpaRows.length) {
-        body.innerHTML = '<tr><td colspan="6" class="px-3 py-6 text-center text-gray-400">Belum ada Master DPA</td></tr>';
+      
+      if (!integratedMasterRows.length) {
+        body.innerHTML = '<tr><td colspan="8" class="px-3 py-6 text-center text-gray-400 italic">Belum ada data Master Belanja</td></tr>';
         return;
       }
-      body.innerHTML = masterDpaRows.map(function(row, idx) {
-        return '<tr class="hover:bg-blue-50 dark:hover:bg-slate-800">' +
-          '<td class="px-3 py-2 align-top font-mono text-blue-900 dark:text-blue-300 whitespace-nowrap">' + escapeHtml(row.sub_kode || '') + '</td>' +
-          '<td class="px-3 py-2 align-top font-mono whitespace-nowrap">' + escapeHtml(row.kode_rekening || '') + '</td>' +
-          '<td class="px-3 py-2 align-top min-w-[320px]"><div class="font-semibold text-gray-800 dark:text-gray-100">' + escapeHtml(row.uraian_belanja || '') + '</div><div class="text-blue-600 dark:text-blue-400">' + escapeHtml(row.detail_kegiatan || '-') + '</div><div class="text-gray-400">' + escapeHtml(row.sub_rincian || '') + '</div></td>' +
-          '<td class="px-3 py-2 align-top text-right font-mono whitespace-nowrap">' + formatRupiah(row.pagu_total || 0) + '</td>' +
-          '<td class="px-3 py-2 align-top text-center whitespace-nowrap"><button onclick="editMasterDpa(' + idx + ')" class="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded text-[11px] mr-1"><i class="fas fa-edit"></i></button><button onclick="deleteMasterDpa(&quot;' + escapeHtml(row.id_dpa || '') + '&quot;)" class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-[11px]"><i class="fas fa-trash"></i></button></td>' +
+
+      body.innerHTML = integratedMasterRows.map(function(row, idx) {
+        const d = row.dpa;
+        const selisih = row.selisih;
+        
+        let statusBadge = '';
+        if (selisih === 0) {
+          statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Cocok</span>';
+        } else if (selisih > 0) {
+          statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Kurang RAK</span>';
+        } else {
+          statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">Over RAK</span>';
+        }
+
+        return '<tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-gray-100 dark:border-slate-800">' +
+          '<td class="px-3 py-3 align-top font-mono text-gray-900 dark:text-white whitespace-nowrap text-[11px]">' + escapeHtml(d.sub_kode || '') + '</td>' +
+          '<td class="px-3 py-3 align-top font-mono text-gray-500 whitespace-nowrap text-[11px]">' + escapeHtml(d.kode_rekening || '') + '</td>' +
+          '<td class="px-3 py-3 align-top min-w-[280px]">' +
+            '<div class="font-bold text-gray-800 dark:text-gray-100">' + escapeHtml(d.uraian_belanja || '') + '</div>' +
+            '<div class="text-blue-600 dark:text-blue-400 font-medium text-[11px] mt-0.5">' + escapeHtml(d.detail_kegiatan || '-') + '</div>' +
+            '<div class="text-gray-400 text-[10px] mt-0.5 italic">' + escapeHtml(d.sub_rincian || '') + '</div>' +
+          '</td>' +
+          '<td class="px-3 py-3 align-top text-right font-mono font-bold text-gray-900 dark:text-white">' + formatRupiah(d.pagu_total || 0) + '</td>' +
+          '<td class="px-3 py-3 align-top text-right font-mono font-medium text-emerald-600 dark:text-emerald-400">' + formatRupiah(row.rakTotal) + '</td>' +
+          '<td class="px-3 py-3 align-top text-right font-mono ' + (selisih === 0 ? 'text-gray-500' : (selisih > 0 ? 'text-amber-600' : 'text-red-600')) + '">' + formatRupiah(Math.abs(selisih)) + '</td>' +
+          '<td class="px-3 py-3 align-top text-center">' + statusBadge + '</td>' +
+          '<td class="px-3 py-3 align-top text-center whitespace-nowrap">' +
+            '<button onclick="editIntegratedMaster(' + idx + ')" class="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded text-[10px] font-bold mr-1 shadow-sm transition"><i class="fas fa-edit"></i> Edit</button>' +
+            '<button onclick="deleteIntegratedMaster(&quot;' + escapeHtml(d.id_dpa || '') + '&quot;)" class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-[10px] font-bold shadow-sm transition"><i class="fas fa-trash"></i> Hapus</button>' +
+          '</td>' +
         '</tr>';
       }).join('');
     }
 
-    function resetMasterDpaForm() {
-      ['mdpa-id','mdpa-sub-kode','mdpa-sub-nama','mdpa-kode-rekening','mdpa-uraian','mdpa-detail','mdpa-pagu','mdpa-sub-rincian','mdpa-sumber','mdpa-source'].forEach(function(id){ const el=document.getElementById(id); if(el) el.value=''; });
-      document.getElementById('mdpa-tahun').value = '2026';
-      document.getElementById('mdpa-status').value = 'Aktif';
-      document.getElementById('mdpa-volume').value = '1';
-      document.getElementById('mdpa-satuan').value = 'Paket/Kegiatan';
+    function resetIntegratedForm() {
+      ['int-dpa-id', 'int-rak-id', 'int-sub-kode', 'int-sub-nama', 'int-kode-rekening', 'int-uraian', 'int-detail', 'int-sub-rincian', 'int-sumber', 'int-source'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      document.getElementById('int-volume').value = '1';
+      document.getElementById('int-satuan').value = 'Paket/Kegiatan';
+      document.getElementById('int-pagu').value = '';
+      document.getElementById('int-tahun').value = '2026';
+
+      MASTER_MONTHS.forEach(function(m) {
+        const el = document.getElementById('int-bulan-' + m);
+        if (el) el.value = 0;
+      });
+
+      const title = document.getElementById('form-integrated-title');
+      if (title) title.innerHTML = '<i class="fas fa-edit text-blue-600 dark:text-blue-400 mr-2"></i>Form Input & Alokasi Terpadu DPA vs RAK';
+      const badge = document.getElementById('badge-edit-mode');
+      if (badge) badge.classList.add('hidden');
+
+      updateLiveIntegratedRakStatus();
     }
 
-    function editMasterDpa(idx) {
-      const r = masterDpaRows[idx]; if (!r) return;
-      document.getElementById('mdpa-id').value = r.id_dpa || '';
-      document.getElementById('mdpa-sub-kode').value = r.sub_kode || '';
-      document.getElementById('mdpa-sub-nama').value = r.sub_kegiatan || '';
-      document.getElementById('mdpa-kode-rekening').value = r.kode_rekening || '';
-      document.getElementById('mdpa-uraian').value = r.uraian_belanja || '';
-      document.getElementById('mdpa-detail').value = r.detail_kegiatan || '';
-      document.getElementById('mdpa-pagu').value = r.pagu_total || 0;
-      document.getElementById('mdpa-sub-rincian').value = r.sub_rincian || '';
-      document.getElementById('mdpa-sumber').value = r.sumber_dana || '';
-      document.getElementById('mdpa-tahun').value = r.tahun || '2026';
-      document.getElementById('mdpa-status').value = r.status || 'Aktif';
-      document.getElementById('mdpa-volume').value = r.volume || 1;
-      document.getElementById('mdpa-satuan').value = r.satuan || 'Paket/Kegiatan';
-      document.getElementById('mdpa-source').value = r.source_pdf || '';
-      showToast('Data DPA dimuat ke form edit.', 'info');
+    function editIntegratedMaster(idx) {
+      resetIntegratedForm();
+      const row = integratedMasterRows[idx];
+      if (!row) return;
+
+      const d = row.dpa;
+      const r = row.rak;
+
+      document.getElementById('int-dpa-id').value = d.id_dpa || '';
+      document.getElementById('int-sub-kode').value = d.sub_kode || '';
+      document.getElementById('int-sub-nama').value = d.sub_kegiatan || '';
+      document.getElementById('int-kode-rekening').value = d.kode_rekening || '';
+      document.getElementById('int-uraian').value = d.uraian_belanja || '';
+      document.getElementById('int-detail').value = d.detail_kegiatan || '';
+      document.getElementById('int-sub-rincian').value = d.sub_rincian || '';
+      document.getElementById('int-volume').value = d.volume || 1;
+      document.getElementById('int-satuan').value = d.satuan || 'Paket/Kegiatan';
+      document.getElementById('int-pagu').value = d.pagu_total || 0;
+      document.getElementById('int-sumber').value = d.sumber_dana || '';
+      document.getElementById('int-source').value = d.source_pdf || '';
+      document.getElementById('int-tahun').value = d.tahun || '2026';
+
+      if (r) {
+        document.getElementById('int-rak-id').value = r.id_kas || '';
+        MASTER_MONTHS.forEach(function(m) {
+          const el = document.getElementById('int-bulan-' + m);
+          if (el) el.value = r['bulan_' + m] || 0;
+        });
+      } else {
+        document.getElementById('int-rak-id').value = '';
+      }
+
+      const title = document.getElementById('form-integrated-title');
+      if (title) title.innerHTML = '<i class="fas fa-pencil-alt text-amber-500 mr-2"></i>Edit Rincian Belanja & RAK';
+      const badge = document.getElementById('badge-edit-mode');
+      if (badge) badge.classList.remove('hidden');
+
+      updateLiveIntegratedRakStatus();
+      
+      document.getElementById('form-integrated-title').scrollIntoView({ behavior: 'smooth' });
+      showToast('Data belanja dimuat ke form terintegrasi.', 'info');
     }
 
-    function saveMasterDpa() {
-      const payload = {
-        id_dpa: document.getElementById('mdpa-id').value,
-        sub_kode: document.getElementById('mdpa-sub-kode').value,
-        sub_kegiatan: document.getElementById('mdpa-sub-nama').value,
-        kode_rekening: document.getElementById('mdpa-kode-rekening').value,
-        uraian_belanja: document.getElementById('mdpa-uraian').value,
-        detail_kegiatan: document.getElementById('mdpa-detail').value,
-        pagu_total: Number(document.getElementById('mdpa-pagu').value || 0),
-        sub_rincian: document.getElementById('mdpa-sub-rincian').value,
-        sumber_dana: document.getElementById('mdpa-sumber').value,
-        tahun: document.getElementById('mdpa-tahun').value,
-        status: document.getElementById('mdpa-status').value,
-        volume: Number(document.getElementById('mdpa-volume').value || 1),
-        satuan: document.getElementById('mdpa-satuan').value,
-        source_pdf: document.getElementById('mdpa-source').value
-      };
-      showLoading(true, 'Menyimpan Master DPA...');
-      google.script.run
-        .withSuccessHandler(function(res) { showLoading(false); showToast(res.message || 'Master DPA tersimpan.', 'success'); resetMasterDpaForm(); loadMasterData(); loadDPAList(); })
-        .withFailureHandler(failToast('Gagal menyimpan Master DPA'))
-        .saveMasterDpaRow(payload, currentSessionToken);
-    }
+    function saveIntegratedDpaRak() {
+      const dpaId = document.getElementById('int-dpa-id').value;
+      const subKode = document.getElementById('int-sub-kode').value.trim();
+      const subNama = document.getElementById('int-sub-nama').value.trim();
+      const kodeRekening = document.getElementById('int-kode-rekening').value.trim();
+      const uraian = document.getElementById('int-uraian').value.trim();
+      const detail = document.getElementById('int-detail').value.trim();
+      const paguInput = Number(document.getElementById('int-pagu').value || 0);
 
-    function deleteMasterDpa(id) {
-      if (!id || !confirm('Hapus data Master DPA ini?')) return;
-      showLoading(true, 'Menghapus Master DPA...');
-      google.script.run
-        .withSuccessHandler(function(res) { showLoading(false); showToast(res.message || 'Master DPA dihapus.', 'success'); loadMasterData(); loadDPAList(); })
-        .withFailureHandler(failToast('Gagal menghapus Master DPA'))
-        .deleteMasterDpaRow(id, currentSessionToken);
-    }
-
-    function renderMasterAngkasTable() {
-      const body = document.getElementById('master-angkas-body');
-      if (!body) return;
-      if (!masterAngkasRows.length) {
-        body.innerHTML = '<tr><td colspan="6" class="px-3 py-6 text-center text-gray-400">Belum ada Master RAK</td></tr>';
+      if (!subKode || !subNama || !kodeRekening || !uraian || !detail) {
+        showToast('Sub Kegiatan, Kode Rekening, Uraian, dan Detail wajib diisi!', 'warning');
         return;
       }
-      body.innerHTML = masterAngkasRows.map(function(row, idx) {
-        return '<tr class="hover:bg-emerald-50 dark:hover:bg-slate-800">' +
-          '<td class="px-3 py-2 align-top font-mono text-blue-900 dark:text-blue-300 whitespace-nowrap">' + escapeHtml(row.sub_kegiatan_kode || '') + '</td>' +
-          '<td class="px-3 py-2 align-top font-mono whitespace-nowrap">' + escapeHtml(row.kode_rekening || '') + '</td>' +
-          '<td class="px-3 py-2 align-top min-w-[320px]"><div class="font-semibold text-gray-800 dark:text-gray-100">' + escapeHtml(row.uraian_belanja || '') + '</div><div class="text-emerald-600 dark:text-emerald-400">' + escapeHtml(row.detail_kegiatan || '-') + '</div><div class="text-gray-400">' + escapeHtml(row.sub_rincian || '') + '</div></td>' +
-          '<td class="px-3 py-2 align-top text-right font-mono whitespace-nowrap">' + formatRupiah(row.total || 0) + '</td>' +
-          '<td class="px-3 py-2 align-top text-center whitespace-nowrap"><button onclick="editMasterAngkas(' + idx + ')" class="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded text-[11px] mr-1"><i class="fas fa-edit"></i></button><button onclick="deleteMasterAngkas(&quot;' + escapeHtml(row.id_kas || '') + '&quot;)" class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-[11px]"><i class="fas fa-trash"></i></button></td>' +
-        '</tr>';
-      }).join('');
-    }
 
-    function resetMasterAngkasForm() {
-      ['mak-id','mak-sub-kode','mak-sub-nama','mak-kode-rekening','mak-uraian','mak-detail','mak-sub-rincian','mak-pagu-ref','mak-source'].forEach(function(id){ const el=document.getElementById(id); if(el) el.value=''; });
-      document.getElementById('mak-metode').value = 'Input manual';
-      document.getElementById('mak-tahun').value = '2026';
-      MASTER_MONTHS.forEach(function(m){ const el=document.getElementById('mak-bulan-' + m); if(el) el.value = 0; });
-      updateLiveMasterRakTotal();
-    }
-
-    function editMasterAngkas(idx) {
-      ensureMonthInputs();
-      const r = masterAngkasRows[idx]; if (!r) return;
-      document.getElementById('mak-id').value = r.id_kas || '';
-      document.getElementById('mak-sub-kode').value = r.sub_kegiatan_kode || '';
-      document.getElementById('mak-sub-nama').value = r.sub_kegiatan_nama || '';
-      document.getElementById('mak-kode-rekening').value = r.kode_rekening || '';
-      document.getElementById('mak-uraian').value = r.uraian_belanja || '';
-      document.getElementById('mak-detail').value = r.detail_kegiatan || '';
-      document.getElementById('mak-sub-rincian').value = r.sub_rincian || '';
-      document.getElementById('mak-pagu-ref').value = r.pagu_dpa_referensi || 0;
-      document.getElementById('mak-metode').value = r.metode_alokasi || 'Input manual';
-      document.getElementById('mak-tahun').value = r.tahun || '2026';
-      document.getElementById('mak-source').value = r.source_pdf || '';
-      MASTER_MONTHS.forEach(function(m){ const el=document.getElementById('mak-bulan-' + m); if(el) el.value = r['bulan_' + m] || 0; });
-      updateLiveMasterRakTotal();
-      showMasterTab('angkas');
-      showToast('Data RAK dimuat ke form edit.', 'info');
-    }
-
-    function saveMasterAngkas() {
-      const payload = {
-        id_kas: document.getElementById('mak-id').value,
-        sub_kegiatan_kode: document.getElementById('mak-sub-kode').value,
-        sub_kegiatan_nama: document.getElementById('mak-sub-nama').value,
-        kode_rekening: document.getElementById('mak-kode-rekening').value,
-        uraian_belanja: document.getElementById('mak-uraian').value,
-        detail_kegiatan: document.getElementById('mak-detail').value,
-        sub_rincian: document.getElementById('mak-sub-rincian').value,
-        pagu_dpa_referensi: Number(document.getElementById('mak-pagu-ref').value || 0),
-        metode_alokasi: document.getElementById('mak-metode').value,
-        tahun: document.getElementById('mak-tahun').value,
-        source_pdf: document.getElementById('mak-source').value
+      let totalRak = 0;
+      const rakPayload = {
+        id_kas: document.getElementById('int-rak-id').value,
+        metode_alokasi: 'Input manual/Terintegrasi'
       };
-      MASTER_MONTHS.forEach(function(m){ payload['bulan_' + m] = Number(document.getElementById('mak-bulan-' + m).value || 0); });
-      showLoading(true, 'Menyimpan Master RAK...');
+
+      MASTER_MONTHS.forEach(function(m) {
+        const val = Number(document.getElementById('int-bulan-' + m).value || 0);
+        rakPayload['bulan_' + m] = val;
+        totalRak += val;
+      });
+
+      if (paguInput !== totalRak) {
+        const confirmSave = confirm('Perhatian: Total RAK (' + formatRupiah(totalRak) + ') tidak sama dengan Pagu DPA (' + formatRupiah(paguInput) + ').\n\nTetap simpan data ini?');
+        if (!confirmSave) return;
+      }
+
+      const dpaPayload = {
+        id_dpa: dpaId,
+        sub_kode: subKode,
+        sub_kegiatan: subNama,
+        kode_rekening: kodeRekening,
+        uraian_belanja: uraian,
+        detail_kegiatan: detail,
+        sub_rincian: document.getElementById('int-sub-rincian').value,
+        volume: Number(document.getElementById('int-volume').value || 1),
+        satuan: document.getElementById('int-satuan').value,
+        pagu_total: paguInput,
+        sumber_dana: document.getElementById('int-sumber').value,
+        source_pdf: document.getElementById('int-source').value,
+        tahun: document.getElementById('int-tahun').value,
+        status: 'Aktif'
+      };
+
+      showLoading(true, 'Menyimpan Master DPA & RAK Terpadu...');
       google.script.run
-        .withSuccessHandler(function(res) { showLoading(false); showToast(res.message || 'Master RAK tersimpan.', 'success'); resetMasterAngkasForm(); loadMasterData(); loadDPAList(); })
-        .withFailureHandler(failToast('Gagal menyimpan Master RAK'))
-        .saveMasterAngkasRow(payload, currentSessionToken);
+        .withSuccessHandler(function(res) {
+          showLoading(false);
+          showToast(res.message || 'Data master tersimpan sinkron.', 'success');
+          resetIntegratedForm();
+          loadMasterData();
+          loadDPAList();
+        })
+        .withFailureHandler(failToast('Gagal menyimpan master terpadu'))
+        .saveMasterDpaDanRakRow(dpaPayload, rakPayload, currentSessionToken);
     }
 
-    function deleteMasterAngkas(id) {
-      if (!id || !confirm('Hapus data Master RAK ini?')) return;
-      showLoading(true, 'Menghapus Master RAK...');
+    function deleteIntegratedMaster(dpaId) {
+      if (!dpaId || !confirm('Apakah Anda yakin ingin menonaktifkan/menghapus rincian DPA ini beserta alokasi RAK terkait?')) return;
+      
+      showLoading(true, 'Menghapus data terpadu...');
       google.script.run
-        .withSuccessHandler(function(res) { showLoading(false); showToast(res.message || 'Master RAK dihapus.', 'success'); loadMasterData(); loadDPAList(); })
-        .withFailureHandler(failToast('Gagal menghapus Master RAK'))
-        .deleteMasterAngkasRow(id, currentSessionToken);
+        .withSuccessHandler(function(res) {
+          showLoading(false);
+          showToast(res.message || 'Data berhasil dihapus.', 'success');
+          loadMasterData();
+          loadDPAList();
+        })
+        .withFailureHandler(failToast('Gagal menghapus data terpadu'))
+        .deleteMasterDpaDanRakRow(dpaId, currentSessionToken);
+    }
+
+    function filterMasterTable() {
+      const q = document.getElementById('search-master-integrated').value.toLowerCase().trim();
+      const rows = document.querySelectorAll('#master-integrated-body tr');
+      
+      rows.forEach(function(row) {
+        if (row.cells.length < 3) return;
+        const text = row.innerText.toLowerCase();
+        row.classList.toggle('hidden', q && !text.includes(q));
+      });
     }
 
     function clearServerCacheFromUi() {
@@ -2998,19 +3236,15 @@
     window.simpanKendalaModal = simpanKendalaModal;
     window.loadKendalaList = loadKendalaList;
     window.simpanKendala = simpanKendala;
-    window.ensureMonthInputs = ensureMonthInputs;
-    window.showMasterTab = showMasterTab;
+    window.ensureIntMonthInputs = ensureIntMonthInputs;
+    window.autoAllocateIntRak = autoAllocateIntRak;
+    window.updateLiveIntegratedRakStatus = updateLiveIntegratedRakStatus;
+    window.editIntegratedMaster = editIntegratedMaster;
+    window.deleteIntegratedMaster = deleteIntegratedMaster;
+    window.saveIntegratedDpaRak = saveIntegratedDpaRak;
+    window.resetIntegratedForm = resetIntegratedForm;
+    window.filterMasterTable = filterMasterTable;
     window.loadMasterData = loadMasterData;
-    window.renderMasterDpaTable = renderMasterDpaTable;
-    window.resetMasterDpaForm = resetMasterDpaForm;
-    window.editMasterDpa = editMasterDpa;
-    window.saveMasterDpa = saveMasterDpa;
-    window.deleteMasterDpa = deleteMasterDpa;
-    window.renderMasterAngkasTable = renderMasterAngkasTable;
-    window.resetMasterAngkasForm = resetMasterAngkasForm;
-    window.editMasterAngkas = editMasterAngkas;
-    window.saveMasterAngkas = saveMasterAngkas;
-    window.deleteMasterAngkas = deleteMasterAngkas;
     window.clearServerCacheFromUi = clearServerCacheFromUi;
     window.loadSPJWorkspace = loadSPJWorkspace;
     window.onSubKegiatanChanged = onSubKegiatanChanged;

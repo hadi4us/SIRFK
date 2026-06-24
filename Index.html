@@ -2248,9 +2248,9 @@
       return now.getFullYear() === configuredYear ? now.getMonth() : 5; // default Juni untuk APBD 2026 saat tahun berjalan berbeda
     }
 
-    function getGapSeverity(gapPercent) {
-      if (gapPercent > 80) return { level: 'CRITICAL', label: 'Critical', cls: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200', rank: 3 };
-      if (gapPercent > 50) return { level: 'MEDIUM', label: 'Medium', cls: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200', rank: 2 };
+    function getGapSeverity(gapPercent, gapNilai) {
+      if (gapPercent > 80 || gapNilai > 100000000) return { level: 'CRITICAL', label: 'Critical', cls: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200', rank: 3 };
+      if (gapPercent > 50 || gapNilai > 50000000) return { level: 'MEDIUM', label: 'Medium', cls: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200', rank: 2 };
       if (gapPercent > 20) return { level: 'LOW', label: 'Low', cls: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200', rank: 1 };
       return { level: 'OK', label: 'OK', cls: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200', rank: 0 };
     }
@@ -2263,15 +2263,21 @@
         targetKumulatif += Number(monthly[i].angkas || 0);
         realisasiKumulatif += Number(monthly[i].realisasi || 0);
       }
-      const gapNilai = Math.max(0, targetKumulatif - realisasiKumulatif);
+      const rawGap = targetKumulatif - realisasiKumulatif;
+      const gapNilai = Math.max(0, rawGap);
+      const overNilai = Math.max(0, -rawGap);
       const gapPercent = targetKumulatif > 0 ? Number(((gapNilai / targetKumulatif) * 100).toFixed(2)) : 0;
-      const severity = getGapSeverity(gapPercent);
+      const overPercent = targetKumulatif > 0 ? Number(((overNilai / targetKumulatif) * 100).toFixed(2)) : 0;
+      const severity = getGapSeverity(gapPercent, gapNilai);
       return {
         bulanBerjalan: (APP_CONFIG.bulan || [])[monthIdx] || 'Juni',
         targetKumulatif: targetKumulatif,
         realisasiKumulatif: realisasiKumulatif,
         gapNilai: gapNilai,
         gapPercent: gapPercent,
+        overNilai: overNilai,
+        overPercent: overPercent,
+        isOver: overNilai > 1,
         severity: severity
       };
     }
@@ -2285,14 +2291,15 @@
           const gap = analyzeRowAbsorptionGap(row);
           const problems = [];
           if (Math.abs(pagu - angkas) > 1) problems.push('Pagu DPA tidak sama dengan RAK');
-          if (gap.severity.rank > 0) problems.push('Gap serapan s.d. ' + gap.bulanBerjalan + ': ' + gap.gapPercent + '% (' + gap.severity.label + ')');
+          if (gap.severity.rank > 0) problems.push('Gap serapan s.d. ' + gap.bulanBerjalan + ': ' + gap.gapPercent + '% / ' + formatRupiah(gap.gapNilai) + ' (' + gap.severity.label + ')');
+          if (gap.isOver) problems.push('Over/lebih cepat serap s.d. ' + gap.bulanBerjalan + ': ' + gap.overPercent + '% / ' + formatRupiah(gap.overNilai));
           (row.monthly || []).forEach(function(m) {
             if (m.statusJadwal === 'SEBELUM_JADWAL') problems.push('Realisasi sebelum jadwal: ' + m.bulan);
             if (m.statusJadwal === 'MELEBIHI_JADWAL') problems.push('Realisasi melebihi angkas: ' + m.bulan);
             if (m.statusJadwal === 'TERLAMBAT') problems.push('Keterlambatan penyerapan anggaran: ' + m.bulan);
             if (m.statusJadwal === 'TANPA_ANGGARAN') problems.push('Realisasi tanpa alokasi anggaran: ' + m.bulan);
           });
-          if (problems.length) issues.push({ sub: sub, row: row, problems: problems, gap: gap, severity: gap.severity });
+          if (problems.length) issues.push({ sub: sub, row: row, problems: problems, gap: gap, severity: gap.isOver && gap.severity.rank === 0 ? { level: 'OVER', label: 'Over Serap', cls: 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200', rank: 1 } : gap.severity });
         });
       });
       issues.sort(function(a, b) {
@@ -2327,7 +2334,7 @@
           '<div class="mt-3 grid grid-cols-1 md:grid-cols-4 gap-2 text-[11px]">' +
             '<div class="rounded-lg bg-slate-100 dark:bg-slate-800 p-2"><span class="text-gray-500">Target s.d. ' + escapeHtml(issue.gap.bulanBerjalan) + '</span><br><b>' + formatRupiah(issue.gap.targetKumulatif) + '</b></div>' +
             '<div class="rounded-lg bg-slate-100 dark:bg-slate-800 p-2"><span class="text-gray-500">Realisasi s.d. ' + escapeHtml(issue.gap.bulanBerjalan) + '</span><br><b class="text-emerald-600 dark:text-emerald-400">' + formatRupiah(issue.gap.realisasiKumulatif) + '</b></div>' +
-            '<div class="rounded-lg bg-slate-100 dark:bg-slate-800 p-2"><span class="text-gray-500">Gap Serapan</span><br><b class="text-red-600 dark:text-red-400">' + formatRupiah(issue.gap.gapNilai) + ' (' + issue.gap.gapPercent + '%)</b></div>' +
+            '<div class="rounded-lg bg-slate-100 dark:bg-slate-800 p-2"><span class="text-gray-500">Gap / Over Serapan</span><br><b class="' + (issue.gap.isOver ? 'text-purple-600 dark:text-purple-400' : 'text-red-600 dark:text-red-400') + '">' + (issue.gap.isOver ? ('Over ' + formatRupiah(issue.gap.overNilai) + ' (' + issue.gap.overPercent + '%)') : (formatRupiah(issue.gap.gapNilai) + ' (' + issue.gap.gapPercent + '%)')) + '</b></div>' +
             '<div class="rounded-lg p-2 ' + issue.severity.cls + '"><span>Prioritas</span><br><b>' + issue.severity.label + '</b></div>' +
           '</div>' +
           '<div class="mt-2 flex flex-wrap gap-1">' + issue.problems.map(function(p) { return '<span class="px-2 py-1 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-[10px] font-bold">' + escapeHtml(p) + '</span>'; }).join('') + '</div></div>' +
@@ -2347,7 +2354,8 @@
       const bulan = document.getElementById('modal-kendala-bulan');
       bulan.innerHTML = APP_CONFIG.bulan.map(function(b) { return '<option value="' + b + '">' + b + '</option>'; }).join('');
       bulan.value = firstBadMonth ? firstBadMonth && firstBadMonth.bulan || '' : APP_CONFIG.bulan[0];
-      document.getElementById('modal-kendala-permasalahan').value = issue.problems.join('; ') + '. Target s.d. ' + issue.gap.bulanBerjalan + ' ' + formatRupiah(issue.gap.targetKumulatif) + ', realisasi ' + formatRupiah(issue.gap.realisasiKumulatif) + ', gap ' + formatRupiah(issue.gap.gapNilai) + ' (' + issue.gap.gapPercent + '%). ' + (issue.row.namaUraianKegiatan || issue.row.uraianBelanja || '-');
+      const gapText = issue.gap.isOver ? ('over serap ' + formatRupiah(issue.gap.overNilai) + ' (' + issue.gap.overPercent + '%)') : ('gap ' + formatRupiah(issue.gap.gapNilai) + ' (' + issue.gap.gapPercent + '%)');
+      document.getElementById('modal-kendala-permasalahan').value = issue.problems.join('; ') + '. Target s.d. ' + issue.gap.bulanBerjalan + ' ' + formatRupiah(issue.gap.targetKumulatif) + ', realisasi ' + formatRupiah(issue.gap.realisasiKumulatif) + ', ' + gapText + '. ' + (issue.row.namaUraianKegiatan || issue.row.uraianBelanja || '-');
       document.getElementById('modal-kendala-solusi').value = '';
       document.getElementById('kendala-modal').classList.remove('hidden');
     }

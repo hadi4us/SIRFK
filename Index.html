@@ -2026,7 +2026,7 @@
     function loadMonitoringList(context) {
       const mode = context || (document.getElementById('view-kendala') && document.getElementById('view-kendala').classList.contains('active') ? 'kendala' : 'monitoring');
       showLoading(true, 'Memuat monitoring RFK...');
-      google.script.run
+      const runner = google.script.run
         .withSuccessHandler(function(list) {
           monitoringData = Array.isArray(list) ? list : [];
           const monitoringSelect = document.getElementById('monitoring-sub-kegiatan');
@@ -2050,8 +2050,13 @@
           if (summary && mode === 'monitoring') summary.innerHTML = '<div class="glass-panel p-6 rounded-xl shadow text-center text-red-600 dark:text-red-300 font-semibold">Gagal memuat Monitoring RFK: ' + escapeHtml(msg) + '</div>';
           if (detail && mode === 'monitoring') detail.classList.add('hidden');
           showToast('Gagal memuat monitoring: ' + msg, 'error');
-        })
-        .getMonitoringRFKSummary();
+        });
+      
+      if (mode === 'kendala') {
+        runner.getMonitoringRFKData();
+      } else {
+        runner.getMonitoringRFKSummary();
+      }
     }
 
     function renderMonitoringSummary() {

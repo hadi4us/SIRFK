@@ -184,13 +184,7 @@
           
           <a onclick="showView('dpa')" class="sidebar-link" data-view="dpa">
             <i class="fas fa-file-invoice-dollar w-5 h-5 mr-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0"></i>
-            <span class="flex-1 font-medium text-sm">DPA & Anggaran</span>
-          </a>
-          
-
-          <a onclick="showView('masterdata')" class="sidebar-link" data-view="masterdata">
-            <i class="fas fa-database w-5 h-5 mr-3 text-cyan-600 dark:text-cyan-400 flex-shrink-0"></i>
-            <span class="flex-1 font-medium text-sm">Master DPA/Angkas</span>
+            <span class="flex-1 font-medium text-sm">DPA & RAK</span>
           </a>
 
           <a onclick="showView('inputspj')" class="sidebar-link" data-view="inputspj">
@@ -369,14 +363,19 @@
 
         <!-- DPA & ANGGARAN KAS VIEW -->
         <div id="view-dpa" class="view-section space-y-6">
-          <div class="flex items-center justify-between mb-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
             <div>
-              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">DPA & Anggaran Kas</h2>
-              <p class="text-gray-500 dark:text-gray-400">Data Rencana Anggaran Belanja dan distribusi anggaran kas</p>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">DPA & RAK (Rencana Anggaran Kas)</h2>
+              <p class="text-gray-500 dark:text-gray-400">Data Rincian Belanja DPA dan distribusi RAK</p>
             </div>
-            <button onclick="loadDPAList()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
-              <i class="fas fa-sync-alt mr-2"></i>Refresh
-            </button>
+            <div class="flex items-center gap-2">
+              <button id="btn-toggle-master-integration" onclick="toggleMasterIntegrationPanel()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
+                <i class="fas fa-database mr-2"></i>Kelola Database Master
+              </button>
+              <button onclick="loadDPAList()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
+                <i class="fas fa-sync-alt mr-2"></i>Refresh
+              </button>
+            </div>
           </div>
           
           <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
@@ -408,15 +407,14 @@
               </table>
             </div>
           </div>
-        </div>
+        
 
-
-        <!-- MASTER DATA VIEW -->
-        <div id="view-masterdata" class="view-section space-y-6">
+          <!-- Integrated Master Panel -->
+          <div id="master-integration-panel" class="hidden space-y-6 border-t-2 border-dashed border-gray-200 dark:border-slate-700 pt-6 mt-6">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
             <div>
-              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Master DPA & Anggaran Kas</h2>
-              <p class="text-gray-500 dark:text-gray-400">Input, edit, dan hapus rincian DPA serta distribusi Anggaran Kas sampai detail kegiatan.</p>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Master DPA & RAK (Rencana Anggaran Kas)</h2>
+              <p class="text-gray-500 dark:text-gray-400">Input, edit, dan hapus rincian DPA serta distribusi RAK sampai detail kegiatan.</p>
             </div>
             <div class="flex gap-2">
               <button onclick="loadMasterData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
@@ -434,7 +432,7 @@
                 <i class="fas fa-file-invoice-dollar mr-2"></i>Master DPA
               </button>
               <button id="btn-tab-master-angkas" onclick="showMasterTab('angkas')" class="px-5 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 border-b-2 border-transparent">
-                <i class="fas fa-calendar-alt mr-2"></i>Master Anggaran Kas
+                <i class="fas fa-calendar-alt mr-2"></i>Master RAK
               </button>
             </div>
 
@@ -478,19 +476,20 @@
                   <div><label class="block text-xs font-semibold mb-1">Kode Rekening</label><input id="mak-kode-rekening" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
                   <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Uraian Belanja</label><input id="mak-uraian" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
                   <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Detail Kegiatan</label><input id="mak-detail" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
-                  <div><label class="block text-xs font-semibold mb-1">Pagu DPA Referensi</label><input id="mak-pagu-ref" type="number" min="0" step="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Pagu DPA</label><input id="mak-pagu-ref" type="number" min="0" step="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
                   <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Sub Rincian</label><textarea id="mak-sub-rincian" rows="2" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></textarea></div>
                   <div><label class="block text-xs font-semibold mb-1">Metode Alokasi</label><input id="mak-metode" value="Input manual" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
                   <div><label class="block text-xs font-semibold mb-1">Tahun</label><input id="mak-tahun" value="2026" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
                   <div><label class="block text-xs font-semibold mb-1">Source PDF</label><input id="mak-source" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
                 </div>
                 <div class="mt-4">
-                  <p class="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 uppercase">Distribusi Bulanan RAK</p>
+                  <p class="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 uppercase">Distribusi RAK Bulanan</p>
                   <div id="mak-month-grid" class="grid grid-cols-2 md:grid-cols-6 gap-2"></div>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">TW dan total dihitung otomatis dari nilai bulanan saat disimpan.</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Triwulan (TW) dan total dihitung otomatis dari RAK bulanan saat disimpan.</p>
+                  <p id="mak-live-total-label" class="text-xs font-bold text-blue-700 dark:text-blue-300 mt-1">Akumulasi RAK Input: Rp 0</p>
                 </div>
                 <div class="flex flex-wrap gap-2 mt-4">
-                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-save mr-2"></i>Simpan Angkas</button>
+                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-save mr-2"></i>Simpan RAK</button>
                   <button type="button" onclick="resetMasterAngkasForm()" class="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-undo mr-2"></i>Reset</button>
                 </div>
               </form>
@@ -503,8 +502,7 @@
             </div>
           </div>
         </div>
-
-
+        </div>
         <!-- INPUT SPJ VIEW -->
         <div id="view-inputspj" class="view-section space-y-6">
           <div class="flex items-center justify-between mb-6">
@@ -1080,6 +1078,18 @@
       } else {
         mobileNav.classList.add('mobile-nav-role-hidden');
       }
+      
+      const toggleBtn = document.getElementById('btn-toggle-master-integration');
+      if (toggleBtn) {
+        if (['ADMIN', 'OPERATOR'].includes(currentUser.role)) {
+          toggleBtn.classList.remove('hidden');
+        } else {
+          toggleBtn.classList.add('hidden');
+          const panel = document.getElementById('master-integration-panel');
+          if (panel) panel.classList.add('hidden');
+        }
+      }
+
       document.getElementById('screen-login').classList.add('hidden');
       document.getElementById('screen-workspace').classList.remove('hidden');
       showView(options.view || 'dashboard');
@@ -1286,8 +1296,48 @@
         .ubahPassword(username, oldPass, newPass);
     }
 
+    function updateLiveMasterRakTotal() {
+      let sum = 0;
+      MASTER_MONTHS.forEach(function(m) {
+        const el = document.getElementById('mak-bulan-' + m);
+        if (el) sum += Number(el.value || 0);
+      });
+      const lbl = document.getElementById('mak-live-total-label');
+      if (lbl) lbl.textContent = 'Akumulasi RAK Input: ' + formatRupiah(sum);
+    }
+
+    function toggleMasterIntegrationPanel() {
+      const panel = document.getElementById('master-integration-panel');
+      if (!panel) return;
+      const isHidden = panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', !isHidden);
+      const btn = document.getElementById('btn-toggle-master-integration');
+      if (btn) {
+        if (isHidden) {
+          btn.innerHTML = '<i class="fas fa-eye-slash mr-2"></i>Sembunyikan Pengelola Master';
+          btn.className = 'bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow';
+          loadMasterData();
+        } else {
+          btn.innerHTML = '<i class="fas fa-database mr-2"></i>Kelola Database Master';
+          btn.className = 'bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow';
+        }
+      }
+    }
+
     function showView(viewId) {
       if (!window.matchMedia('(min-width: 768px)').matches) setSidebarVisible(false);
+      
+      // Reset integrated master panel status if navigating away from DPA
+      if (viewId !== 'dpa') {
+        const panel = document.getElementById('master-integration-panel');
+        if (panel) panel.classList.add('hidden');
+        const btn = document.getElementById('btn-toggle-master-integration');
+        if (btn) {
+          btn.innerHTML = '<i class="fas fa-database mr-2"></i>Kelola Database Master';
+          btn.className = 'bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow';
+        }
+      }
+
       document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
       const target = document.getElementById('view-' + viewId);
       if (target) target.classList.add('active');
@@ -1304,7 +1354,6 @@
 
       if (viewId === 'dashboard') loadDashboard();
       if (viewId === 'dpa') loadDPAList();
-      if (viewId === 'masterdata') loadMasterData();
       if (viewId === 'inputspj') loadSPJWorkspace();
       if (viewId === 'monitoring') loadMonitoringList();
       if (viewId === 'kendala') loadMonitoringList();
@@ -1969,7 +2018,7 @@
       if (!wrap || wrap.dataset.ready === '1') return;
       wrap.dataset.ready = '1';
       wrap.innerHTML = MASTER_MONTHS.map(function(m, idx) {
-        return '<div><label class="block text-[10px] font-semibold mb-1">' + MASTER_MONTH_LABELS[idx] + '</label><input id="mak-bulan-' + m + '" type="number" min="0" step="1" value="0" class="w-full px-2 py-1.5 rounded border text-xs dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>';
+        return '<div><label class="block text-[10px] font-semibold mb-1">' + MASTER_MONTH_LABELS[idx] + '</label><input id="mak-bulan-' + m + '" oninput="updateLiveMasterRakTotal()" type="number" min="0" step="1" value="0" class="w-full px-2 py-1.5 rounded border text-xs dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>';
       }).join('');
     }
 
@@ -2103,6 +2152,7 @@
       document.getElementById('mak-metode').value = 'Input manual';
       document.getElementById('mak-tahun').value = '2026';
       MASTER_MONTHS.forEach(function(m){ const el=document.getElementById('mak-bulan-' + m); if(el) el.value = 0; });
+      updateLiveMasterRakTotal();
     }
 
     function editMasterAngkas(idx) {
@@ -2120,6 +2170,7 @@
       document.getElementById('mak-tahun').value = r.tahun || '2026';
       document.getElementById('mak-source').value = r.source_pdf || '';
       MASTER_MONTHS.forEach(function(m){ const el=document.getElementById('mak-bulan-' + m); if(el) el.value = r['bulan_' + m] || 0; });
+      updateLiveMasterRakTotal();
       showMasterTab('angkas');
       showToast('Data Anggaran Kas dimuat ke form edit.', 'info');
     }

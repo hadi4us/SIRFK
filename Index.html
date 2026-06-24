@@ -63,6 +63,12 @@
     #spj-review-panel.active { display: block; }
     #spj-review-panel .spj-review-card { max-width: 920px; margin: 1rem auto; background: rgba(255,255,255,.98); border-radius: 1rem; box-shadow: 0 24px 80px rgba(15,23,42,.35); }
     .dark #spj-review-panel .spj-review-card { background: rgba(15,23,42,.98); }
+    @media (min-width: 768px) {
+      #screen-workspace > .flex.flex-1 { display: block !important; position: relative; min-height: calc(100vh - 64px); }
+      #sidebar { position: fixed !important; top: 64px !important; bottom: 0 !important; left: 0 !important; width: 18rem !important; z-index: 40 !important; }
+      #screen-workspace main { margin-left: 18rem !important; width: calc(100% - 18rem) !important; min-height: calc(100vh - 64px) !important; height: calc(100vh - 64px) !important; }
+      #mobile-nav { display: none !important; }
+    }
   </style>
 </head>
 <body class="bg-gray-50 dark:bg-slate-900 font-sans text-sm transition-colors duration-300">

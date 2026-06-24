@@ -892,6 +892,7 @@ function getKendalaList() { return cacheJson_('rfk_kendala_v13', getKendalaList_
 function getValidasiAngkas() { return cacheJson_('rfk_validasi_v13', getValidasiAngkas_uncached_); }
 function getDpaHierarkiTigaTingkat() { return cacheJson_('rfk_dpa_hierarki_v14', getDpaHierarkiTigaTingkat_uncached_, 300); }
 function getDaftarSpj() { return cacheJson_('rfk_spj_list_v13', getDaftarSpj_uncached_); }
+function getRekapPelaksana() { return cacheJson_('rfk_rekap_pelaksana_v1', getRekapPelaksana_uncached_, 300); }
 
 function getDashboardStats_uncached_() {
   const maps = getDpaMaps_();
@@ -1286,6 +1287,32 @@ function getDaftarSpj_uncached_() {
     });
   }
   return list.reverse();
+}
+
+function getRekapPelaksana_uncached_() {
+  const sheet = getSheet_(APP.SHEETS.SPJ_DETAIL);
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  const lastRow = sheet.getLastRow();
+  const width = Math.max(sheet.getLastColumn(), COL_SPJ_DETAIL.TANGGAL_SPJ + 1);
+  const data = sheet.getRange(2, 1, lastRow - 1, width).getValues();
+  const map = {};
+  data.forEach(function(row) {
+    const jenis = safeString_(row[COL_SPJ_DETAIL.JENIS_SPJ]).toUpperCase();
+    const active = row[COL_SPJ_DETAIL.IS_ACTIVE];
+    const status = normalizeStatus_(row[COL_SPJ_DETAIL.STATUS]);
+    if (jenis !== 'SPPD') return;
+    if (active === false || safeString_(active).toLowerCase() === 'false') return;
+    if (status === 'Batal' || status === 'Ditolak') return;
+    const pelaksana = safeString_(row[COL_SPJ_DETAIL.PELAKSANA]) || '(Tanpa Pelaksana)';
+    const monthIdx = monthIndex_(row[COL_SPJ_DETAIL.BULAN]);
+    if (monthIdx < 0) return;
+    if (!map[pelaksana]) map[pelaksana] = { pelaksana: pelaksana, months: [0,0,0,0,0,0,0,0,0,0,0,0], total: 0 };
+    map[pelaksana].months[monthIdx] += 1;
+    map[pelaksana].total += 1;
+  });
+  return Object.keys(map).map(function(k) { return map[k]; }).sort(function(a, b) {
+    return b.total - a.total || a.pelaksana.localeCompare(b.pelaksana);
+  });
 }
 
 /***************************************************************************

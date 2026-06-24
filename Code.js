@@ -421,8 +421,21 @@ function cacheJson_(key, builder, ttlSeconds) {
   return value;
 }
 
-function clearRfkCache_() {
-  try { CacheService.getScriptCache().removeAll(RFK_CACHE_KEYS); } catch (err) {}
+function clearRfkCache_(keys) {
+  try { CacheService.getScriptCache().removeAll(keys || RFK_CACHE_KEYS); } catch (err) {}
+}
+
+function clearSpjMutationCache_() {
+  clearRfkCache_([
+    'rfk_dashboard_v13',
+    'rfk_dashboard_payload_v1',
+    'rfk_monitoring_v19',
+    'rfk_monitoring_summary_v1',
+    'rfk_kendala_v13',
+    'rfk_validasi_v13',
+    'rfk_dpa_list_v16',
+    'rfk_spj_list_v13'
+  ]);
 }
 
 function logActivity_(user, aksi, entitas, idEntitas, beforeValue, afterValue, status, pesan) {
@@ -1841,9 +1854,28 @@ function getExistingActiveValuesByDpa_(excludeIdSpj) {
   return result;
 }
 
-function validateSpjAgainstPagu_(perDpaInput, excludeIdSpj) {
+
+function buildExistingActiveValuesByDpaFromRows_(detailRows, excludeIdSpj) {
+  const result = {};
+  const headerStatusMap = getHeaderStatusMap_();
   const maps = getDpaMaps_();
-  const existing = getExistingActiveValuesByDpa_(excludeIdSpj);
+  (detailRows || []).forEach(function(row) {
+    const idSpj = safeString_(row[COL_SPJ_DETAIL.ID_SPJ]);
+    if (!idSpj || idSpj === excludeIdSpj) return;
+    if (row.length > COL_SPJ_DETAIL.IS_ACTIVE && !isActiveValue_(row[COL_SPJ_DETAIL.IS_ACTIVE])) return;
+    const status = normalizeStatus_(headerStatusMap[idSpj] || row[COL_SPJ_DETAIL.STATUS]);
+    if (APP.SPJ_ACTIVE_STATUSES.indexOf(status) === -1) return;
+    const dpa = resolveDpaFromDetailRow_(row, maps);
+    if (!dpa) return;
+    const dpaKey = dpa.id_dpa || [dpa.sub_kegiatan_kode, dpa.kode_rekening, dpa.uraian_belanja].map(normalizeKey_).join('|');
+    result[dpaKey] = (result[dpaKey] || 0) + asNumber_(row[COL_SPJ_DETAIL.NILAI_BRUTO]);
+  });
+  return result;
+}
+
+function validateSpjAgainstPagu_(perDpaInput, excludeIdSpj, existingValues) {
+  const maps = getDpaMaps_();
+  const existing = existingValues || getExistingActiveValuesByDpa_(excludeIdSpj);
   Object.keys(perDpaInput).forEach(function(dpaKey) {
     let dpa = maps.byId[dpaKey];
     if (!dpa) {
@@ -1868,7 +1900,6 @@ function simpanSpj(headerData, detailRows, sessionToken) {
     locked = lock.tryLock(30000);
     if (!locked) throw new Error('Sistem sedang memproses antrean lain. Coba sesaat lagi.');
 
-    setupAllSheets();
     const headerSheet = ensureSheetHeaders_(APP.SHEETS.SPJ_HEADER, SHEET_HEADERS.SPJ_HEADER);
     const detailSheet = ensureSheetHeaders_(APP.SHEETS.SPJ_DETAIL, SHEET_HEADERS.SPJ_DETAIL);
     const historySheet = ensureSheetHeaders_(APP.SHEETS.SPJ_DETAIL_HISTORY, SHEET_HEADERS.SPJ_DETAIL_HISTORY);
@@ -1887,14 +1918,18 @@ function simpanSpj(headerData, detailRows, sessionToken) {
     if (Math.abs(detailBuild.total - totalClient) > 1) {
       throw new Error('Total header tidak sama dengan total detail. Header: ' + totalClient + ', detail: ' + detailBuild.total + '.');
     }
-    validateSpjAgainstPagu_(detailBuild.perDpaInput, idSpj);
+    const detailLastRow = detailSheet.getLastRow();
+    const dt = detailLastRow > 1 ? detailSheet.getRange(2, 1, detailLastRow - 1, Math.max(detailSheet.getLastColumn(), SHEET_HEADERS.SPJ_DETAIL.length)).getValues() : [];
+    const existingByDpa = buildExistingActiveValuesByDpaFromRows_(dt, idSpj);
+    validateSpjAgainstPagu_(detailBuild.perDpaInput, idSpj, existingByDpa);
 
-    const hd = headerSheet.getDataRange().getValues();
+    const headerLastRow = headerSheet.getLastRow();
+    const hd = headerLastRow > 1 ? headerSheet.getRange(2, 1, headerLastRow - 1, Math.max(headerSheet.getLastColumn(), SHEET_HEADERS.SPJ_HEADER.length)).getValues() : [];
     let headerIndex = -1;
     let beforeHeader = null;
-    for (let i = 1; i < hd.length; i++) {
+    for (let i = 0; i < hd.length; i++) {
       if (safeString_(hd[i][COL_SPJ_HEADER.ID_SPJ]) === idSpj) {
-        headerIndex = i + 1;
+        headerIndex = i + 2;
         beforeHeader = hd[i];
         break;
       }
@@ -1931,16 +1966,19 @@ function simpanSpj(headerData, detailRows, sessionToken) {
     }
 
     // Preserve audit trail: old active detail rows are deactivated, not deleted.
-    const dt = detailSheet.getDataRange().getValues();
     const historyRows = [];
-    for (let i = dt.length - 1; i >= 1; i--) {
+    const deactivateRowNums = [];
+    for (let i = dt.length - 1; i >= 0; i--) {
       if (safeString_(dt[i][COL_SPJ_DETAIL.ID_SPJ]) === idSpj && isActiveValue_(dt[i][COL_SPJ_DETAIL.IS_ACTIVE])) {
         historyRows.push([timestamp, 'DEACTIVATE_ON_EDIT', idSpj, dt[i][COL_SPJ_DETAIL.ID_DETAIL], JSON.stringify(dt[i]), session.email]);
-        detailSheet.getRange(i + 1, COL_SPJ_DETAIL.IS_ACTIVE + 1).setValue(false);
-        detailSheet.getRange(i + 1, COL_SPJ_DETAIL.STATUS + 1).setValue('Digantikan');
-        detailSheet.getRange(i + 1, COL_SPJ_DETAIL.UPDATED_AT + 1).setValue(timestamp);
-        detailSheet.getRange(i + 1, COL_SPJ_DETAIL.UPDATED_BY + 1).setValue(session.email);
+        deactivateRowNums.push(i + 2);
       }
+    }
+    if (deactivateRowNums.length) {
+      deactivateRowNums.forEach(function(rowNum) {
+        detailSheet.getRange(rowNum, COL_SPJ_DETAIL.STATUS + 1, 1, 1).setValue('Digantikan');
+        detailSheet.getRange(rowNum, COL_SPJ_DETAIL.IS_ACTIVE + 1, 1, 3).setValues([[false, timestamp, session.email]]);
+      });
     }
     if (historyRows.length) {
       historySheet.getRange(historySheet.getLastRow() + 1, 1, historyRows.length, historyRows[0].length).setValues(historyRows);
@@ -1949,7 +1987,7 @@ function simpanSpj(headerData, detailRows, sessionToken) {
     detailSheet.getRange(detailSheet.getLastRow() + 1, 1, detailBuild.rows.length, detailBuild.rows[0].length).setValues(detailBuild.rows);
 
     SpreadsheetApp.flush();
-    clearRfkCache_();
+    clearSpjMutationCache_();
     logActivity_(session.email, beforeHeader ? 'UPDATE_SPJ' : 'SIMPAN_SPJ', 'SPJ_HEADER', idSpj, beforeHeader, rowHeader, 'OK', 'SPJ tersimpan');
     return { success: true, id_spj: idSpj, total: detailBuild.total };
   } catch (err) {

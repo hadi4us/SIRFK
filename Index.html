@@ -3012,7 +3012,10 @@
             document.getElementById('spj-nomor').value = '';
             document.getElementById('input-nilai-bruto').value = '';
             setTimeout(function() { loadSPJList(false, true); }, 800);
-            loadDashboard(); loadMonitoringList('monitoring');
+            loadDashboard(false);
+            if (document.getElementById('view-monitoring') && document.getElementById('view-monitoring').classList.contains('active')) {
+              loadMonitoringList('monitoring');
+            }
           } else {
             showToast('Gagal menyimpan SPJ', 'error');
           }

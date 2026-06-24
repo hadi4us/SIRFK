@@ -24,10 +24,12 @@ const APP = {
     MASTER_ANGGARAN_KAS: 'MASTER_ANGGARAN_KAS',
     MASTER_SUMBER_DANA: 'MASTER_SUMBER_DANA',
     MASTER_INDIKATOR: 'MASTER_INDIKATOR',
+    MASTER_PELAKSANA: 'MASTER_PELAKSANA',
     KENDALA_LOG: 'KENDALA_LOG',
     SPJ_HEADER: 'SPJ_HEADER',
     SPJ_DETAIL: 'SPJ_DETAIL',
     SPJ_DETAIL_HISTORY: 'SPJ_DETAIL_HISTORY',
+    SPJ_DOKUMEN: 'SPJ_DOKUMEN',
     MONITORING_RFK: 'MONITORING_RFK',
     VALIDASI_ANGKAS: 'VALIDASI_ANGKAS',
     REALISASI_AUTO: 'REALISASI_AUTO',
@@ -37,7 +39,7 @@ const APP = {
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
   ],
-  CACHE_TTL_SECONDS: 120,
+  CACHE_TTL_SECONDS: 300,
   SESSION_TTL_SECONDS: 21600,
   REALISASI_VALID_STATUSES: ['Diverifikasi', 'Dibayar'],
   SPJ_ACTIVE_STATUSES: ['Draft', 'Diajukan', 'Diverifikasi', 'Dibayar'],
@@ -172,6 +174,9 @@ const SHEET_HEADERS = {
     'id_indikator', 'sub_kegiatan_kode', 'sub_kegiatan_nama',
     'nama_indikator', 'target_kinerja', 'keluaran', 'tahun'
   ],
+  MASTER_PELAKSANA: [
+    'id_pelaksana', 'nama_pelaksana', 'jabatan', 'unit', 'status'
+  ],
   KENDALA_LOG: [
     'id_kendala', 'sub_kegiatan_kode', 'bulan', 'tahun',
     'permasalahan', 'solusi', 'status_penyelesaian',
@@ -195,6 +200,9 @@ const SHEET_HEADERS = {
   SPJ_DETAIL_HISTORY: [
     'timestamp', 'aksi', 'id_spj', 'id_detail', 'data_json', 'user'
   ],
+  SPJ_DOKUMEN: [
+    'id_dokumen', 'id_spj', 'nama_file', 'mime_type', 'drive_file_id', 'drive_url', 'uploaded_at', 'uploaded_by', 'keterangan'
+  ],
   LOG_AKTIVITAS: [
     'timestamp', 'user', 'aksi', 'entitas', 'id_entitas',
     'nilai_sebelum_json', 'nilai_sesudah_json', 'status', 'pesan'
@@ -207,7 +215,17 @@ const SHEET_HEADERS = {
 /***************************************************************************
  * Web App
  ***************************************************************************/
-function doGet() {
+function doGet(e) {
+  if (e && e.parameter && e.parameter.sync === '1') {
+    try {
+      const msg = importAnggaranKas();
+      return ContentService.createTextOutput(JSON.stringify({ success: true, message: msg }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService.createTextOutput(JSON.stringify({ success: false, error: err.message }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
   return HtmlService.createTemplateFromFile('Index')
     .evaluate()
     .setTitle('Portal Keuangan OPD 2026')
@@ -274,12 +292,16 @@ function setupAllSheets() {
   return 'âœ… Semua sheet RFK sudah disiapkan dan header penting sudah dilengkapi.';
 }
 
+const REQUEST_CACHE_ = { rawSheets: {}, headerMaps: {}, dpaRows: null, dpaMaps: null, angkasMap: null };
+
 function getRawSheet_(sheetName) {
+  if (REQUEST_CACHE_.rawSheets[sheetName]) return REQUEST_CACHE_.rawSheets[sheetName];
   const sheet = getSheet_(sheetName);
-  if (!sheet) return { headers: [], rows: [] };
-  const data = sheet.getDataRange().getValues();
-  if (!data.length) return { headers: [], rows: [] };
-  return { headers: data[0], rows: data.slice(1) };
+  if (!sheet || sheet.getLastRow() < 1 || sheet.getLastColumn() < 1) return { headers: [], rows: [] };
+  const data = sheet.getRange(1, 1, sheet.getLastRow(), sheet.getLastColumn()).getValues();
+  const raw = data.length ? { headers: data[0], rows: data.slice(1) } : { headers: [], rows: [] };
+  REQUEST_CACHE_.rawSheets[sheetName] = raw;
+  return raw;
 }
 
 function getSheetData_(sheetName) {
@@ -312,14 +334,22 @@ function normalizeKey_(value) {
   return safeString_(value).toLowerCase().replace(/\s+/g, ' ');
 }
 
-function getHeaderIndexMap_(sheet) {
-  if (!sheet || sheet.getLastRow() < 1 || sheet.getLastColumn() < 1) return {};
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+function headerIndexMapFromHeaders_(headers) {
   const map = {};
-  headers.forEach(function(header, idx) {
+  (headers || []).forEach(function(header, idx) {
     const key = normalizeKey_(header);
     if (key) map[key] = idx;
   });
+  return map;
+}
+
+function getHeaderIndexMap_(sheet) {
+  if (!sheet || sheet.getLastRow() < 1 || sheet.getLastColumn() < 1) return {};
+  const key = sheet.getName();
+  if (REQUEST_CACHE_.headerMaps[key]) return REQUEST_CACHE_.headerMaps[key];
+  const raw = getRawSheet_(key);
+  const map = headerIndexMapFromHeaders_(raw.headers);
+  REQUEST_CACHE_.headerMaps[key] = map;
   return map;
 }
 
@@ -590,10 +620,12 @@ function ubahPassword(username, lama, baru) {
  * Master-data loaders
  ***************************************************************************/
 function getDpaRows_() {
+  if (REQUEST_CACHE_.dpaRows) return REQUEST_CACHE_.dpaRows;
   const sheet = getSheet_(APP.SHEETS.MASTER_DPA);
   if (!sheet || sheet.getLastRow() < 2) return [];
-  const data = sheet.getDataRange().getValues();
-  const headerMap = getHeaderIndexMap_(sheet);
+  const raw = getRawSheet_(APP.SHEETS.MASTER_DPA);
+  const data = [raw.headers].concat(raw.rows);
+  const headerMap = headerIndexMapFromHeaders_(raw.headers);
   const idxDetail = headerMap[normalizeKey_('detail_kegiatan')];
   const idxSubRincian = headerMap[normalizeKey_('sub_rincian')];
   const idxLevel = headerMap[normalizeKey_('level_rincian')];
@@ -624,10 +656,12 @@ function getDpaRows_() {
       source_pdf: idxSource !== undefined ? safeString_(row[idxSource]) : ''
     });
   }
+  REQUEST_CACHE_.dpaRows = rows;
   return rows;
 }
 
 function getDpaMaps_() {
+  if (REQUEST_CACHE_.dpaMaps) return REQUEST_CACHE_.dpaMaps;
   const rows = getDpaRows_();
   const byId = {};
   const byExact = {};
@@ -656,7 +690,7 @@ function getDpaMaps_() {
     subCodeInfo[item.sub_kegiatan_kode].pagu += item.pagu_total;
   });
 
-  return {
+  REQUEST_CACHE_.dpaMaps = {
     rows: rows,
     byId: byId,
     byExact: byExact,
@@ -664,14 +698,17 @@ function getDpaMaps_() {
     subNameToCode: subNameToCode,
     subCodeInfo: subCodeInfo
   };
+  return REQUEST_CACHE_.dpaMaps;
 }
 
 function getAngkasMap_() {
+  if (REQUEST_CACHE_.angkasMap) return REQUEST_CACHE_.angkasMap;
   const sheet = getSheet_(APP.SHEETS.MASTER_ANGGARAN_KAS);
   const map = {};
   if (!sheet || sheet.getLastRow() < 2) return map;
-  const data = sheet.getDataRange().getValues();
-  const headerMap = getHeaderIndexMap_(sheet);
+  const raw = getRawSheet_(APP.SHEETS.MASTER_ANGGARAN_KAS);
+  const data = [raw.headers].concat(raw.rows);
+  const headerMap = headerIndexMapFromHeaders_(raw.headers);
   const hasDetailFormat = headerMap[normalizeKey_('kode_rekening')] !== undefined || headerMap[normalizeKey_('uraian_belanja')] !== undefined;
   const idx = {
     id: headerMap[normalizeKey_('id_kas')] !== undefined ? headerMap[normalizeKey_('id_kas')] : COL_ANGKAS.ID_KAS,
@@ -709,8 +746,7 @@ function getAngkasMap_() {
     const tw = [asNumber_(row[idx.tw1]), asNumber_(row[idx.tw2]), asNumber_(row[idx.tw3]), asNumber_(row[idx.tw4])];
     const totalBulanan = bulanan.reduce(function(a, b) { return a + b; }, 0);
     const totalTw = tw.reduce(function(a, b) { return a + b; }, 0);
-    const totalCell = asNumber_(row[idx.total]);
-    const total = totalCell || totalBulanan;
+    const total = totalBulanan;
     if (!map[kode]) {
       map[kode] = {
         kode: kode,
@@ -748,6 +784,7 @@ function getAngkasMap_() {
       tahun: safeString_(row[idx.tahun] || APP.TAHUN_DEFAULT)
     });
   }
+  REQUEST_CACHE_.angkasMap = map;
   return map;
 }
 
@@ -769,15 +806,20 @@ function getIndikatorMap_() {
 }
 
 function getHeaderStatusMap_() {
+  if (REQUEST_CACHE_.headerStatusMap) return REQUEST_CACHE_.headerStatusMap;
   const sheet = getSheet_(APP.SHEETS.SPJ_HEADER);
   const map = {};
-  if (!sheet || sheet.getLastRow() < 2) return map;
-  const data = sheet.getDataRange().getValues();
-  for (let i = 1; i < data.length; i++) {
-    const id = safeString_(data[i][COL_SPJ_HEADER.ID_SPJ]);
-    if (!id) continue;
-    map[id] = normalizeStatus_(data[i][COL_SPJ_HEADER.STATUS]);
-  }
+  if (!sheet) return map;
+  const raw = getRawSheet_(APP.SHEETS.SPJ_HEADER);
+  if (!raw || !raw.headers || !raw.headers.length) return map;
+  const idx = headerIndexMapFromHeaders_(raw.headers);
+  const statusIdx = idx[normalizeKey_('status_spj')] !== undefined ? idx[normalizeKey_('status_spj')] : COL_SPJ_HEADER.STATUS;
+  const idIdx = idx[normalizeKey_('id_spj')] !== undefined ? idx[normalizeKey_('id_spj')] : COL_SPJ_HEADER.ID_SPJ;
+  raw.rows.forEach(function(row) {
+    const id = safeString_(row[idIdx]);
+    if (id) map[id] = normalizeStatus_(row[statusIdx]);
+  });
+  REQUEST_CACHE_.headerStatusMap = map;
   return map;
 }
 
@@ -823,6 +865,8 @@ function resolveDpaFromDetailRow_(row, maps) {
 }
 
 function getRealisasiAggregates_(statusFilter) {
+  const cacheKey = 'real_agg_' + (statusFilter ? statusFilter.join('_') : 'all');
+  if (REQUEST_CACHE_[cacheKey]) return REQUEST_CACHE_[cacheKey];
   const detailSheet = getSheet_(APP.SHEETS.SPJ_DETAIL);
   const result = {
     total: 0,
@@ -834,12 +878,16 @@ function getRealisasiAggregates_(statusFilter) {
     rowsCounted: 0,
     rowsSkipped: 0
   };
-  if (!detailSheet || detailSheet.getLastRow() < 2) return result;
+  if (!detailSheet || detailSheet.getLastRow() < 2) {
+    REQUEST_CACHE_[cacheKey] = result;
+    return result;
+  }
 
   const allowed = statusFilter ? statusFilter.map(String) : null;
   const headerStatusMap = getHeaderStatusMap_();
   const maps = getDpaMaps_();
-  const data = detailSheet.getDataRange().getValues();
+  const raw = getRawSheet_(APP.SHEETS.SPJ_DETAIL);
+  const data = [raw.headers].concat(raw.rows);
 
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
@@ -877,8 +925,11 @@ function getRealisasiAggregates_(statusFilter) {
     result.byDpa[dpaKey] = (result.byDpa[dpaKey] || 0) + nilai;
     if (!result.byDpaMonth[dpaKey]) result.byDpaMonth[dpaKey] = {};
     if (idx >= 0) result.byDpaMonth[dpaKey][idx] = (result.byDpaMonth[dpaKey][idx] || 0) + nilai;
+    if (!result.byMonth) result.byMonth = {};
+    if (idx >= 0) result.byMonth[idx] = (result.byMonth[idx] || 0) + nilai;
     result.rowsCounted++;
   }
+  REQUEST_CACHE_[cacheKey] = result;
   return result;
 }
 
@@ -888,12 +939,14 @@ function getRealisasiAggregates_(statusFilter) {
 function getDashboardStats() { return cacheJson_('rfk_dashboard_v13', getDashboardStats_uncached_); }
 function getDpaList() { return cacheJson_('rfk_dpa_list_v16', getDpaList_uncached_); }
 function getMonitoringRFKData() { return cacheJson_('rfk_monitoring_v19', getMonitoringRFKData_uncached_); }
+function getMonitoringRFKSummary() { return cacheJson_('rfk_monitoring_summary_v1', getMonitoringRFKSummary_uncached_, 300); }
+function getMonitoringRFKDetail(kode) { return getMonitoringRFKDetail_uncached_(kode); }
 function getKendalaList() { return cacheJson_('rfk_kendala_v13', getKendalaList_uncached_); }
 function getValidasiAngkas() { return cacheJson_('rfk_validasi_v13', getValidasiAngkas_uncached_); }
 function getDpaHierarkiTigaTingkat() { return cacheJson_('rfk_dpa_hierarki_v14', getDpaHierarkiTigaTingkat_uncached_, 300); }
+function getPelaksanaList() { return cacheJson_('rfk_pelaksana_list_v1', getPelaksanaList_uncached_, 300); }
 function getDaftarSpj() { return cacheJson_('rfk_spj_list_v13', getDaftarSpj_uncached_); }
 function getDaftarSpjFresh() { return getDaftarSpj_uncached_(); }
-function getRekapPelaksana(filterKey) { return getRekapPelaksana_uncached_(filterKey); }
 
 function getDashboardStats_uncached_() {
   const maps = getDpaMaps_();
@@ -907,15 +960,59 @@ function getDashboardStats_uncached_() {
   let totalAngkas = 0;
   Object.keys(angkasMap).forEach(function(kode) { totalAngkas += asNumber_(angkasMap[kode].total); });
 
+  const now = new Date();
+  const currentMonthIdx = Number(Utilities.formatDate(now, APP.TIMEZONE, 'M')) - 1;
+  const currentQuarterIdx = Math.floor(currentMonthIdx / 3);
+  const currentSemesterIdx = currentMonthIdx < 6 ? 0 : 1;
+  function sumAngkasUntil_(endIdx) {
+    let total = 0;
+    Object.keys(angkasMap).forEach(function(kode) {
+      const bulanan = angkasMap[kode].bulanan || [];
+      for (let i = 0; i <= endIdx; i++) total += asNumber_(bulanan[i]);
+    });
+    return total;
+  }
+  function sumRealisasiUntil_(endIdx) {
+    let total = 0;
+    for (let i = 0; i <= endIdx; i++) total += asNumber_((validAgg.byMonth || {})[i]);
+    return total;
+  }
+  const periodTargets = {
+    bulan: {
+      label: APP.MONTHS[currentMonthIdx],
+      target: sumAngkasUntil_(currentMonthIdx),
+      realisasi: sumRealisasiUntil_(currentMonthIdx)
+    },
+    triwulan: {
+      label: 'TW ' + (currentQuarterIdx + 1),
+      target: sumAngkasUntil_((currentQuarterIdx + 1) * 3 - 1),
+      realisasi: sumRealisasiUntil_((currentQuarterIdx + 1) * 3 - 1)
+    },
+    semester: {
+      label: 'Semester ' + (currentSemesterIdx + 1),
+      target: sumAngkasUntil_(currentSemesterIdx === 0 ? 5 : 11),
+      realisasi: sumRealisasiUntil_(currentSemesterIdx === 0 ? 5 : 11)
+    }
+  };
+  Object.keys(periodTargets).forEach(function(k) {
+    const p = periodTargets[k];
+    p.persenRealisasiTarget = p.target > 0 ? round2_(p.realisasi / p.target * 100) : 0;
+    p.persenTargetPagu = totalPagu > 0 ? round2_(p.target / totalPagu * 100) : 0;
+    p.persenRealisasiPagu = totalPagu > 0 ? round2_(p.realisasi / totalPagu * 100) : 0;
+    p.deviasi = p.realisasi - p.target;
+  });
+
   const spjPerStatus = { Draft: 0, Diajukan: 0, Diverifikasi: 0, Dibayar: 0, Batal: 0, Ditolak: 0 };
   let jumlahSPJ = 0;
   const headerSheet = getSheet_(APP.SHEETS.SPJ_HEADER);
   if (headerSheet && headerSheet.getLastRow() > 1) {
-    const hd = headerSheet.getDataRange().getValues();
-    for (let i = 1; i < hd.length; i++) {
-      if (!hd[i][COL_SPJ_HEADER.ID_SPJ]) continue;
+    const lastRow = headerSheet.getLastRow();
+    const idVals = headerSheet.getRange(2, COL_SPJ_HEADER.ID_SPJ + 1, lastRow - 1, 1).getValues();
+    const statusVals = headerSheet.getRange(2, COL_SPJ_HEADER.STATUS + 1, lastRow - 1, 1).getValues();
+    for (let i = 0; i < idVals.length; i++) {
+      if (!idVals[i][0]) continue;
       jumlahSPJ++;
-      const status = normalizeStatus_(hd[i][COL_SPJ_HEADER.STATUS]);
+      const status = normalizeStatus_(statusVals[i][0]);
       spjPerStatus[status] = (spjPerStatus[status] || 0) + 1;
     }
   }
@@ -933,7 +1030,8 @@ function getDashboardStats_uncached_() {
     spjPerStatus: spjPerStatus,
     realisasiBasisStatus: APP.REALISASI_VALID_STATUSES.join(', '),
     rowsCounted: validAgg.rowsCounted,
-    rowsSkipped: validAgg.rowsSkipped
+    rowsSkipped: validAgg.rowsSkipped,
+    periodTargets: periodTargets
   };
 }
 
@@ -1034,6 +1132,37 @@ function getAnggaranKasDetail(subKode) {
       return { nama: m, nilai: item.bulanan[idx] || 0 };
     })
   };
+}
+
+function getMonitoringRFKSummary_uncached_() {
+  const maps = getDpaMaps_();
+  const angkasMap = getAngkasMap_();
+  const validAgg = getRealisasiAggregates_(APP.REALISASI_VALID_STATUSES);
+  return Object.keys(maps.subCodeInfo).sort().map(function(kode) {
+    const info = maps.subCodeInfo[kode];
+    const angkas = angkasMap[kode] || { total: 0 };
+    const realisasiTotal = APP.MONTHS.reduce(function(sum, m, idx) {
+      return sum + asNumber_((validAgg.bySubMonth[kode] || {})[idx]);
+    }, 0);
+    return {
+      kode: kode,
+      nama: info.nama,
+      pagu: info.pagu,
+      sumberDana: info.sumberDana,
+      angkasTotal: asNumber_(angkas.total),
+      realisasiTotal: realisasiTotal,
+      sisaTotal: asNumber_(angkas.total) - realisasiTotal,
+      sisaPagu: info.pagu - realisasiTotal,
+      persenSerapTotal: asNumber_(angkas.total) > 0 ? round2_(realisasiTotal / asNumber_(angkas.total) * 100) : 0,
+      rincianCount: maps.rows.filter(function(row) { return row.sub_kegiatan_kode === kode; }).length
+    };
+  });
+}
+
+function getMonitoringRFKDetail_uncached_(kodeFilter) {
+  const kodeClean = safeString_(kodeFilter);
+  if (!kodeClean) throw new Error('Kode sub kegiatan wajib diisi.');
+  return getMonitoringRFKData_uncached_().find(function(row) { return row.kode === kodeClean; }) || null;
 }
 
 function getMonitoringRFKData_uncached_() {
@@ -1267,90 +1396,249 @@ function getDpaHierarkiTigaTingkat_uncached_() {
   return hierarki;
 }
 
+function getPelaksanaList_uncached_() {
+  const sheet = ensureSheetHeaders_(APP.SHEETS.MASTER_PELAKSANA, SHEET_HEADERS.MASTER_PELAKSANA);
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  const raw = getRawSheet_(APP.SHEETS.MASTER_PELAKSANA);
+  const idx = headerIndexMapFromHeaders_(raw.headers);
+  function col_(name, fallback) {
+    const key = normalizeKey_(name);
+    return idx[key] !== undefined ? idx[key] : fallback;
+  }
+  const c = {
+    id: col_('id_pelaksana', 0),
+    nama: col_('nama_pelaksana', 1),
+    jabatan: col_('jabatan', 2),
+    unit: col_('unit', 3),
+    status: col_('status', 4)
+  };
+  return raw.rows.map(function(row) {
+    return {
+      id_pelaksana: safeString_(row[c.id]),
+      nama_pelaksana: safeString_(row[c.nama]),
+      jabatan: safeString_(row[c.jabatan]),
+      unit: safeString_(row[c.unit]),
+      status: safeString_(row[c.status]) || 'Aktif'
+    };
+  }).filter(function(item) {
+    return item.nama_pelaksana && normalizeKey_(item.status) !== 'nonaktif';
+  }).sort(function(a, b) { return a.nama_pelaksana.localeCompare(b.nama_pelaksana); });
+}
+
+
+function getRekapPelaksanaSppd() {
+  const sheet = getSheet_(APP.SHEETS.SPJ_DETAIL);
+  const result = { months: APP.MONTHS, kegiatan: [], tables: {}, jenis_spj: 'SPPD' };
+  if (!sheet || sheet.getLastRow() < 2) return result;
+  const raw = getRawSheet_(APP.SHEETS.SPJ_DETAIL);
+  if (!raw || !raw.headers || !raw.headers.length) return result;
+  const idx = headerIndexMapFromHeaders_(raw.headers);
+  function col_(name, fallback) {
+    const key = normalizeKey_(name);
+    return idx[key] !== undefined ? idx[key] : fallback;
+  }
+  const c = {
+    idSpj: col_('id_spj', COL_SPJ_DETAIL.ID_SPJ),
+    bulan: col_('bulan', COL_SPJ_DETAIL.BULAN),
+    kodeRekening: col_('kode_rekening', COL_SPJ_DETAIL.KODE_REKENING),
+    uraianBelanja: col_('uraian_belanja', COL_SPJ_DETAIL.URAIAN_BELANJA),
+    pelaksana: col_('pelaksana', COL_SPJ_DETAIL.PELAKSANA),
+    jenis: col_('jenis_spj', COL_SPJ_DETAIL.JENIS_SPJ),
+    status: col_('status_spj', COL_SPJ_DETAIL.STATUS),
+    isActive: col_('is_active', COL_SPJ_DETAIL.IS_ACTIVE),
+    idDpa: col_('id_dpa', COL_SPJ_DETAIL.ID_DPA)
+  };
+  const maps = getDpaMaps_();
+  const headerStatusMap = getHeaderStatusMap_();
+  const monthIndex = {};
+  APP.MONTHS.forEach(function(m, i) { monthIndex[normalizeKey_(m)] = i; });
+
+  raw.rows.forEach(function(row) {
+    if (!safeString_(row[c.idSpj])) return;
+    if (row.length > c.isActive && !isActiveValue_(row[c.isActive])) return;
+    if (normalizeKey_(row[c.jenis]) !== 'sppd') return;
+    const status = normalizeStatus_(headerStatusMap[safeString_(row[c.idSpj])] || row[c.status]);
+    if (['Batal', 'Ditolak'].indexOf(status) !== -1) return;
+    const pelaksana = safeString_(row[c.pelaksana]) || 'Tanpa Nama Pelaksana';
+    const monthIdx = monthIndex[normalizeKey_(row[c.bulan])];
+    if (monthIdx === undefined) return;
+    const dpa = maps.byId[safeString_(row[c.idDpa])] || null;
+    const kodeRekening = safeString_(row[c.kodeRekening]);
+    const uraian = safeString_(row[c.uraianBelanja]);
+    const detail = dpa ? safeString_(dpa.detail_kegiatan) : '';
+    const subRincian = dpa ? safeString_(dpa.sub_rincian) : '';
+    const kegiatanKey = [kodeRekening, uraian, detail || subRincian || uraian].filter(Boolean).join(' | ');
+    const kegiatanTitle = detail || subRincian || uraian || kodeRekening || 'Tanpa Uraian Kegiatan';
+    if (!result.tables[kegiatanKey]) {
+      result.tables[kegiatanKey] = {
+        key: kegiatanKey,
+        title: kegiatanTitle,
+        kode_rekening: kodeRekening,
+        uraian_belanja: uraian,
+        detail_kegiatan: detail,
+        rows: {},
+        total: 0
+      };
+    }
+    const table = result.tables[kegiatanKey];
+    if (!table.rows[pelaksana]) table.rows[pelaksana] = { pelaksana: pelaksana, months: APP.MONTHS.map(function() { return 0; }), total: 0 };
+    table.rows[pelaksana].months[monthIdx] += 1;
+    table.rows[pelaksana].total += 1;
+    table.total += 1;
+  });
+
+  result.kegiatan = Object.keys(result.tables).sort(function(a, b) {
+    return result.tables[a].title.localeCompare(result.tables[b].title);
+  }).map(function(key) {
+    const table = result.tables[key];
+    table.rows = Object.keys(table.rows).sort().map(function(name) { return table.rows[name]; });
+    return { key: key, title: table.title, kode_rekening: table.kode_rekening, uraian_belanja: table.uraian_belanja, total: table.total };
+  });
+  return result;
+}
+
 function getDaftarSpj_uncached_() {
   const sheet = getSheet_(APP.SHEETS.SPJ_HEADER);
-  if (!sheet || sheet.getLastRow() < 2) return [];
-  const data = sheet.getDataRange().getValues();
-  const detailSummary = getSpjDetailSummary_();
+  if (!sheet) return getDaftarSpjFromDetailFallback_();
+  const raw = getRawSheet_(APP.SHEETS.SPJ_HEADER);
+  if (!raw || !raw.headers || !raw.headers.length) return getDaftarSpjFromDetailFallback_();
+  const idx = headerIndexMapFromHeaders_(raw.headers);
+  function col_(name, fallback) {
+    const key = normalizeKey_(name);
+    return idx[key] !== undefined ? idx[key] : fallback;
+  }
+  const c = {
+    id: col_('id_spj', COL_SPJ_HEADER.ID_SPJ),
+    nomor: col_('nomor_spj', COL_SPJ_HEADER.NOMOR_SPJ),
+    tanggal: col_('tanggal_spj', COL_SPJ_HEADER.TANGGAL_SPJ),
+    bulan: col_('bulan', COL_SPJ_HEADER.BULAN),
+    pptk: col_('pptk', COL_SPJ_HEADER.PPTK),
+    status: col_('status_spj', COL_SPJ_HEADER.STATUS),
+    total: col_('total_bruto', COL_SPJ_HEADER.TOTAL_BRUTO),
+    updated: col_('updated_at', COL_SPJ_HEADER.UPDATED_AT),
+    created: col_('created_at', COL_SPJ_HEADER.CREATED_AT)
+  };
   const list = [];
-  for (let i = 1; i < data.length; i++) {
-    const id = safeString_(data[i][COL_SPJ_HEADER.ID_SPJ]);
-    if (!id) continue;
-    const tanggal = data[i][COL_SPJ_HEADER.TANGGAL_SPJ];
+  raw.rows.forEach(function(row) {
+    const id = safeString_(row[c.id]);
+    if (!id) return;
+    const tanggal = row[c.tanggal];
+    const updatedAt = row[c.updated] || row[c.created] || '';
+    let sortVal = 0;
+    try {
+      if (updatedAt) sortVal = new Date(updatedAt).getTime();
+      else if (tanggal) sortVal = new Date(tanggal).getTime();
+    } catch (e) {}
     list.push({
       id_spj: id,
-      nomor_spj: safeString_(data[i][COL_SPJ_HEADER.NOMOR_SPJ]),
-      tanggal: tanggal ? Utilities.formatDate(new Date(tanggal), APP.TIMEZONE, 'yyyy-MM-dd') : '',
-      bulan: safeString_(data[i][COL_SPJ_HEADER.BULAN]),
-      pptk: safeString_(data[i][COL_SPJ_HEADER.PPTK]),
-      status: normalizeStatus_(data[i][COL_SPJ_HEADER.STATUS]),
-      total: asNumber_(data[i][COL_SPJ_HEADER.TOTAL_BRUTO]),
-      updatedAt: data[i][COL_SPJ_HEADER.UPDATED_AT] || data[i][COL_SPJ_HEADER.CREATED_AT] || '',
-      sub_kegiatan: detailSummary[id] ? detailSummary[id].sub_kegiatan : '',
-      uraian_belanja: detailSummary[id] ? detailSummary[id].uraian_belanja : '',
-      detail_kegiatan: detailSummary[id] ? detailSummary[id].detail_kegiatan : ''
+      nomor_spj: safeString_(row[c.nomor]) || id,
+      tanggal: tanggal ? (tanggal instanceof Date ? Utilities.formatDate(tanggal, APP.TIMEZONE, 'yyyy-MM-dd') : String(tanggal).split('T')[0]) : '',
+      bulan: safeString_(row[c.bulan]),
+      pptk: safeString_(row[c.pptk]) || '-',
+      status: normalizeStatus_(row[c.status]),
+      total: asNumber_(row[c.total]),
+      updatedAt: String(updatedAt),
+      sortTime: sortVal || 0
+    });
+  });
+  if (!list.length) return getDaftarSpjFromDetailFallback_();
+  attachSpjListDetailSummary_(list);
+  return list.sort(function(a, b) { return (b.sortTime || 0) - (a.sortTime || 0); });
+}
+
+function attachSpjListDetailSummary_(list) {
+  const ids = {};
+  list.forEach(function(item) { ids[item.id_spj] = item; item.uraian_summary = ''; item.detail_count = 0; item.dokumen_count = 0; });
+  const detail = getSheet_(APP.SHEETS.SPJ_DETAIL);
+  if (detail && detail.getLastRow() > 1) {
+    const raw = getRawSheet_(APP.SHEETS.SPJ_DETAIL);
+    const idx = headerIndexMapFromHeaders_(raw.headers);
+    const idIdx = idx[normalizeKey_('id_spj')] !== undefined ? idx[normalizeKey_('id_spj')] : COL_SPJ_DETAIL.ID_SPJ;
+    const uraianIdx = idx[normalizeKey_('uraian_belanja')] !== undefined ? idx[normalizeKey_('uraian_belanja')] : COL_SPJ_DETAIL.URAIAN_BELANJA;
+    const activeIdx = idx[normalizeKey_('is_active')] !== undefined ? idx[normalizeKey_('is_active')] : COL_SPJ_DETAIL.IS_ACTIVE;
+    const map = {};
+    raw.rows.forEach(function(row) {
+      const id = safeString_(row[idIdx]);
+      if (!ids[id]) return;
+      if (row.length > activeIdx && !isActiveValue_(row[activeIdx])) return;
+      if (!map[id]) map[id] = {};
+      const dpaIdx = idx[normalizeKey_('id_dpa')] !== undefined ? idx[normalizeKey_('id_dpa')] : COL_SPJ_DETAIL.ID_DPA;
+      const dpa = getDpaMaps_().byId[safeString_(row[dpaIdx])] || null;
+      const uraian = safeString_(row[uraianIdx]);
+      const detail = dpa ? safeString_(dpa.detail_kegiatan) : '';
+      const subRincian = dpa ? safeString_(dpa.sub_rincian) : '';
+      const u = [uraian, detail, subRincian].filter(Boolean).join(' — ');
+      if (u) map[id][u] = true;
+    });
+    Object.keys(map).forEach(function(id) {
+      const arr = Object.keys(map[id]);
+      ids[id].detail_count = arr.length;
+      ids[id].uraian_summary = arr.slice(0, 2).join('; ') + (arr.length > 2 ? ' +' + (arr.length - 2) + ' uraian' : '');
     });
   }
-  return list.reverse();
+  const dok = getSheet_(APP.SHEETS.SPJ_DOKUMEN);
+  if (dok && dok.getLastRow() > 1) {
+    const rawDok = getRawSheet_(APP.SHEETS.SPJ_DOKUMEN);
+    const dokIdx = headerIndexMapFromHeaders_(rawDok.headers || []);
+    const idCol = dokIdx[normalizeKey_('id_spj')] !== undefined ? dokIdx[normalizeKey_('id_spj')] : 1;
+    rawDok.rows.forEach(function(r) {
+      let id = safeString_(r[idCol]);
+      if (!ids[id]) {
+        const found = r.some(function(cell) { return ids[safeString_(cell)]; });
+        if (found) {
+          for (let i = 0; i < r.length; i++) { const v = safeString_(r[i]); if (ids[v]) { id = v; break; } }
+        }
+      }
+      if (ids[id]) ids[id].dokumen_count++;
+    });
+  }
 }
 
-function getSpjDetailSummary_() {
-  const sheet = getSheet_(APP.SHEETS.SPJ_DETAIL);
-  if (!sheet || sheet.getLastRow() < 2) return {};
-  const lastRow = sheet.getLastRow();
-  const width = Math.max(sheet.getLastColumn(), COL_SPJ_DETAIL.ID_DPA + 1);
-  const data = sheet.getRange(2, 1, lastRow - 1, width).getValues();
-  const maps = getDpaMaps_();
-  const out = {};
-  data.forEach(function(row) {
-    const idSpj = safeString_(row[COL_SPJ_DETAIL.ID_SPJ]);
-    if (!idSpj || out[idSpj]) return;
-    const dpa = resolveDpaFromDetailRow_(row, maps);
-    out[idSpj] = {
-      sub_kegiatan: safeString_(row[COL_SPJ_DETAIL.SUB_KODE]) || (dpa ? dpa.sub_kegiatan_kode : ''),
-      uraian_belanja: safeString_(row[COL_SPJ_DETAIL.URAIAN_BELANJA]) || (dpa ? dpa.uraian_belanja : ''),
-      detail_kegiatan: dpa ? safeString_(dpa.detail_kegiatan || dpa.sub_rincian) : ''
-    };
-  });
-  return out;
-}
 
-function getRekapPelaksana_uncached_(filterKey) {
+function getDaftarSpjFromDetailFallback_() {
   const sheet = getSheet_(APP.SHEETS.SPJ_DETAIL);
-  if (!sheet || sheet.getLastRow() < 2) return [];
-  const lastRow = sheet.getLastRow();
-  const width = Math.max(sheet.getLastColumn(), COL_SPJ_DETAIL.TANGGAL_SPJ + 1);
-  const data = sheet.getRange(2, 1, lastRow - 1, width).getValues();
-  const maps = getDpaMaps_();
-  const filterParts = safeString_(filterKey).split('|');
-  const map = {};
-  data.forEach(function(row) {
-    const jenis = safeString_(row[COL_SPJ_DETAIL.JENIS_SPJ]).toUpperCase();
-    const active = row[COL_SPJ_DETAIL.IS_ACTIVE];
-    const status = normalizeStatus_(row[COL_SPJ_DETAIL.STATUS]);
-    if (jenis !== 'SPPD') return;
-    if (active === false || safeString_(active).toLowerCase() === 'false') return;
-    if (status === 'Batal' || status === 'Ditolak') return;
-    const dpa = resolveDpaFromDetailRow_(row, maps) || {};
-    if (filterParts.length >= 3 && filterParts[0]) {
-      const matches =
-        normalizeKey_(row[COL_SPJ_DETAIL.SUB_KODE] || dpa.sub_kegiatan_kode) === normalizeKey_(filterParts[0]) &&
-        normalizeKey_(row[COL_SPJ_DETAIL.KODE_REKENING] || dpa.kode_rekening) === normalizeKey_(filterParts[1]) &&
-        normalizeKey_(row[COL_SPJ_DETAIL.URAIAN_BELANJA] || dpa.uraian_belanja) === normalizeKey_(filterParts[2]) &&
-        (!filterParts[3] || normalizeKey_(dpa.detail_kegiatan) === normalizeKey_(filterParts[3])) &&
-        (!filterParts[4] || normalizeKey_(dpa.sub_rincian) === normalizeKey_(filterParts[4]));
-      if (!matches) return;
+  if (!sheet) return [];
+  const raw = getRawSheet_(APP.SHEETS.SPJ_DETAIL);
+  if (!raw || !raw.headers || !raw.headers.length) return [];
+  const idx = headerIndexMapFromHeaders_(raw.headers);
+  function col_(name, fallback) {
+    const key = normalizeKey_(name);
+    return idx[key] !== undefined ? idx[key] : fallback;
+  }
+  const c = {
+    id: col_('id_spj', COL_SPJ_DETAIL.ID_SPJ),
+    tanggal: col_('tanggal_spj', COL_SPJ_DETAIL.TANGGAL_SPJ),
+    bulan: col_('bulan', COL_SPJ_DETAIL.BULAN),
+    status: col_('status_spj', COL_SPJ_DETAIL.STATUS),
+    total: col_('nilai_bruto', COL_SPJ_DETAIL.NILAI_BRUTO),
+    created: col_('created_at', COL_SPJ_DETAIL.CREATED_AT),
+    updated: col_('updated_at', COL_SPJ_DETAIL.UPDATED_AT)
+  };
+  const grouped = {};
+  raw.rows.forEach(function(row) {
+    const id = safeString_(row[c.id]);
+    if (!id) return;
+    if (!grouped[id]) grouped[id] = { id_spj: id, nomor_spj: id, tanggal: '', bulan: '', pptk: '-', status: '', total: 0, updatedAt: '', sortTime: 0 };
+    const g = grouped[id];
+    g.total += asNumber_(row[c.total]);
+    if (!g.bulan) g.bulan = safeString_(row[c.bulan]);
+    if (!g.status) g.status = normalizeStatus_(row[c.status]);
+    const tanggal = row[c.tanggal];
+    if (!g.tanggal && tanggal) {
+      try {
+        g.tanggal = tanggal instanceof Date ? Utilities.formatDate(tanggal, APP.TIMEZONE, 'yyyy-MM-dd') : String(tanggal).split('T')[0];
+      } catch (e) {
+        g.tanggal = String(tanggal);
+      }
     }
-    const pelaksana = safeString_(row[COL_SPJ_DETAIL.PELAKSANA]) || '(Tanpa Pelaksana)';
-    const monthIdx = monthIndex_(row[COL_SPJ_DETAIL.BULAN]);
-    if (monthIdx < 0) return;
-    if (!map[pelaksana]) map[pelaksana] = { pelaksana: pelaksana, months: [0,0,0,0,0,0,0,0,0,0,0,0], total: 0 };
-    map[pelaksana].months[monthIdx] += 1;
-    map[pelaksana].total += 1;
+    const updatedAt = row[c.updated] || row[c.created] || tanggal || '';
+    let sortVal = 0;
+    try {
+      if (updatedAt) sortVal = new Date(updatedAt).getTime();
+    } catch (e) {}
+    if (sortVal >= (g.sortTime || 0)) { g.updatedAt = String(updatedAt); g.sortTime = sortVal; }
   });
-  return Object.keys(map).map(function(k) { return map[k]; }).sort(function(a, b) {
-    return b.total - a.total || a.pelaksana.localeCompare(b.pelaksana);
-  });
+  return Object.keys(grouped).map(function(id) { return grouped[id]; }).sort(function(a, b) { return (b.sortTime || 0) - (a.sortTime || 0); });
 }
 
 /***************************************************************************
@@ -1610,6 +1898,87 @@ function simpanSpj(headerData, detailRows, sessionToken) {
   } finally {
     if (locked) lock.releaseLock();
   }
+}
+
+
+function getSpjDetailForEdit(idSpj, sessionToken) {
+  requireSession_(sessionToken, APP.VIEW_ROLES);
+  idSpj = safeString_(idSpj);
+  const headerRaw = getRawSheet_(APP.SHEETS.SPJ_HEADER);
+  const detailRaw = getRawSheet_(APP.SHEETS.SPJ_DETAIL);
+  const docsRaw = getSheet_(APP.SHEETS.SPJ_DOKUMEN) ? getRawSheet_(APP.SHEETS.SPJ_DOKUMEN) : { headers: [], rows: [] };
+  const h = headerIndexMapFromHeaders_(headerRaw.headers || []);
+  const d = headerIndexMapFromHeaders_(detailRaw.headers || []);
+  const headerRow = (headerRaw.rows || []).find(function(r) { return safeString_(r[h[normalizeKey_('id_spj')] || 0]) === idSpj; });
+  if (!headerRow) throw new Error('SPJ tidak ditemukan.');
+  const header = {
+    id_spj: idSpj,
+    nomor_spj: safeString_(headerRow[h[normalizeKey_('nomor_spj')] || COL_SPJ_HEADER.NOMOR_SPJ]),
+    tanggal_spj: headerRow[h[normalizeKey_('tanggal_spj')] || COL_SPJ_HEADER.TANGGAL] instanceof Date ? Utilities.formatDate(headerRow[h[normalizeKey_('tanggal_spj')] || COL_SPJ_HEADER.TANGGAL], APP.TIMEZONE, 'yyyy-MM-dd') : safeString_(headerRow[h[normalizeKey_('tanggal_spj')] || COL_SPJ_HEADER.TANGGAL]),
+    bulan: safeString_(headerRow[h[normalizeKey_('bulan')] || COL_SPJ_HEADER.BULAN]),
+    pptk: safeString_(headerRow[h[normalizeKey_('pptk')] || COL_SPJ_HEADER.PPTK]),
+    jenis_spj: safeString_(headerRow[h[normalizeKey_('jenis_spj')] || COL_SPJ_HEADER.JENIS_SPJ]),
+    status: normalizeStatus_(headerRow[h[normalizeKey_('status_spj')] || COL_SPJ_HEADER.STATUS]),
+    total: asNumber_(headerRow[h[normalizeKey_('total_bruto')] || COL_SPJ_HEADER.TOTAL_BRUTO])
+  };
+  const maps = getDpaMaps_();
+  const details = (detailRaw.rows || []).filter(function(r) { return safeString_(r[d[normalizeKey_('id_spj')] || COL_SPJ_DETAIL.ID_SPJ]) === idSpj && isActiveValue_(r[d[normalizeKey_('is_active')] || COL_SPJ_DETAIL.IS_ACTIVE]); }).map(function(r) {
+    const idDpa = safeString_(r[d[normalizeKey_('id_dpa')] || COL_SPJ_DETAIL.ID_DPA]);
+    const dpa = maps.byId[idDpa] || null;
+    return {
+      id_detail: safeString_(r[d[normalizeKey_('id_detail')] || COL_SPJ_DETAIL.ID_DETAIL]), id_dpa: idDpa, sub_kegiatan_kode: safeString_(r[d[normalizeKey_('sub_kegiatan_kode')] || COL_SPJ_DETAIL.SUB_KODE]), sub_kegiatan_nama: safeString_(r[d[normalizeKey_('sub_kegiatan_nama')] || COL_SPJ_DETAIL.SUB_NAMA]), kode_rekening: safeString_(r[d[normalizeKey_('kode_rekening')] || COL_SPJ_DETAIL.KODE_REKENING]), uraian_belanja: safeString_(r[d[normalizeKey_('uraian_belanja')] || COL_SPJ_DETAIL.URAIAN_BELANJA]), detail_kegiatan: dpa ? safeString_(dpa.detail_kegiatan) : '', sub_rincian: dpa ? safeString_(dpa.sub_rincian) : '', pelaksana: safeString_(r[d[normalizeKey_('pelaksana')] || COL_SPJ_DETAIL.PELAKSANA]), nilai_bruto: asNumber_(r[d[normalizeKey_('nilai_bruto')] || COL_SPJ_DETAIL.NILAI_BRUTO]) } });
+  const docIdx = headerIndexMapFromHeaders_(docsRaw.headers || []);
+  const docIdCol = docIdx[normalizeKey_('id_spj')] !== undefined ? docIdx[normalizeKey_('id_spj')] : 1;
+  const nameCol = docIdx[normalizeKey_('nama_file')] !== undefined ? docIdx[normalizeKey_('nama_file')] : 2;
+  const urlCol = docIdx[normalizeKey_('drive_url')] !== undefined ? docIdx[normalizeKey_('drive_url')] : 5;
+  const uploadedCol = docIdx[normalizeKey_('uploaded_at')] !== undefined ? docIdx[normalizeKey_('uploaded_at')] : 6;
+  const fileIdCol = docIdx[normalizeKey_('drive_file_id')] !== undefined ? docIdx[normalizeKey_('drive_file_id')] : 4;
+  const docs = (docsRaw.rows || []).filter(function(r) {
+    if (safeString_(r[docIdCol]) === idSpj) return true;
+    return r.some(function(cell) { return safeString_(cell) === idSpj; });
+  }).map(function(r) {
+    const fileId = safeString_(r[fileIdCol]);
+    const url = safeString_(r[urlCol]) || (fileId ? 'https://drive.google.com/file/d/' + fileId + '/view' : '');
+    return { nama_file: safeString_(r[nameCol]) || 'Dokumen SPJ', drive_url: url, uploaded_at: String(r[uploadedCol] || '') };
+  });
+  return { header: header, details: details, dokumen: docs };
+}
+
+function safeDriveFilename_(value) {
+  return safeString_(value).replace(/[\\/:*?"<>|#%{}~&]/g, '-').replace(/\s+/g, ' ').trim().substring(0, 150) || 'dokumen';
+}
+
+function hapusSpj(idSpj, sessionToken) {
+  const session = requireSession_(sessionToken, ['ADMIN', 'OPERATOR']);
+  return updateStatusSpj(idSpj, 'Batal', sessionToken);
+}
+
+function uploadDokumenSpj(payload, sessionToken) {
+  const session = requireSession_(sessionToken, APP.MUTATION_ROLES);
+  payload = payload || {};
+  const idSpj = safeString_(payload.id_spj);
+  if (!idSpj) throw new Error('ID SPJ wajib diisi.');
+  const folder = DriveApp.getFolderById('167YEQmkyzuA51X86dWZfetvUjOzQKi9m');
+  const bytes = Utilities.base64Decode(String(payload.base64 || '').split(',').pop());
+  const originalName = safeString_(payload.nama_file || ('dokumen_' + idSpj));
+  const extMatch = originalName.match(/(\.[A-Za-z0-9]{1,8})$/);
+  const ext = extMatch ? extMatch[1] : '';
+  let nomorSpj = idSpj;
+  let detailName = 'dokumen';
+  try {
+    const spjData = getSpjDetailForEdit(idSpj, sessionToken);
+    nomorSpj = spjData.header && spjData.header.nomor_spj ? spjData.header.nomor_spj : idSpj;
+    const firstDetail = spjData.details && spjData.details[0] ? spjData.details[0] : null;
+    detailName = firstDetail ? (firstDetail.detail_kegiatan || firstDetail.sub_rincian || firstDetail.uraian_belanja || 'dokumen') : 'dokumen';
+  } catch (e) {}
+  const renamed = safeDriveFilename_(nomorSpj) + '-' + safeDriveFilename_(detailName) + '-' + Utilities.formatDate(new Date(), APP.TIMEZONE, 'yyyyMMdd-HHmmss') + ext;
+  const blob = Utilities.newBlob(bytes, safeString_(payload.mime_type || 'application/octet-stream'), renamed);
+  const file = folder.createFile(blob);
+  const sheet = ensureSheetHeaders_(APP.SHEETS.SPJ_DOKUMEN, SHEET_HEADERS.SPJ_DOKUMEN);
+  const row = [makeId_('DOC'), idSpj, file.getName(), blob.getContentType(), file.getId(), file.getUrl(), new Date(), session.email, safeString_(payload.keterangan)];
+  sheet.appendRow(row);
+  clearRfkCache_();
+  return { success: true, url: file.getUrl(), name: file.getName() };
 }
 
 function updateStatusSpj(idSpj, statusBaru, sessionToken) {
@@ -2914,7 +3283,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Alat/Bahan untuk Kegiatan Kantor - Benda Pos",
     320000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Pengelolaan Surveilans.pdf"
+    "Angkas_Surveilans.pdf"
   ],
   [
     "AK-102022020020-51020100100052-001",
@@ -2936,15 +3305,15 @@ function getReviewedAngkasImportRows_() {
     0,
     0,
     0,
-    0,
-    0,
     1250000,
+    0,
+    0,
     2026,
     "Workshop Pemantapan Petugas Sistem Komputerisasi Haji Terpadu Bidang Kesehatan",
     "Belanja Makanan dan Minuman Rapat Workshop Pemantapan Petugas Sistem Komputerisasi Haji Terpadu Bidang Kesehatan",
     1850000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Pengelolaan Surveilans.pdf"
+    "Angkas_Surveilans.pdf"
   ],
   [
     "AK-102022020020-51020200100003-001",
@@ -2966,15 +3335,15 @@ function getReviewedAngkasImportRows_() {
     0,
     0,
     0,
-    0,
-    0,
     900000,
+    0,
+    0,
     2026,
     "Evaluasi Penyelenggaraan Surveilans Penyakit bagi Petugas Puskesmas dan RS",
     "Honorarium Narasumber atau Pembahas, Moderator, Pembawa Acara, dan Panitia Evaluasi Penyelenggaraan Surveilans Penyakit bagi Petugas Puskesmas dan RS",
     3600000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Pengelolaan Surveilans.pdf"
+    "Angkas_Surveilans.pdf"
   ],
   [
     "AK-102022020020-51020200100003-002",
@@ -2996,15 +3365,15 @@ function getReviewedAngkasImportRows_() {
     0,
     0,
     0,
-    0,
-    0,
     900000,
+    0,
+    0,
     2026,
     "Workshop Pemantapan Petugas Sistem Komputerisasi Haji Terpadu Bidang Kesehatan",
     "Honorarium Narasumber atau Pembahas, Moderator, Pembawa Acara, dan Panitia Workshop pemantapan petugas Sistem Komputerisasi Haji Terpadu Bidang Kesehatan",
     3600000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Pengelolaan Surveilans.pdf"
+    "Angkas_Surveilans.pdf"
   ],
   [
     "AK-102022020020-51020200100014-001",
@@ -3034,7 +3403,7 @@ function getReviewedAngkasImportRows_() {
     "Apresiasi Upah PJLP Layanan Kesehatan Epidemiolog Kesehatan",
     115050000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Pengelolaan Surveilans.pdf"
+    "Angkas_Surveilans.pdf"
   ],
   [
     "AK-102022020020-51020200100080-001",
@@ -3064,7 +3433,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Honorarium Penanggungjawaban Pengelola Keuangan Honorarium Pejabat Pelaksana Teknis Kegiatan (PPTK)",
     16920000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Pengelolaan Surveilans.pdf"
+    "Angkas_Surveilans.pdf"
   ],
   [
     "AK-102022020020-51020200100085-001",
@@ -3094,7 +3463,7 @@ function getReviewedAngkasImportRows_() {
     "PPPK Paruh Waktu pada Jabatan Epidemiolog Kesehatan Ahli Pertama",
     57525000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Pengelolaan Surveilans.pdf"
+    "Angkas_Surveilans.pdf"
   ],
   [
     "AK-102022020020-51020200100085-002",
@@ -3124,7 +3493,7 @@ function getReviewedAngkasImportRows_() {
     "PPPK Paruh Waktu pada Jabatan Tenaga Kesehatan",
     49855000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Pengelolaan Surveilans.pdf"
+    "Angkas_Surveilans.pdf"
   ],
   [
     "AK-102022020020-51020200200005-001",
@@ -3154,7 +3523,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Iuran Jaminan Kesehatan bagi Non ASN Iuran Jaminan Kesehatan bagi Non ASN",
     5500000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Pengelolaan Surveilans.pdf"
+    "Angkas_Surveilans.pdf"
   ],
   [
     "AK-102022020020-51020200200006-001",
@@ -3184,7 +3553,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Iuran Jaminan Kecelakaan Kerja bagi Non ASN Iuran BPJS Ketenagakerjaan",
     4800000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Pengelolaan Surveilans.pdf"
+    "Angkas_Surveilans.pdf"
   ],
   [
     "AK-102022020020-51020200200016-001",
@@ -3214,7 +3583,7 @@ function getReviewedAngkasImportRows_() {
     "Iuran Jaminan Kesehatan PPPK Paruh Waktu",
     2750000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Pengelolaan Surveilans.pdf"
+    "Angkas_Surveilans.pdf"
   ],
   [
     "AK-102022020020-51020200200024-001",
@@ -3244,7 +3613,7 @@ function getReviewedAngkasImportRows_() {
     "Iuran Jaminan Kecelakaan Kerja bagi PPPK Paruh Waktu pada Jabatan Tenaga Kesehatan",
     4800000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Pengelolaan Surveilans.pdf"
+    "Angkas_Surveilans.pdf"
   ],
   [
     "AK-102022020020-51020400100001-001",
@@ -3274,7 +3643,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Perjalanan Dinas Biasa Pelayanan Haji di Debarkasi",
     11200000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Pengelolaan Surveilans.pdf"
+    "Angkas_Surveilans.pdf"
   ],
   [
     "AK-102022020020-51020400100001-002",
@@ -3304,7 +3673,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Perjalanan Dinas Biasa Pelayanan Haji di Embarkasi",
     11200000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Pengelolaan Surveilans.pdf"
+    "Angkas_Surveilans.pdf"
   ],
   [
     "AK-102022020020-51020400100001-003",
@@ -3334,7 +3703,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Perjalanan Dinas Biasa Pengambilan Sarana Prasarana Kesehatan Jemaah Haji",
     2820000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Pengelolaan Surveilans.pdf"
+    "Angkas_Surveilans.pdf"
   ],
   [
     "AK-102022020028-51020100100012-001",
@@ -3357,14 +3726,14 @@ function getReviewedAngkasImportRows_() {
     0,
     0,
     0,
-    0,
     41400000,
+    0,
     2026,
     "BMHP pengemasan spesimen DNA HPV",
     "BMHP pengemasan spesimen DNA HPV (DAK Non Fisik)",
     82800000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Spesimen.pdf"
+    "Angkas_Spesimen.pdf"
   ],
   [
     "AK-102022020028-51020100100024-001",
@@ -3394,7 +3763,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Alat/Bahan untuk Kegiatan Kantor-Alat Tulis Kantor",
     358000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Spesimen.pdf"
+    "Angkas_Spesimen.pdf"
   ],
   [
     "AK-102022020028-51020200100015-001",
@@ -3424,7 +3793,7 @@ function getReviewedAngkasImportRows_() {
     "Jasa Pemeriksaan spesimen DNA HPV",
     720000000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Spesimen.pdf"
+    "Angkas_Spesimen.pdf"
   ],
   [
     "AK-102022020028-51020200100064-001",
@@ -3454,7 +3823,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Paket/Pengiriman Biaya Jasa Pengiriman Spesimen Kasus Potensial KLB ke Bandung Jawa Barat",
     9500000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Spesimen.pdf"
+    "Angkas_Spesimen.pdf"
   ],
   [
     "AK-102022020028-51020200100064-002",
@@ -3484,7 +3853,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Paket/Pengiriman Biaya Jasa Pengiriman Spesimen Kasus Potensial KLB ke Jakarta",
     11000000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Spesimen.pdf"
+    "Angkas_Spesimen.pdf"
   ],
   [
     "AK-102022020028-51020400100003-001",
@@ -3514,7 +3883,7 @@ function getReviewedAngkasImportRows_() {
     "Transport Petugas Puskesmas Pengiriman Spesimen DNA HPV (DAK Non Fisik)",
     90000000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Spesimen.pdf"
+    "Angkas_Spesimen.pdf"
   ],
   [
     "AK-102022020036-51020200100003-001",
@@ -3544,7 +3913,7 @@ function getReviewedAngkasImportRows_() {
     "Honorarium Narasumber atau Pembahas, Moderator, Pembawa Acara, dan Panitia Rapat Koordinasi Audit Kasus KIPI",
     1800000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas KIPI.pdf"
+    "Angkas_KIPI.pdf"
   ],
   [
     "AK-102022020036-51020200100004-001",
@@ -3574,7 +3943,7 @@ function getReviewedAngkasImportRows_() {
     "Honorarium Tim Pelaksana Kegiatan dan Sekretariat Tim Pelaksana Kegiatan Honorarium Tim Pokja Kejadian Ikutan Paska Imunisasi (KIPI)",
     23250000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas KIPI.pdf"
+    "Angkas_KIPI.pdf"
   ],
   [
     "AK-102022020036-51020400100003-001",
@@ -3604,7 +3973,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Perjalanan Dinas Dalam Kota Audit kasus KIPI",
     3200000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas KIPI.pdf"
+    "Angkas_KIPI.pdf"
   ],
   [
     "AK-102022020037-51020100100004-001",
@@ -3634,7 +4003,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Bahan-Bahan Bakar dan Pelumas Kendaraan Operasional Penanganan dan penaggulangan KLB/wabah Penyakit Menular",
     1000000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Kewaspadaan Dini.pdf"
+    "Angkas_Kewaspadaan.pdf"
   ],
   [
     "AK-102022020037-51020200100003-001",
@@ -3664,7 +4033,7 @@ function getReviewedAngkasImportRows_() {
     "Honorarium Narasumber atau Pembahas, Moderator, Pembawa Acara, dan Panitia Workshop Sistem Kewaspadaan Dini dan Respon (SKDR)",
     3600000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Kewaspadaan Dini.pdf"
+    "Angkas_Kewaspadaan.pdf"
   ],
   [
     "AK-102022020037-51020400100001-001",
@@ -3694,7 +4063,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Perjalanan Dinas Biasa Investigasi kasus yang dilakukan Penyelidikan Epidemiologi (PE) di RS Luar Kota Depok",
     4830000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Kewaspadaan Dini.pdf"
+    "Angkas_Kewaspadaan.pdf"
   ],
   [
     "AK-102022020037-51020400100003-001",
@@ -3724,7 +4093,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Perjalanan Dinas Dalam Kota Investigasi kasus yang dilakukan Penyelidikan Epidemiologi (PE) di Kota Depok",
     9000000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Kewaspadaan Dini.pdf"
+    "Angkas_Kewaspadaan.pdf"
   ],
   [
     "AK-102022020048-51020100100027-001",
@@ -3754,7 +4123,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Alat/Bahan untuk Kegiatan Kantor-Benda Pos Buku Cek",
     260000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Layanan Imunisasi.pdf"
+    "Angkas_Imunisasi.pdf"
   ],
   [
     "AK-102022020048-51020100100027-002",
@@ -3784,7 +4153,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Alat/Bahan untuk Kegiatan Kantor-Benda Pos Materai",
     110000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Layanan Imunisasi.pdf"
+    "Angkas_Imunisasi.pdf"
   ],
   [
     "AK-102022020048-51020100100052-001",
@@ -3814,7 +4183,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Makanan dan Minuman Rapat Evaluasi Pengelola Program bagi Petugas Imunisasi di Puskesmas",
     7400000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Layanan Imunisasi.pdf"
+    "Angkas_Imunisasi.pdf"
   ],
   [
     "AK-102022020048-51020100100052-002",
@@ -3844,7 +4213,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Makanan dan Minuman Rapat Sosialisasi Managemen Imunisasi ke Bidan di Kota Depok (per Ranting)",
     18315000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Layanan Imunisasi.pdf"
+    "Angkas_Imunisasi.pdf"
   ],
   [
     "AK-102022020048-51020200100003-001",
@@ -3874,7 +4243,7 @@ function getReviewedAngkasImportRows_() {
     "Honorarium Narasumber atau Pembahas, Moderator, Pembawa Acara, dan Panitia Seminar Imunisasi bagi Masyarakat",
     7200000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Layanan Imunisasi.pdf"
+    "Angkas_Imunisasi.pdf"
   ],
   [
     "AK-102022020048-51020200100003-002",
@@ -3904,7 +4273,7 @@ function getReviewedAngkasImportRows_() {
     "Honorarium Narasumber atau Pembahas, Moderator, Pembawa Acara, dan Panitia Sosialisasi Managemen Vaksin bagi Petugas Farmasi di Puskesmas dan RS",
     1800000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Layanan Imunisasi.pdf"
+    "Angkas_Imunisasi.pdf"
   ],
   [
     "AK-102022020048-51020200100003-003",
@@ -3934,7 +4303,7 @@ function getReviewedAngkasImportRows_() {
     "Honorarium Narasumber atau Pembahas, Moderator, Pembawa Acara, dan Panitia Sosialisasi Pelaksanaan Imunisasi untuk Guru Sekolah",
     1800000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Layanan Imunisasi.pdf"
+    "Angkas_Imunisasi.pdf"
   ],
   [
     "AK-102022020048-51020200100011-001",
@@ -3964,7 +4333,7 @@ function getReviewedAngkasImportRows_() {
     "Honorarium Penyelenggaraan Kegiatan Pendidikan dan Pelatihan 'Sosialisasi Managemen Imunisasi ke Bidan di kota Depok ( per Ranting)",
     3300000,
     "RAK rekening sesuai satu detail_kegiatan",
-    "Angkas Layanan Imunisasi.pdf"
+    "Angkas_Imunisasi.pdf"
   ],
   [
     "AK-102022020048-51020400100003-001",
@@ -3994,7 +4363,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Perjalanan Dinas Dalam Kota Pendampingan Petugas Dalam Kegiatan Sosialisasi Managemen Imunisasi ke Bidan di Kota Depok",
     3300000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Layanan Imunisasi.pdf"
+    "Angkas_Imunisasi.pdf"
   ],
   [
     "AK-102022020048-51020400100003-002",
@@ -4024,7 +4393,7 @@ function getReviewedAngkasImportRows_() {
     "Belanja Perjalanan Dinas Dalam Kota Rapid Convenience Assesment Tingkat Kelurahan",
     6300000,
     "RAK rekening dialokasikan proporsional ke detail_kegiatan berdasarkan pagu DPA per rekening",
-    "Angkas Layanan Imunisasi.pdf"
+    "Angkas_Imunisasi.pdf"
   ]
 ];
 }

@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SI-RFK Monitoring - APBD 2026</title>
+  <title>Sistem Informasi Monitoring RFK APBD 2026</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -52,8 +52,17 @@
     .glass-panel { @apply bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-gray-200 dark:border-slate-700; }
     .view-section { display: none; }
     .view-section.active { display: block; }
+    .spj-modal-open { overflow: hidden; }
     .text-gradient { @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600; }
     .dark .text-gradient { @apply from-blue-400 to-indigo-400; }
+    #spj-form-panel { display: none; position: fixed; inset: 0; z-index: 9000; background: rgba(15, 23, 42, 0.72); backdrop-filter: blur(6px); padding: 1rem; overflow-y: auto; }
+    #spj-form-panel.active { display: block; }
+    #spj-form-panel .spj-modal-card { max-width: 820px; margin: 1rem auto; background: rgba(255,255,255,.98); border-radius: 1rem; box-shadow: 0 24px 80px rgba(15,23,42,.35); }
+    .dark #spj-form-panel .spj-modal-card { background: rgba(15,23,42,.98); }
+    #spj-review-panel { display: none; position: fixed; inset: 0; z-index: 9100; background: rgba(15, 23, 42, 0.72); backdrop-filter: blur(6px); padding: 1rem; overflow-y: auto; }
+    #spj-review-panel.active { display: block; }
+    #spj-review-panel .spj-review-card { max-width: 920px; margin: 1rem auto; background: rgba(255,255,255,.98); border-radius: 1rem; box-shadow: 0 24px 80px rgba(15,23,42,.35); }
+    .dark #spj-review-panel .spj-review-card { background: rgba(15,23,42,.98); }
   </style>
 </head>
 <body class="bg-gray-50 dark:bg-slate-900 font-sans text-sm transition-colors duration-300">
@@ -82,8 +91,8 @@
         <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
           <i class="fas fa-chart-pie text-4xl text-white"></i>
         </div>
-        <h2 class="text-2xl font-bold text-white uppercase tracking-wider mb-2">SI-RFK Monitoring</h2>
-        <p class="text-blue-100 text-sm">Portal Penatausahaan Keuangan Daerah Tahun 2026</p>
+        <h2 class="text-2xl font-bold text-white uppercase tracking-wider mb-2">Sistem Informasi Monitoring RFK</h2>
+        <p class="text-blue-100 text-sm">Pengendalian Realisasi Fisik dan Keuangan APBD Tahun 2026</p>
       </div>
 
       <!-- Login Form -->
@@ -124,8 +133,9 @@
 
       <!-- Footer -->
       <div class="bg-gray-50 dark:bg-slate-800/50 p-4 text-center border-t border-gray-200 dark:border-slate-700">
-        <p class="text-xs text-gray-500 dark:text-gray-400">Sistem Informasi Rekening Fungsional Keuangan</p>
-        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Dinas Kesehatan Kota Depok - 2026</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Dinas Kesehatan Kota Depok • APBD Tahun 2026</p>
+        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Built for smarter collaboration, clearer accountability, and better public service — @hadi4us</p>
+        <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Versi deployment: v188</p>
       </div>
     </div>
   </div>
@@ -142,9 +152,9 @@
           <div>
             <h1 class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center">
               <i class="fas fa-chart-pie mr-2 text-blue-600 dark:text-blue-400"></i>
-              SI-RFK Monitoring
+              Sistem Informasi Monitoring RFK
             </h1>
-            <p class="text-xs text-gray-500 dark:text-gray-400">APBD 2026 - DINKES KOTA DEPOK</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Dinas Kesehatan Kota Depok • APBD Tahun 2026</p>
           </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -167,8 +177,8 @@
             <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg">
               <span class="text-white font-bold text-xl">DS</span>
             </div>
-            <p class="text-sm font-semibold text-gray-800 dark:text-white">DINKES KOTA DEPOK</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">APBD 2026</p>
+            <p class="text-sm font-semibold text-gray-800 dark:text-white">Dinas Kesehatan Kota Depok</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">APBD Tahun 2026</p>
           </div>
         </div>
         
@@ -186,20 +196,13 @@
             <i class="fas fa-file-invoice-dollar w-5 h-5 mr-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0"></i>
             <span class="flex-1 font-medium text-sm">DPA & RAK</span>
           </a>
+          
+
+
 
           <a onclick="showView('inputspj')" class="sidebar-link" data-view="inputspj">
             <i class="fas fa-file-medical w-5 h-5 mr-3 text-amber-600 dark:text-amber-400 flex-shrink-0"></i>
             <span class="flex-1 font-medium text-sm">Input SPJ</span>
-          </a>
-
-          <a onclick="showView('workflow-spj')" class="sidebar-link" data-view="workflow-spj">
-            <i class="fas fa-route w-5 h-5 mr-3 text-fuchsia-600 dark:text-fuchsia-400 flex-shrink-0"></i>
-            <span class="flex-1 font-medium text-sm">Workflow SPJ</span>
-          </a>
-
-          <a onclick="showView('rekap-pelaksana')" class="sidebar-link" data-view="rekap-pelaksana">
-            <i class="fas fa-users w-5 h-5 mr-3 text-cyan-600 dark:text-cyan-400 flex-shrink-0"></i>
-            <span class="flex-1 font-medium text-sm">Rekap Pelaksana</span>
           </a>
           
           <a onclick="showView('monitoring')" class="sidebar-link" data-view="monitoring">
@@ -221,9 +224,19 @@
             <span class="flex-1 font-medium text-sm">Validasi Data</span>
           </a>
           
+          <a onclick="showView('workflow')" class="sidebar-link" data-view="workflow">
+            <i class="fas fa-project-diagram w-5 h-5 mr-3 text-sky-600 dark:text-sky-400 flex-shrink-0"></i>
+            <span class="flex-1 font-medium text-sm">Workflow SPJ</span>
+          </a>
+
           <a onclick="showView('laporan')" class="sidebar-link" data-view="laporan">
             <i class="fas fa-file-export w-5 h-5 mr-3 text-indigo-600 dark:text-indigo-400 flex-shrink-0"></i>
             <span class="flex-1 font-medium text-sm">Laporan</span>
+          </a>
+
+          <a onclick="showView('rekappelaksana')" class="sidebar-link" data-view="rekappelaksana">
+            <i class="fas fa-users w-5 h-5 mr-3 text-teal-600 dark:text-teal-400 flex-shrink-0"></i>
+            <span class="flex-1 font-medium text-sm">Rekap Pelaksana</span>
           </a>
 
           <a onclick="showView('settings')" class="sidebar-link" data-view="settings">
@@ -233,7 +246,8 @@
         </nav>
         
         <div class="p-4 border-t border-gray-200 dark:border-slate-700 text-center">
-          <p class="text-xs text-gray-500 dark:text-gray-400">v1.2 - Professional UI</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Versi deployment: v188</p>
+          <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-1 italic text-center">Built for smarter collaboration, clearer accountability, and better public service — @hadi4us</p>
         </div>
       </aside>
 
@@ -255,6 +269,14 @@
           <a onclick="showView('kendala')" class="nav-link-mobile" data-view="kendala">
             <i class="fas fa-exclamation-circle text-xl mb-1"></i>
             <span>Kendala</span>
+          </a>
+          <a onclick="showView('workflow')" class="nav-link-mobile" data-view="workflow">
+            <i class="fas fa-project-diagram text-xl mb-1"></i>
+            <span>Alur</span>
+          </a>
+          <a onclick="showView('rekappelaksana')" class="nav-link-mobile" data-view="rekappelaksana">
+            <i class="fas fa-users text-xl mb-1"></i>
+            <span>Pelaksana</span>
           </a>
           <a onclick="showView('settings')" class="nav-link-mobile" data-view="settings">
             <i class="fas fa-user-cog text-xl mb-1"></i>
@@ -286,7 +308,7 @@
             <div class="glass-panel p-5 rounded-xl shadow-lg">
               <div class="flex items-start justify-between mb-3">
                 <div>
-                  <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Pagu Anggaran</p>
+                  <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Pagu DPA</p>
                   <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1" id="dash-pagu">Rp 0</p>
                   <p class="text-xs text-gray-400 dark:text-gray-500 mt-2" id="dash-subkeg-count">5 Sub Kegiatan</p>
                 </div>
@@ -299,13 +321,13 @@
               </div>
             </div>
 
-            <!-- Anggaran Kas -->
+            <!-- RAK -->
             <div class="glass-panel p-5 rounded-xl shadow-lg">
               <div class="flex items-start justify-between mb-3">
                 <div>
-                  <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Anggaran Kas</p>
+                  <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total RAK</p>
                   <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1" id="dash-angkas">Rp 0</p>
-                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">Realisasi per triwulan</p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">Target RAK per triwulan</p>
                 </div>
                 <div class="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
                   <i class="fas fa-money-bill-wave text-emerald-600 dark:text-emerald-400 text-2xl"></i>
@@ -317,7 +339,7 @@
             <div class="glass-panel p-5 rounded-xl shadow-lg">
               <div class="flex items-start justify-between mb-3">
                 <div>
-                  <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Realisasi SPJ</p>
+                  <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Realisasi SPJ Valid</p>
                   <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1" id="dash-realisasi">Rp 0</p>
                   <p class="text-xs text-gray-400 dark:text-gray-500 mt-2" id="dash-servasPercent">0% dari pagu</p>
                 </div>
@@ -345,13 +367,21 @@
             </div>
           </div>
 
+          <!-- Period Target Badges -->
+          <div id="dashboard-period-badges" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"></div>
+
+          <!-- Analysis Cards -->
+          <div id="dashboard-analysis" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+            <div class="glass-panel p-4 rounded-xl shadow text-gray-400 dark:text-gray-500">Memuat analisis...</div>
+          </div>
+
           <!-- Main Content Grid -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Chart Container -->
             <div class="lg:col-span-2 glass-panel p-6 rounded-xl shadow-lg">
               <h3 class="font-bold text-gray-800 dark:text-gray-200 mb-6 uppercase text-sm tracking-wider border-b border-gray-200 dark:border-slate-700 pb-3">
                 <i class="fas fa-chart-bar mr-2 text-blue-600 dark:text-blue-400"></i>
-                Perbandingan Anggaran Kas vs Realisasi per Sub-Kegiatan
+                Perbandingan RAK vs Realisasi per Sub-Kegiatan
               </h3>
               <div class="relative h-64">
                 <canvas id="dashboardChart"></canvas>
@@ -362,16 +392,15 @@
             <div class="glass-panel p-6 rounded-xl shadow-lg">
               <h3 class="font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase text-sm tracking-wider border-b border-gray-200 dark:border-slate-700 pb-3">
                 <i class="fas fa-clock mr-2 text-indigo-600 dark:text-indigo-400"></i>
-                Status SPJ Terakhir
+                Status Dokumen SPJ Terakhir
               </h3>
               <div id="recent-spj-list" class="space-y-3">
                 <!-- Recent SPJ items -->
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- DPA & ANGGARAN KAS VIEW -->
+          
+          <!-- DPA & ANGGARAN KAS VIEW -->
         <div id="view-dpa" class="view-section space-y-6">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
             <div>
@@ -396,7 +425,7 @@
                     <th class="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Kode Sub</th>
                     <th class="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Nama Sub Kegiatan</th>
                     <th class="px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Total Pagu</th>
-                    <th class="px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Anggaran Kas</th>
+                    <th class="px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">RAK</th>
                     <th class="px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Selisih</th>
                     <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Status</th>
                     <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Rincian</th>
@@ -417,10 +446,10 @@
               </table>
             </div>
           </div>
-        
 
           <!-- Integrated Master Panel -->
-          <div id="master-integration-panel" class="hidden space-y-6 border-t-2 border-dashed border-gray-200 dark:border-slate-700 pt-6 mt-6">
+          <!-- MASTER DATA VIEW -->
+        <div id="master-integration-panel" class="hidden space-y-6 border-t-2 border-dashed border-gray-200 dark:border-slate-700 pt-6 mt-6">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
             <div>
               <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Master DPA & RAK (Rencana Anggaran Kas)</h2>
@@ -512,7 +541,13 @@
             </div>
           </div>
         </div>
+
+
+        
         </div>
+        </div>
+
+
         <!-- INPUT SPJ VIEW -->
         <div id="view-inputspj" class="view-section space-y-6">
           <div class="flex items-center justify-between mb-6">
@@ -520,121 +555,42 @@
               <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Input SPJ</h2>
               <p class="text-gray-500 dark:text-gray-400">Buku Kendali SPJ dan form input popup.</p>
             </div>
-            <button type="button" onclick="openSpjInputModal()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow">
-              <i class="fas fa-plus mr-2"></i>Input SPJ Baru
+            <button type="button" onclick="openSpjModal()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow">
+              <i class="fas fa-plus-circle mr-2"></i>Input SPJ Baru
             </button>
           </div>
           
           <div class="grid grid-cols-1 gap-6">
             <!-- Form Input -->
-            <div id="spj-input-modal" class="hidden fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm p-3 md:p-6 overflow-y-auto">
-              <div class="max-w-4xl mx-auto bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 overflow-hidden">
-                <div class="p-4 bg-gradient-to-r from-blue-900 to-indigo-900 flex items-center justify-between gap-4">
-                  <div>
-                    <h3 class="text-white font-bold uppercase tracking-wider">Form Input SPJ</h3>
-                    <p class="text-blue-100 text-xs mt-1">Lengkapi identitas dan rincian belanja.</p>
-                  </div>
-                  <button type="button" onclick="closeSpjInputModal()" class="text-white/80 hover:text-white text-xl"><i class="fas fa-times"></i></button>
-                </div>
-              <div class="p-4 md:p-6 space-y-6">
-              <div class="flex justify-end hidden">
-                <button type="button" onclick="toggleSpjForm()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow">
-                  <i id="spj-form-toggle-icon" class="fas fa-chevron-up mr-2"></i><span id="spj-form-toggle-text">Sembunyikan Form Input</span>
-                </button>
-              </div>
-              <div id="spj-form-panel" class="grid grid-cols-1 gap-6 max-w-4xl mx-auto w-full">
-              <div class="glass-panel p-5 rounded-xl shadow-lg">
-                <h3 class="font-bold text-blue-900 dark:text-blue-300 border-b border-gray-200 dark:border-slate-700 pb-3 uppercase text-sm tracking-wider">
-                  <i class="fas fa-info-circle mr-2"></i>Identitas SPJ
-                </h3>
-                <div class="space-y-4 mt-4">
-                  <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Nomor SPJ</label>
-                    <input type="text" id="spj-nomor" placeholder="SPJ-2026-XXX" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:text-white">
-                  </div>
-                  <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-6">
+              <div id="spj-form-panel">
+                <div class="spj-modal-card p-4 md:p-5 border border-gray-200 dark:border-slate-700">
+                  <div class="flex items-start justify-between gap-4 mb-4 border-b border-gray-200 dark:border-slate-700 pb-4">
                     <div>
-                      <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Tanggal SPJ</label>
-                      <input type="date" id="spj-tanggal" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
+                      <h3 class="text-xl font-bold text-gray-900 dark:text-white"><i class="fas fa-file-invoice mr-2 text-blue-600 dark:text-blue-400"></i>Form Input SPJ</h3>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Popup khusus form input. Buku Kendali tetap tampilan biasa.</p>
                     </div>
-                    <div>
-                      <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Bulan Kas</label>
-                      <select id="spj-bulan" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
-                        <option value="">-- Bulan --</option>
-                        <option value="Januari">Januari</option>
-                        <option value="Februari">Februari</option>
-                        <option value="Maret">Maret</option>
-                        <option value="April">April</option>
-                        <option value="Mei">Mei</option>
-                        <option value="Juni">Juni</option>
-                        <option value="Juli">Juli</option>
-                        <option value="Agustus">Agustus</option>
-                        <option value="September">September</option>
-                        <option value="Oktober">Oktober</option>
-                        <option value="November">November</option>
-                        <option value="Desember">Desember</option>
-                      </select>
-                    </div>
+                    <button type="button" onclick="closeSpjModal()" class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200 text-sm font-bold"><i class="fas fa-times mr-1"></i>Tutup</button>
                   </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">PPTK</label>
-                    <input type="text" id="spj-pptk" placeholder="Nama PPTK" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
+                <div class="glass-panel p-5 rounded-xl shadow-lg">
+                  <h3 class="font-bold text-blue-900 dark:text-blue-300 border-b border-gray-200 dark:border-slate-700 pb-3 uppercase text-sm tracking-wider">
+                    <i class="fas fa-list mr-2"></i>Input Item SPJ
+                  </h3>
+                  <div class="space-y-4 mt-4">
+                    <div><label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">1. Nomor SPJ</label><input type="text" id="spj-nomor" placeholder="SPJ-2026-XXX" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:text-white"></div>
+                    <div><label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">2. Tanggal SPJ</label><input type="date" id="spj-tanggal" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white"></div>
+                    <div><label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">3. Bulan Kas</label><select id="spj-bulan" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white"><option value="">-- Pilih Bulan --</option><option value="Januari">Januari</option><option value="Februari">Februari</option><option value="Maret">Maret</option><option value="April">April</option><option value="Mei">Mei</option><option value="Juni">Juni</option><option value="Juli">Juli</option><option value="Agustus">Agustus</option><option value="September">September</option><option value="Oktober">Oktober</option><option value="November">November</option><option value="Desember">Desember</option></select></div>
+                    <div><label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">4. PPTK</label><input type="text" id="spj-pptk" placeholder="Nama PPTK" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white"></div>
+                    <div><label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">5. Jenis SPJ</label><select id="spj-jenis" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white"><option value="NON SPPD">NON SPPD</option><option value="SPPD">SPPD</option></select></div>
+                    <div><label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">6. Sub Kegiatan</label><select id="dd-sub-kegiatan" onchange="onSubKegiatanChanged()" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white"><option value="">-- Pilih Sub Kegiatan --</option></select><p id="dd-sub-kegiatan-help" class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">Pilih sub kegiatan untuk membuka rekening belanja.</p></div>
+                    <div><label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">7. Kode Rekening</label><select id="dd-kode-rekening" onchange="onKodeRekeningChanged()" disabled class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white"><option value="">-- Kode Rekening --</option></select></div>
+                    <div><label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">8. Uraian Belanja / Rincian Uraian Kegiatan</label><select id="dd-uraian-belanja" onchange="onUraianBelanjaChanged()" disabled class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white"><option value="">-- Uraian Belanja --</option></select></div>
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3 py-3 rounded-lg"><p class="text-blue-100 text-xs uppercase font-semibold">Pagu DPA Tersedia</p><p class="font-mono font-bold text-lg" id="lbl-pagu-dpa">Rp 0</p></div>
+                    <div><label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">9. Nama Kegiatan</label><input type="text" id="input-nama-kegiatan" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white"></div>
+                    <div><label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">10. Pelaksana</label><select id="input-pelaksana" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white"><option value="">-- Pilih Pelaksana --</option></select><p class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">Referensi dari sheet MASTER_PELAKSANA untuk rekap jumlah pelaksana per uraian kegiatan dan bulan.</p></div>
+                    <div><label class="block text-xs font-semibold text-blue-700 dark:text-blue-300 mb-2">11. Nilai Bruto (Rp)</label><input type="number" id="input-nilai-bruto" class="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-blue-400 dark:border-blue-600 rounded font-mono font-bold focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder="Contoh: 1500000"></div>
+                    <button type="button" onclick="sisipkanItem()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-2 rounded text-sm uppercase transition shadow"><i class="fas fa-plus-circle mr-2"></i>Sisipkan Item</button>
                   </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Jenis SPJ</label>
-                    <select id="spj-jenis" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
-                      <option value="NON SPPD">NON SPPD</option>
-                      <option value="SPPD">SPPD</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div class="glass-panel p-5 rounded-xl shadow-lg">
-                <h3 class="font-bold text-blue-900 dark:text-blue-300 border-b border-gray-200 dark:border-slate-700 pb-3 uppercase text-sm tracking-wider">
-                  <i class="fas fa-list mr-2"></i>Rincian Belanja
-                </h3>
-                <div class="space-y-4 mt-4">
-                  <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Sub Kegiatan</label>
-                    <input list="list-sub-kegiatan" id="dd-sub-kegiatan" onchange="onSubKegiatanChanged()" autocomplete="off" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
-                    <datalist id="list-sub-kegiatan"></datalist>
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Kode Rekening</label>
-                    <select id="dd-kode-rekening" disabled class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
-                      <option value="">-- Kode Rekening --</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Uraian Belanja</label>
-                    <select id="dd-uraian-belanja" disabled class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
-                      <option value="">-- Uraian Belanja --</option>
-                    </select>
-                  </div>
-                  <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3 py-3 rounded-lg">
-                    <p class="text-blue-100 text-xs uppercase font-semibold">Pagu Tersedia</p>
-                    <p class="font-mono font-bold text-lg" id="lbl-pagu-dpa">Rp 0</p>
-                  </div>
-                  <div class="grid grid-cols-2 gap-3">
-                    <div>
-                      <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Nama Kegiatan</label>
-                      <input type="text" id="input-nama-kegiatan" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
-                    </div>
-                    <div>
-                      <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Pelaksana</label>
-                      <input type="text" id="input-pelaksana" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white">
-                    </div>
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-blue-700 dark:text-blue-300 mb-2">Nilai Bruto (Rp)</label>
-                    <input type="number" id="input-nilai-bruto" class="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-blue-400 dark:border-blue-600 rounded font-mono font-bold focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder="Contoh: 1500000">
-                  </div>
-                  <button type="button" onclick="sisipkanItem()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-2 rounded text-sm uppercase transition shadow">
-                    <i class="fas fa-plus-circle mr-2"></i>Sisipkan Item
-                  </button>
-                </div>
-                
                 <div class="bg-gray-50 dark:bg-slate-800/50 p-4 rounded-lg border border-gray-200 dark:border-slate-700 mt-4">
                   <p class="font-semibold text-gray-700 dark:text-gray-300 uppercase text-xs mb-3 flex items-center">
                     <i class="fas fa-clipboard-list mr-2 text-blue-600 dark:text-blue-400"></i>
@@ -650,9 +606,7 @@
                 </button>
               </div>
             </div>
-              </div>
-              </div>
-            </div>
+          </div>
 
             <!-- SPJ List -->
             <div>
@@ -683,74 +637,7 @@
             </div>
           </div>
         </div>
-      </div>
 
-        <!-- WORKFLOW SPJ VIEW -->
-        <div id="view-workflow-spj" class="view-section space-y-6">
-          <div class="mb-6">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Workflow Realisasi Anggaran melalui SPJ</h2>
-            <p class="text-gray-500 dark:text-gray-400">Alur sederhana sesuai prinsip penatausahaan APBD: pelaksanaan, verifikasi, pengesahan, pembayaran, dan monitoring realisasi.</p>
-          </div>
-          <div class="glass-panel p-5 rounded-xl shadow-lg">
-            <h3 class="font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4"><i class="fas fa-project-diagram mr-2 text-fuchsia-600"></i>Flowchart Interaksi User</h3>
-            <div class="grid grid-cols-1 lg:grid-cols-6 gap-3 text-xs">
-              <div class="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/20 p-3"><p class="font-bold text-blue-900 dark:text-blue-200 mb-3">Fungsional / Pelaksana</p><div class="rounded bg-white dark:bg-slate-900 p-3 shadow"><b>1. Realisasi</b><br>Kegiatan selesai, bukti disiapkan</div><div class="mt-3 rounded bg-white dark:bg-slate-900 p-3 shadow"><b>2. Usulan SPJ</b><br>Input draft: rekening, nilai, bukti</div></div>
-              <div class="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-900/20 p-3"><p class="font-bold text-amber-900 dark:text-amber-200 mb-3">Ketua Tim Kerja</p><div class="rounded bg-white dark:bg-slate-900 p-3 shadow"><b>3. Review Teknis</b><br>Cek output, bukti, volume, kewajaran</div><p class="mt-3 italic text-amber-700 dark:text-amber-300">revisi bila bukti/akun tidak sesuai</p></div>
-              <div class="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-900/20 p-3"><p class="font-bold text-emerald-900 dark:text-emerald-200 mb-3">PPTK</p><div class="rounded bg-white dark:bg-slate-900 p-3 shadow"><b>4. Validasi PPTK</b><br>Cek DPA, pagu, RAK, kelengkapan</div></div>
-              <div class="rounded-xl border border-purple-200 dark:border-purple-900 bg-purple-50 dark:bg-purple-900/20 p-3"><p class="font-bold text-purple-900 dark:text-purple-200 mb-3">Bendahara</p><div class="rounded bg-white dark:bg-slate-900 p-3 shadow"><b>5. Bendahara</b><br>Cek kas, pajak, dokumen bayar</div><p class="mt-3 italic text-purple-700 dark:text-purple-300">koreksi pajak/kas/dokumen</p></div>
-              <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3"><p class="font-bold text-slate-900 dark:text-slate-200 mb-3">PPK</p><div class="rounded bg-white dark:bg-slate-900 p-3 shadow"><b>6. PPK</b><br>Verifikasi akhir dan pengesahan</div><div class="mt-3 rounded bg-white dark:bg-slate-900 p-3 shadow"><b>7. Pembayaran</b><br>Status Dibayar, realisasi cash</div><p class="mt-3 italic text-slate-600 dark:text-slate-300">tolak/kembalikan</p></div>
-              <div class="rounded-xl border border-cyan-200 dark:border-cyan-900 bg-cyan-50 dark:bg-cyan-900/20 p-3"><p class="font-bold text-cyan-900 dark:text-cyan-200 mb-3">Sistem RFK</p><div class="rounded bg-white dark:bg-slate-900 p-3 shadow"><b>8. Monitoring RFK</b><br>Update serapan, sisa pagu & RAK</div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- REKAP PELAKSANA VIEW -->
-        <div id="view-rekap-pelaksana" class="view-section space-y-6">
-          <div class="flex items-center justify-between mb-6">
-            <div>
-              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Rekap Pelaksana per Kegiatan</h2>
-              <p class="text-gray-500 dark:text-gray-400">Rekap jumlah pelaksana kegiatan per uraian kegiatan dan bulan. Filter: jenis SPJ hanya SPPD.</p>
-            </div>
-            <button type="button" onclick="loadRekapPelaksana(true)" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-bold shadow">
-              <i class="fas fa-sync-alt mr-2"></i>Refresh
-            </button>
-          </div>
-          <div class="glass-panel p-4 rounded-xl shadow-lg">
-            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Pilih Uraian Kegiatan</label>
-            <select id="rekap-pelaksana-filter" onchange="loadRekapPelaksana(true)" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded dark:text-white">
-              <option value="">-- Pilih Kegiatan --</option>
-            </select>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Angka berisi jumlah item SPPD per pelaksana, bukan nominal rupiah.</p>
-          </div>
-          <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
-            <div class="p-4 border-b bg-gradient-to-r from-blue-900 to-purple-900">
-              <h3 class="font-bold text-white uppercase tracking-wider">Rekap Pelaksana</h3>
-              <p class="text-blue-100 text-xs mt-1">Jenis SPJ: SPPD</p>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700 text-xs">
-                <thead class="bg-gray-100 dark:bg-slate-800">
-                  <tr>
-                    <th class="px-3 py-3 text-left font-bold text-gray-600 dark:text-gray-300 uppercase">Pelaksana</th>
-                    <th class="px-3 py-3 text-right font-bold text-gray-600 dark:text-gray-300 uppercase">Jan</th>
-                    <th class="px-3 py-3 text-right font-bold text-gray-600 dark:text-gray-300 uppercase">Feb</th>
-                    <th class="px-3 py-3 text-right font-bold text-gray-600 dark:text-gray-300 uppercase">Mar</th>
-                    <th class="px-3 py-3 text-right font-bold text-gray-600 dark:text-gray-300 uppercase">Apr</th>
-                    <th class="px-3 py-3 text-right font-bold text-gray-600 dark:text-gray-300 uppercase">Mei</th>
-                    <th class="px-3 py-3 text-right font-bold text-gray-600 dark:text-gray-300 uppercase">Jun</th>
-                    <th class="px-3 py-3 text-right font-bold text-gray-600 dark:text-gray-300 uppercase">Jul</th>
-                    <th class="px-3 py-3 text-right font-bold text-gray-600 dark:text-gray-300 uppercase">Agu</th>
-                    <th class="px-3 py-3 text-right font-bold text-gray-600 dark:text-gray-300 uppercase">Sep</th>
-                    <th class="px-3 py-3 text-right font-bold text-gray-600 dark:text-gray-300 uppercase">Okt</th>
-                    <th class="px-3 py-3 text-right font-bold text-gray-600 dark:text-gray-300 uppercase">Nov</th>
-                    <th class="px-3 py-3 text-right font-bold text-gray-600 dark:text-gray-300 uppercase">Des</th>
-                    <th class="px-3 py-3 text-right font-bold text-gray-600 dark:text-gray-300 uppercase">Total</th>
-                  </tr>
-                </thead>
-                <tbody id="rekap-pelaksana-body" class="divide-y bg-white dark:bg-slate-900"></tbody>
-              </table>
-            </div>
-          </div>
         </div>
 
         <!-- MONITORING RFK VIEW -->
@@ -758,16 +645,16 @@
           <div class="flex items-center justify-between mb-6">
             <div>
               <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Monitoring RFK</h2>
-              <p class="text-gray-500 dark:text-gray-400">Realisasi Fungsional Keuangan per sub-kegiatan</p>
+              <p class="text-gray-500 dark:text-gray-400">Monitoring Realisasi Fisik dan Keuangan per Sub Kegiatan</p>
             </div>
             <button onclick="exportMonitoring()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
               <i class="fas fa-file-excel mr-2"></i>Export ke Excel
             </button>
           </div>
           
-          <!-- Sub-kegiatan Selector -->
+          <!-- Selector Sub Kegiatan -->
           <div class="glass-panel p-4 rounded-xl shadow-lg">
-            <div class="flex items-center space-x-4">
+            <div class="flex flex-col md:flex-row md:items-center gap-4">
               <div class="flex-1">
                 <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
                   <i class="fas fa-layer-group mr-1"></i>Pilih Sub Kegiatan
@@ -777,6 +664,10 @@
                 </select>
               </div>
             </div>
+          </div>
+
+          <div id="monitoring-summary" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div class="glass-panel p-6 rounded-xl shadow text-center text-gray-400 dark:text-gray-500">Memuat ringkasan monitoring...</div>
           </div>
 
           <!-- Monthly Table -->
@@ -790,7 +681,7 @@
                 <thead class="bg-gray-50 dark:bg-slate-800">
                   <tr>
                     <th class="px-3 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Bulan</th>
-                    <th class="px-3 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Anggaran Kas</th>
+                    <th class="px-3 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">RAK</th>
                     <th class="px-3 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Realisasi</th>
                     <th class="px-3 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Sisa</th>
                     <th class="px-3 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">% Serap</th>
@@ -810,7 +701,7 @@
                     <td class="px-3 py-3 text-right text-sm font-bold text-emerald-600 dark:text-emerald-400" id="mon-total-realisasi">0</td>
                     <td class="px-3 py-3 text-right text-sm font-bold text-gray-900 dark:text-white" id="mon-total-sisa">0</td>
                     <td class="px-3 py-3 text-center text-sm font-bold text-gray-900 dark:text-white" id="mon-total-persen">0%</td>
-                    <td class="px-3 py-3" colspan="5"></td>
+                    <td class="px-3 py-3" colspan="6"></td>
                   </tr>
                 </tfoot>
               </table>
@@ -823,13 +714,13 @@
                     <tr>
                       <th class="px-3 py-2 text-left uppercase">Kode Rekening</th>
                       <th class="px-3 py-2 text-left uppercase">Uraian Belanja</th>
-                      <th class="px-3 py-2 text-left uppercase">Nama Uraian Kegiatan</th>
+                      <th class="px-3 py-2 text-left uppercase">Rincian Uraian Kegiatan</th>
                       <th class="px-3 py-2 text-left uppercase">Sub Rincian</th>
                       <th class="px-3 py-2 text-right uppercase">Pagu DPA</th>
-                      <th class="px-3 py-2 text-right uppercase">Angkas RAK</th>
+                      <th class="px-3 py-2 text-right uppercase">RAK</th>
                       <th class="px-3 py-2 text-right uppercase">Realisasi</th>
                       <th class="px-3 py-2 text-right uppercase">Sisa Kas</th>
-                      <th class="px-3 py-2 text-left uppercase">Jadwal Angkas vs Realisasi</th>
+                      <th class="px-3 py-2 text-left uppercase">Jadwal RAK vs Realisasi</th>
                       <th class="px-3 py-2 text-center uppercase">% Serap</th>
                     </tr>
                   </thead>
@@ -912,7 +803,12 @@
           <div class="flex items-center justify-between mb-6">
             <div>
               <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Validasi Data</h2>
-              <p class="text-gray-500 dark:text-gray-400">Cross-check DPA vs Anggaran Kas</p>
+              <p class="text-gray-500 dark:text-gray-400">Validasi kesesuaian Pagu DPA vs RAK</p>
+            </div>
+            <div id="btn-sync-angkas-wrap" class="hidden">
+              <button onclick="triggerSyncAngkas()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded shadow text-sm font-bold flex items-center gap-2">
+                <i class="fas fa-sync"></i> Perbaharui RAK dari Excel
+              </button>
             </div>
             <button onclick="loadValidasi()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
               <i class="fas fa-sync-alt mr-2"></i>Refresh
@@ -926,7 +822,7 @@
               <p class="text-2xl font-bold text-gray-900 dark:text-white" id="val-total-pagu">Rp 0</p>
             </div>
             <div class="glass-panel p-6 rounded-xl shadow-lg">
-              <p class="text-sm text-gray-500 dark:text-gray-400 uppercase font-semibold mb-1">Total Anggaran Kas</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 uppercase font-semibold mb-1">Total RAK</p>
               <p class="text-2xl font-bold text-gray-900 dark:text-white" id="val-total-angkas">Rp 0</p>
             </div>
             <div class="glass-panel p-6 rounded-xl shadow-lg">
@@ -949,7 +845,7 @@
                     <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Kode</th>
                     <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Sub Kegiatan</th>
                     <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Pagu DPA</th>
-                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Anggaran Kas</th>
+                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">RAK</th>
                     <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Selisih</th>
                     <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Status</th>
                   </tr>
@@ -957,6 +853,174 @@
                 <tbody id="validasi-table-body" class="divide-y bg-white dark:bg-slate-900">
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          <!-- Integrated Master Panel -->
+          <!-- MASTER DATA VIEW -->
+        <div id="master-integration-panel" class="hidden space-y-6 border-t-2 border-dashed border-gray-200 dark:border-slate-700 pt-6 mt-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Master DPA & RAK (Rencana Anggaran Kas)</h2>
+              <p class="text-gray-500 dark:text-gray-400">Input, edit, dan hapus rincian DPA serta distribusi RAK sampai detail kegiatan.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="loadMasterData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
+                <i class="fas fa-sync-alt mr-2"></i>Muat Ulang
+              </button>
+              <button onclick="clearServerCacheFromUi()" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
+                <i class="fas fa-broom mr-2"></i>Bersihkan Cache
+              </button>
+            </div>
+          </div>
+
+          <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
+            <div class="flex border-b border-gray-200 dark:border-slate-700">
+              <button id="btn-tab-master-dpa" onclick="showMasterTab('dpa')" class="px-5 py-3 text-sm font-bold text-blue-700 dark:text-blue-300 border-b-2 border-blue-600">
+                <i class="fas fa-file-invoice-dollar mr-2"></i>Master DPA
+              </button>
+              <button id="btn-tab-master-angkas" onclick="showMasterTab('angkas')" class="px-5 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 border-b-2 border-transparent">
+                <i class="fas fa-calendar-alt mr-2"></i>Master RAK
+              </button>
+            </div>
+
+            <div id="master-dpa-panel" class="p-5 space-y-5">
+              <form onsubmit="event.preventDefault(); saveMasterDpa();" class="bg-blue-50/70 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/40 p-4">
+                <input type="hidden" id="mdpa-id">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div><label class="block text-xs font-semibold mb-1">Kode Sub Kegiatan</label><input id="mdpa-sub-kode" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Nama Sub Kegiatan</label><input id="mdpa-sub-nama" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div><label class="block text-xs font-semibold mb-1">Kode Rekening</label><input id="mdpa-kode-rekening" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Uraian Belanja</label><input id="mdpa-uraian" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Detail Kegiatan</label><input id="mdpa-detail" placeholder="Contoh: Rapat Evaluasi Pengelola Program..." class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Pagu DPA</label><input id="mdpa-pagu" type="number" min="0" step="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Sub Rincian</label><textarea id="mdpa-sub-rincian" rows="2" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></textarea></div>
+                  <div><label class="block text-xs font-semibold mb-1">Sumber Dana</label><input id="mdpa-sumber" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Tahun</label><input id="mdpa-tahun" value="2026" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Status</label><select id="mdpa-status" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"><option>Aktif</option><option>Nonaktif</option></select></div>
+                  <div><label class="block text-xs font-semibold mb-1">Volume</label><input id="mdpa-volume" type="number" min="0" step="0.01" value="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Satuan</label><input id="mdpa-satuan" value="Paket/Kegiatan" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Source PDF</label><input id="mdpa-source" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-4">
+                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-save mr-2"></i>Simpan DPA</button>
+                  <button type="button" onclick="resetMasterDpaForm()" class="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-undo mr-2"></i>Reset</button>
+                </div>
+              </form>
+              <div class="overflow-x-auto border border-gray-200 dark:border-slate-700 rounded-xl">
+                <table class="min-w-full text-xs">
+                  <thead class="bg-blue-600 text-white"><tr><th class="px-3 py-2 text-left">Kode Sub</th><th class="px-3 py-2 text-left">Kode Rekening</th><th class="px-3 py-2 text-left">Uraian / Detail Kegiatan</th><th class="px-3 py-2 text-right">Pagu</th><th class="px-3 py-2 text-center">Aksi</th></tr></thead>
+                  <tbody id="master-dpa-body" class="divide-y divide-gray-100 dark:divide-slate-800"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div id="master-angkas-panel" class="hidden p-5 space-y-5">
+              <form onsubmit="event.preventDefault(); saveMasterAngkas();" class="bg-emerald-50/70 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-900/40 p-4">
+                <input type="hidden" id="mak-id">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div><label class="block text-xs font-semibold mb-1">Kode Sub Kegiatan</label><input id="mak-sub-kode" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Nama Sub Kegiatan</label><input id="mak-sub-nama" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div><label class="block text-xs font-semibold mb-1">Kode Rekening</label><input id="mak-kode-rekening" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Uraian Belanja</label><input id="mak-uraian" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Detail Kegiatan</label><input id="mak-detail" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Pagu DPA</label><input id="mak-pagu-ref" type="number" min="0" step="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Sub Rincian</label><textarea id="mak-sub-rincian" rows="2" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></textarea></div>
+                  <div><label class="block text-xs font-semibold mb-1">Metode Alokasi</label><input id="mak-metode" value="Input manual" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Tahun</label><input id="mak-tahun" value="2026" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Source PDF</label><input id="mak-source" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                </div>
+                <div class="mt-4">
+                  <p class="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 uppercase">Distribusi RAK Bulanan</p>
+                  <div id="mak-month-grid" class="grid grid-cols-2 md:grid-cols-6 gap-2"></div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Triwulan (TW) dan total dihitung otomatis dari RAK bulanan saat disimpan.</p>
+                  <p id="mak-live-total-label" class="text-xs font-bold text-blue-700 dark:text-blue-300 mt-1">Akumulasi RAK Input: Rp 0</p>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-4">
+                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-save mr-2"></i>Simpan RAK</button>
+                  <button type="button" onclick="resetMasterAngkasForm()" class="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-undo mr-2"></i>Reset</button>
+                </div>
+              </form>
+              <div class="overflow-x-auto border border-gray-200 dark:border-slate-700 rounded-xl">
+                <table class="min-w-full text-xs">
+                  <thead class="bg-emerald-600 text-white"><tr><th class="px-3 py-2 text-left">Kode Sub</th><th class="px-3 py-2 text-left">Kode Rekening</th><th class="px-3 py-2 text-left">Uraian / Detail Kegiatan</th><th class="px-3 py-2 text-right">Total RAK</th><th class="px-3 py-2 text-center">Aksi</th></tr></thead>
+                  <tbody id="master-angkas-body" class="divide-y divide-gray-100 dark:divide-slate-800"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        
+        </div>
+        </div>
+
+        <!-- WORKFLOW SPJ VIEW -->
+        <div id="view-workflow" class="view-section space-y-6">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Workflow Realisasi Anggaran melalui SPJ</h2>
+              <p class="text-gray-500 dark:text-gray-400">Alur sederhana sesuai prinsip penatausahaan APBD: pelaksanaan, verifikasi, pengesahan, pembayaran, dan monitoring realisasi.</p>
+            </div>
+          </div>
+
+          <div class="glass-panel p-5 rounded-xl shadow-lg overflow-x-auto">
+            <h3 class="font-bold text-blue-900 dark:text-blue-300 uppercase text-sm mb-4"><i class="fas fa-project-diagram mr-2"></i>Flowchart Interaksi User</h3>
+            <svg viewBox="0 0 1180 620" class="min-w-[980px] w-full h-auto" role="img" aria-label="Flowchart workflow SPJ">
+              <defs>
+                <marker id="arrow-spj" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker>
+              </defs>
+              <style>
+                .lane{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1}.box{rx:14;stroke-width:1.5}.t{font:700 14px Arial;fill:#0f172a}.s{font:12px Arial;fill:#475569}.small{font:11px Arial;fill:#64748b}.line{stroke:#64748b;stroke-width:2;fill:none;marker-end:url(#arrow-spj)}
+                .pel{fill:#eff6ff;stroke:#2563eb}.katim{fill:#ecfeff;stroke:#0891b2}.pptk{fill:#f0fdf4;stroke:#16a34a}.bend{fill:#fff7ed;stroke:#ea580c}.ppk{fill:#fef2f2;stroke:#dc2626}.sys{fill:#f5f3ff;stroke:#7c3aed}
+              </style>
+              <rect class="lane" x="20" y="30" width="180" height="540"/><text class="t" x="45" y="60">Fungsional / Pelaksana</text>
+              <rect class="lane" x="210" y="30" width="180" height="540"/><text class="t" x="245" y="60">Ketua Tim Kerja</text>
+              <rect class="lane" x="400" y="30" width="180" height="540"/><text class="t" x="460" y="60">PPTK</text>
+              <rect class="lane" x="590" y="30" width="180" height="540"/><text class="t" x="640" y="60">Bendahara</text>
+              <rect class="lane" x="780" y="30" width="180" height="540"/><text class="t" x="850" y="60">PPK</text>
+              <rect class="lane" x="970" y="30" width="190" height="540"/><text class="t" x="1020" y="60">Sistem RFK</text>
+
+              <rect class="box pel" x="40" y="95" width="140" height="74"/><text class="t" x="60" y="123">1. Realisasi</text><text class="s" x="58" y="143">Kegiatan selesai,</text><text class="s" x="58" y="158">bukti disiapkan</text>
+              <rect class="box pel" x="40" y="235" width="140" height="82"/><text class="t" x="58" y="263">2. Usulan SPJ</text><text class="s" x="58" y="283">Input draft:</text><text class="s" x="58" y="298">rekening, nilai, bukti</text>
+
+              <rect class="box katim" x="230" y="235" width="140" height="82"/><text class="t" x="252" y="263">3. Review Teknis</text><text class="s" x="250" y="283">Cek output, bukti,</text><text class="s" x="250" y="298">volume, kewajaran</text>
+              <rect class="box pptk" x="420" y="235" width="140" height="82"/><text class="t" x="448" y="263">4. Validasi PPTK</text><text class="s" x="440" y="283">Cek DPA, pagu,</text><text class="s" x="440" y="298">RAK, kelengkapan</text>
+              <rect class="box bend" x="610" y="235" width="140" height="82"/><text class="t" x="635" y="263">5. Bendahara</text><text class="s" x="628" y="283">Cek kas, pajak,</text><text class="s" x="628" y="298">dokumen bayar</text>
+              <rect class="box ppk" x="800" y="235" width="140" height="82"/><text class="t" x="835" y="263">6. PPK</text><text class="s" x="820" y="283">Verifikasi akhir</text><text class="s" x="820" y="298">dan pengesahan</text>
+              <rect class="box bend" x="610" y="400" width="140" height="82"/><text class="t" x="635" y="428">7. Pembayaran</text><text class="s" x="625" y="448">Status Dibayar,</text><text class="s" x="625" y="463">realisasi sah</text>
+              <rect class="box sys" x="990" y="235" width="150" height="82"/><text class="t" x="1013" y="263">8. Monitoring RFK</text><text class="s" x="1010" y="283">Update serapan,</text><text class="s" x="1010" y="298">sisa pagu & RAK</text>
+
+              <path class="line" d="M110 169 V235"/><path class="line" d="M180 276 H230"/><path class="line" d="M370 276 H420"/><path class="line" d="M560 276 H610"/><path class="line" d="M750 276 H800"/><path class="line" d="M870 317 C870 380 750 380 680 400"/><path class="line" d="M750 441 C840 441 910 335 990 290"/>
+              <path class="line" d="M420 302 C330 360 180 345 110 317"/><text class="small" x="155" y="352">revisi bila bukti/akun tidak sesuai</text>
+              <path class="line" d="M610 302 C515 360 410 350 300 317"/><text class="small" x="442" y="371">koreksi pajak/kas/dokumen</text>
+              <path class="line" d="M800 302 C690 370 560 360 490 317"/><text class="small" x="625" y="390">tolak/kembalikan</text>
+            </svg>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="glass-panel p-5 rounded-xl shadow-lg">
+              <h3 class="font-bold text-blue-900 dark:text-blue-300 uppercase text-sm mb-3"><i class="fas fa-users-cog mr-2"></i>Konsep Role Sederhana di Aplikasi</h3>
+              <ol class="list-decimal pl-5 space-y-2 text-sm text-gray-700 dark:text-gray-200">
+                <li><b>Pelaksana/Fungsional</b>: membuat draft SPJ dan mengunggah/mencatat bukti realisasi.</li>
+                <li><b>Ketua Tim Kerja</b>: review substansi kegiatan, output, volume, dan kewajaran belanja.</li>
+                <li><b>PPTK</b>: validasi akun DPA, ketersediaan pagu, kesesuaian RAK, dan kelengkapan dokumen.</li>
+                <li><b>Bendahara</b>: verifikasi kas, potongan/pajak, kesiapan pembayaran.</li>
+                <li><b>PPK</b>: pengesahan akhir dokumen sebelum realisasi diakui valid.</li>
+                <li><b>Admin/Viewer</b>: monitoring, validasi, laporan, dan audit trail.</li>
+              </ol>
+            </div>
+            <div class="glass-panel p-5 rounded-xl shadow-lg">
+              <h3 class="font-bold text-emerald-900 dark:text-emerald-300 uppercase text-sm mb-3"><i class="fas fa-check-double mr-2"></i>Status SPJ yang Dipakai</h3>
+              <div class="space-y-2 text-sm text-gray-700 dark:text-gray-200">
+                <p><b>Draft</b> — usulan awal pelaksana, belum memengaruhi realisasi valid.</p>
+                <p><b>Diajukan</b> — sudah masuk review berjenjang, menjadi komitmen aktif.</p>
+                <p><b>Diverifikasi</b> — sah secara verifikasi, masuk realisasi valid.</p>
+                <p><b>Dibayar</b> — sudah dibayarkan bendahara, masuk realisasi valid.</p>
+                <p><b>Ditolak/Batal</b> — tidak dihitung dalam realisasi.</p>
+              </div>
+              <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">Dasar penyederhanaan: prinsip penatausahaan APBD, pemisahan fungsi pelaksanaan, verifikasi, pembayaran, dan pengendalian realisasi sebagaimana praktik Permendagri/PP pengelolaan keuangan daerah.</p>
             </div>
           </div>
         </div>
@@ -975,7 +1039,7 @@
               <h3 class="font-bold text-blue-900 dark:text-blue-300 border-b border-gray-200 dark:border-slate-700 pb-3 uppercase text-sm tracking-wider flex items-center">
                 <i class="fas fa-file-excel mr-2"></i>Export Monitoring RFK
               </h3>
-              <p class="text-sm text-gray-600 dark:text-gray-400 mt-3 mb-4">Generate file Excel sesuai format RFK resmi</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-3 mb-4">Generate file Excel sesuai format Monitoring RFK</p>
               <button onclick="exportMonitoring()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded text-sm uppercase transition shadow">
                 <i class="fas fa-file-export mr-2"></i>Export ke Excel (.xlsx)
               </button>
@@ -987,24 +1051,153 @@
               </h3>
               <div class="mt-4 space-y-3">
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-slate-700">
-                  <span class="text-sm text-gray-600 dark:text-gray-400">Total Pagu Anggaran</span>
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Total Pagu DPA</span>
                   <span class="text-sm font-bold text-gray-900 dark:text-white" id="lap-total-pagu">-</span>
                 </div>
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-slate-700">
-                  <span class="text-sm text-gray-600 dark:text-gray-400">Total Anggaran Kas</span>
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Total RAK</span>
                   <span class="text-sm font-bold text-gray-900 dark:text-white" id="lap-total-angkas">-</span>
                 </div>
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-slate-700">
-                  <span class="text-sm text-gray-600 dark:text-gray-400">Total Realisasi SPJ</span>
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Total Realisasi SPJ Valid</span>
                   <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400" id="lap-total-realisasi">-</span>
                 </div>
                 <div class="flex justify-between items-center py-2">
-                  <span class="text-sm text-gray-600 dark:text-gray-400">Persen Serapan</span>
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Persentase Serapan</span>
                   <span class="text-sm font-bold text-gray-900 dark:text-white" id="lap-persen-serap">-</span>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+
+
+        <!-- REKAP PELAKSANA VIEW -->
+        <div id="view-rekappelaksana" class="view-section space-y-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Rekap Pelaksana per Kegiatan</h2>
+              <p class="text-gray-500 dark:text-gray-400">Rekap jumlah pelaksana kegiatan per uraian kegiatan dan bulan. Filter: jenis SPJ hanya SPPD.</p>
+            </div>
+            <button onclick="loadRekapPelaksana()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow"><i class="fas fa-sync-alt mr-2"></i>Refresh</button>
+          </div>
+          <div class="glass-panel p-4 rounded-xl shadow-lg">
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Pilih Uraian Kegiatan</label>
+            <select id="rekap-pelaksana-kegiatan" onchange="renderRekapPelaksanaTable(this.value)" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:text-white"><option value="">-- Pilih Kegiatan --</option></select>
+            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Angka berisi jumlah item SPPD per pelaksana, bukan nominal rupiah.</p>
+          </div>
+          <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
+            <div class="p-4 border-b bg-gradient-to-r from-blue-900 to-indigo-900">
+              <h3 id="rekap-pelaksana-title" class="font-bold text-white uppercase tracking-wider text-sm">Rekap Pelaksana</h3>
+              <p id="rekap-pelaksana-subtitle" class="text-blue-100 text-xs mt-1">Jenis SPJ: SPPD</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-xs border-collapse">
+                <thead id="rekap-pelaksana-head" class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200"></thead>
+                <tbody id="rekap-pelaksana-body" class="divide-y bg-white dark:bg-slate-900"></tbody>
+                <tfoot id="rekap-pelaksana-foot" class="bg-gray-50 dark:bg-slate-800/50"></tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Integrated Master Panel -->
+          <!-- MASTER DATA VIEW -->
+        <div id="master-integration-panel" class="hidden space-y-6 border-t-2 border-dashed border-gray-200 dark:border-slate-700 pt-6 mt-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Master DPA & RAK (Rencana Anggaran Kas)</h2>
+              <p class="text-gray-500 dark:text-gray-400">Input, edit, dan hapus rincian DPA serta distribusi RAK sampai detail kegiatan.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="loadMasterData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
+                <i class="fas fa-sync-alt mr-2"></i>Muat Ulang
+              </button>
+              <button onclick="clearServerCacheFromUi()" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
+                <i class="fas fa-broom mr-2"></i>Bersihkan Cache
+              </button>
+            </div>
+          </div>
+
+          <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
+            <div class="flex border-b border-gray-200 dark:border-slate-700">
+              <button id="btn-tab-master-dpa" onclick="showMasterTab('dpa')" class="px-5 py-3 text-sm font-bold text-blue-700 dark:text-blue-300 border-b-2 border-blue-600">
+                <i class="fas fa-file-invoice-dollar mr-2"></i>Master DPA
+              </button>
+              <button id="btn-tab-master-angkas" onclick="showMasterTab('angkas')" class="px-5 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 border-b-2 border-transparent">
+                <i class="fas fa-calendar-alt mr-2"></i>Master RAK
+              </button>
+            </div>
+
+            <div id="master-dpa-panel" class="p-5 space-y-5">
+              <form onsubmit="event.preventDefault(); saveMasterDpa();" class="bg-blue-50/70 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/40 p-4">
+                <input type="hidden" id="mdpa-id">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div><label class="block text-xs font-semibold mb-1">Kode Sub Kegiatan</label><input id="mdpa-sub-kode" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Nama Sub Kegiatan</label><input id="mdpa-sub-nama" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div><label class="block text-xs font-semibold mb-1">Kode Rekening</label><input id="mdpa-kode-rekening" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Uraian Belanja</label><input id="mdpa-uraian" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Detail Kegiatan</label><input id="mdpa-detail" placeholder="Contoh: Rapat Evaluasi Pengelola Program..." class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Pagu DPA</label><input id="mdpa-pagu" type="number" min="0" step="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Sub Rincian</label><textarea id="mdpa-sub-rincian" rows="2" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></textarea></div>
+                  <div><label class="block text-xs font-semibold mb-1">Sumber Dana</label><input id="mdpa-sumber" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Tahun</label><input id="mdpa-tahun" value="2026" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Status</label><select id="mdpa-status" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"><option>Aktif</option><option>Nonaktif</option></select></div>
+                  <div><label class="block text-xs font-semibold mb-1">Volume</label><input id="mdpa-volume" type="number" min="0" step="0.01" value="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Satuan</label><input id="mdpa-satuan" value="Paket/Kegiatan" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Source PDF</label><input id="mdpa-source" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-4">
+                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-save mr-2"></i>Simpan DPA</button>
+                  <button type="button" onclick="resetMasterDpaForm()" class="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-undo mr-2"></i>Reset</button>
+                </div>
+              </form>
+              <div class="overflow-x-auto border border-gray-200 dark:border-slate-700 rounded-xl">
+                <table class="min-w-full text-xs">
+                  <thead class="bg-blue-600 text-white"><tr><th class="px-3 py-2 text-left">Kode Sub</th><th class="px-3 py-2 text-left">Kode Rekening</th><th class="px-3 py-2 text-left">Uraian / Detail Kegiatan</th><th class="px-3 py-2 text-right">Pagu</th><th class="px-3 py-2 text-center">Aksi</th></tr></thead>
+                  <tbody id="master-dpa-body" class="divide-y divide-gray-100 dark:divide-slate-800"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div id="master-angkas-panel" class="hidden p-5 space-y-5">
+              <form onsubmit="event.preventDefault(); saveMasterAngkas();" class="bg-emerald-50/70 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-900/40 p-4">
+                <input type="hidden" id="mak-id">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div><label class="block text-xs font-semibold mb-1">Kode Sub Kegiatan</label><input id="mak-sub-kode" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Nama Sub Kegiatan</label><input id="mak-sub-nama" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div><label class="block text-xs font-semibold mb-1">Kode Rekening</label><input id="mak-kode-rekening" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white" required></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Uraian Belanja</label><input id="mak-uraian" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Detail Kegiatan</label><input id="mak-detail" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Pagu DPA</label><input id="mak-pagu-ref" type="number" min="0" step="1" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div class="md:col-span-2"><label class="block text-xs font-semibold mb-1">Sub Rincian</label><textarea id="mak-sub-rincian" rows="2" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></textarea></div>
+                  <div><label class="block text-xs font-semibold mb-1">Metode Alokasi</label><input id="mak-metode" value="Input manual" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Tahun</label><input id="mak-tahun" value="2026" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                  <div><label class="block text-xs font-semibold mb-1">Source PDF</label><input id="mak-source" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div>
+                </div>
+                <div class="mt-4">
+                  <p class="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2 uppercase">Distribusi RAK Bulanan</p>
+                  <div id="mak-month-grid" class="grid grid-cols-2 md:grid-cols-6 gap-2"></div>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Triwulan (TW) dan total dihitung otomatis dari RAK bulanan saat disimpan.</p>
+                  <p id="mak-live-total-label" class="text-xs font-bold text-blue-700 dark:text-blue-300 mt-1">Akumulasi RAK Input: Rp 0</p>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-4">
+                  <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-save mr-2"></i>Simpan RAK</button>
+                  <button type="button" onclick="resetMasterAngkasForm()" class="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-undo mr-2"></i>Reset</button>
+                </div>
+              </form>
+              <div class="overflow-x-auto border border-gray-200 dark:border-slate-700 rounded-xl">
+                <table class="min-w-full text-xs">
+                  <thead class="bg-emerald-600 text-white"><tr><th class="px-3 py-2 text-left">Kode Sub</th><th class="px-3 py-2 text-left">Kode Rekening</th><th class="px-3 py-2 text-left">Uraian / Detail Kegiatan</th><th class="px-3 py-2 text-right">Total RAK</th><th class="px-3 py-2 text-center">Aksi</th></tr></thead>
+                  <tbody id="master-angkas-body" class="divide-y divide-gray-100 dark:divide-slate-800"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        
+        </div>
         </div>
 
         <!-- SETTINGS VIEW -->
@@ -1063,13 +1256,14 @@
         </div>
       </main>
     </div>
+  </div>
 
   <!-- DPA Detail Modal -->
   <div id="dpa-detail-modal" class="hidden fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm p-3 md:p-6 overflow-y-auto">
     <div class="max-w-7xl mx-auto bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 overflow-hidden">
       <div class="px-5 py-4 bg-blue-900 text-white flex items-start justify-between gap-4">
         <div>
-          <h3 class="text-lg font-bold"><i class="fas fa-layer-group mr-2"></i>Detail DPA & Anggaran Kas</h3>
+          <h3 class="text-lg font-bold"><i class="fas fa-layer-group mr-2"></i>Detail DPA & RAK (Rencana Anggaran Kas)</h3>
           <p id="dpa-detail-modal-title" class="text-xs text-blue-100 mt-1"></p>
         </div>
         <button type="button" onclick="closeDpaDetailModal()" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm font-bold">Tutup</button>
@@ -1078,7 +1272,7 @@
         <div class="grid md:grid-cols-4 gap-3">
           <input id="filter-detail-kode" oninput="applyDpaDetailFilter()" placeholder="Filter Kode Rekening" class="px-3 py-2 text-sm rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
           <input id="filter-detail-uraian" oninput="applyDpaDetailFilter()" placeholder="Filter Uraian Belanja" class="px-3 py-2 text-sm rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
-          <input id="filter-detail-kegiatan" oninput="applyDpaDetailFilter()" placeholder="Filter Nama Uraian Kegiatan" class="px-3 py-2 text-sm rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+          <input id="filter-detail-kegiatan" oninput="applyDpaDetailFilter()" placeholder="Filter Rincian Uraian Kegiatan" class="px-3 py-2 text-sm rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
           <input id="filter-detail-sub" oninput="applyDpaDetailFilter()" placeholder="Filter Sub Rincian" class="px-3 py-2 text-sm rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
         </div>
         <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-slate-700">
@@ -1087,10 +1281,10 @@
               <tr>
                 <th class="px-3 py-2 text-left uppercase">Kode Rekening</th>
                 <th class="px-3 py-2 text-left uppercase">Uraian Belanja</th>
-                <th class="px-3 py-2 text-left uppercase">Nama Uraian Kegiatan</th>
+                <th class="px-3 py-2 text-left uppercase">Rincian Uraian Kegiatan</th>
                 <th class="px-3 py-2 text-left uppercase">Sub Rincian</th>
                 <th class="px-3 py-2 text-right uppercase">Pagu DPA</th>
-                <th class="px-3 py-2 text-right uppercase">Angkas RAK</th>
+                <th class="px-3 py-2 text-right uppercase">RAK</th>
                 <th class="px-3 py-2 text-right uppercase">Realisasi</th>
                 <th class="px-3 py-2 text-right uppercase">Sisa Kas</th>
               </tr>
@@ -1100,6 +1294,21 @@
           </table>
         </div>
       </div>
+    </div>
+  </div>
+
+
+  <!-- SPJ REVIEW MODAL -->
+  <div id="spj-review-panel">
+    <div class="spj-review-card p-4 md:p-5 border border-gray-200 dark:border-slate-700">
+      <div class="flex items-start justify-between gap-4 mb-4 border-b border-gray-200 dark:border-slate-700 pb-4">
+        <div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white"><i class="fas fa-clipboard-check mr-2 text-emerald-600 dark:text-emerald-400"></i>Review / Verifikasi SPJ</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Form review Bendahara/Verifikator untuk cek rincian dan perubahan status SPJ.</p>
+        </div>
+        <button type="button" onclick="closeSpjReviewModal()" class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200 text-sm font-bold"><i class="fas fa-times mr-1"></i>Tutup</button>
+      </div>
+      <div id="spj-review-content" class="space-y-4"></div>
     </div>
   </div>
 
@@ -1113,6 +1322,7 @@
     let currentSessionToken = '';
     let masterHierarki = {};
     let spjAntrean = [];
+    let currentEditSpjId = '';
     let monitoringData = [];
     let dashboardChart = null;
     let dashboardChartRequestId = 0;
@@ -1183,10 +1393,10 @@
           if (panel) panel.classList.add('hidden');
         }
       }
-
       document.getElementById('screen-login').classList.add('hidden');
       document.getElementById('screen-workspace').classList.remove('hidden');
       showView(options.view || 'dashboard');
+      startSpjAutoRefresh_();
     }
 
     function refreshSettingsUserInfo() {
@@ -1335,6 +1545,8 @@
     }
 
     function handleLogout() {
+      if (spjAutoRefreshTimer_) clearInterval(spjAutoRefreshTimer_);
+      spjAutoRefreshTimer_ = null;
       currentUser = { email: '', role: 'VIEWER', nama: '' };
       currentSessionToken = '';
       clearSessionFromBrowser_();
@@ -1390,16 +1602,6 @@
         .ubahPassword(username, oldPass, newPass);
     }
 
-    function updateLiveMasterRakTotal() {
-      let sum = 0;
-      MASTER_MONTHS.forEach(function(m) {
-        const el = document.getElementById('mak-bulan-' + m);
-        if (el) sum += Number(el.value || 0);
-      });
-      const lbl = document.getElementById('mak-live-total-label');
-      if (lbl) lbl.textContent = 'Akumulasi RAK Input: ' + formatRupiah(sum);
-    }
-
     function toggleMasterIntegrationPanel() {
       const panel = document.getElementById('master-integration-panel');
       if (!panel) return;
@@ -1410,7 +1612,7 @@
         if (isHidden) {
           btn.innerHTML = '<i class="fas fa-eye-slash mr-2"></i>Sembunyikan Pengelola Master';
           btn.className = 'bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow';
-          loadMasterData();
+          loadMasterData(); // Automatically load data when showing the master data panel
         } else {
           btn.innerHTML = '<i class="fas fa-database mr-2"></i>Kelola Database Master';
           btn.className = 'bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow';
@@ -1419,7 +1621,9 @@
     }
 
     function showView(viewId) {
-      if (!window.matchMedia('(min-width: 768px)').matches) setSidebarVisible(false);
+      const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+      if (!isDesktop) setSidebarVisible(false);
+      closeSpjModal(false);
       
       // Reset integrated master panel status if navigating away from DPA
       if (viewId !== 'dpa') {
@@ -1446,20 +1650,36 @@
         if (item.dataset.view === viewId) item.classList.add('active');
       });
 
-      if (viewId === 'dashboard') loadDashboard();
-      if (viewId === 'dpa') loadDPAList();
-      if (viewId === 'inputspj') loadSPJWorkspace();
-      if (viewId === 'workflow-spj') { /* static page */ }
-      if (viewId === 'rekap-pelaksana') loadRekapPelaksana(true);
-      if (viewId === 'monitoring') loadMonitoringList();
-      if (viewId === 'kendala') loadMonitoringList();
-      if (viewId === 'validasi') loadValidasi();
-      if (viewId === 'settings') refreshSettingsUserInfo();
+      setTimeout(function() {
+        if (viewId === 'dashboard') loadDashboard(false);
+        if (viewId === 'dpa') loadDPAList();
+        if (viewId === 'masterdata') loadMasterData();
+        if (viewId === 'inputspj') { loadSPJWorkspace(); setTimeout(function() { loadSPJList(false, true); }, 500); }
+        if (viewId === 'monitoring') loadMonitoringList('monitoring');
+        if (viewId === 'kendala') loadMonitoringList('kendala');
+        if (viewId === 'validasi') loadValidasi();
+        if (viewId === 'rekappelaksana') loadRekapPelaksana();
+        if (viewId === 'settings') refreshSettingsUserInfo();
+      }, 0);
+    }
+
+    function openSpjModal() {
+      const panel = document.getElementById('spj-form-panel');
+      if (panel) panel.classList.add('active');
+      document.body.classList.add('spj-modal-open');
+      loadSPJWorkspace(false, false);
+    }
+
+    function closeSpjModal(updateNav) {
+      const panel = document.getElementById('spj-form-panel');
+      if (panel) panel.classList.remove('active');
+      document.body.classList.remove('spj-modal-open');
     }
 
     // ==================== DASHBOARD ====================
-    function loadDashboard() {
-      showLoading(true, 'Memuat dashboard...');
+    function loadDashboard(showOverlay) {
+      const useOverlay = showOverlay !== false;
+      if (useOverlay) showLoading(true, 'Memuat dashboard...');
       google.script.run
         .withSuccessHandler(function(stats) {
           document.getElementById('dash-pagu').textContent = formatRupiah(stats.totalPagu || 0);
@@ -1472,18 +1692,67 @@
           document.getElementById('dash-spj-draf').textContent = (stats.spjPerStatus.Draft || 0) + ' Draf';
           document.getElementById('dash-spj-dibayar').textContent = (stats.spjPerStatus.Dibayar || 0) + ' Dibayar';
           
-          renderDashboardChart(stats);
-          renderRecentSPJ();
+          renderPeriodBadges(stats.periodTargets || {});
+          renderDashboardAnalysis(stats);
+          setTimeout(function() { renderDashboardChart(stats); }, 700);
+          setTimeout(function() { renderRecentSPJ(); }, 300);
           
           document.getElementById('lap-total-pagu').textContent = formatRupiah(stats.totalPagu || 0);
           document.getElementById('lap-total-angkas').textContent = formatRupiah(stats.totalAngkas || 0);
           document.getElementById('lap-total-realisasi').textContent = formatRupiah(stats.totalRealisasi || 0);
           document.getElementById('lap-persen-serap').textContent = stats.persenSerap + '%';
           
-          showLoading(false);
+          if (useOverlay) showLoading(false);
         })
         .withFailureHandler(failToast('Gagal memuat dashboard'))
         .getDashboardStats();
+    }
+
+    function renderPeriodBadges(periodTargets) {
+      const wrap = document.getElementById('dashboard-period-badges');
+      if (!wrap) return;
+      const configs = [
+        ['bulan', 'Bulan Berjalan'],
+        ['triwulan', 'Triwulan Berjalan'],
+        ['semester', 'Semester Berjalan']
+      ];
+      wrap.innerHTML = configs.map(function(cfg) {
+        const key = cfg[0];
+        const title = cfg[1];
+        const p = periodTargets[key] || {};
+        const pct = Number(p.persenRealisasiTarget || 0);
+        const cls = pct >= 100 ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300' : pct >= 75 ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300' : 'border-red-400 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300';
+        const blink = pct < 100 ? 'animate-pulse' : '';
+        return '<div class="glass-panel rounded-xl shadow p-4 border-l-4 ' + cls + ' ' + blink + '">' +
+          '<div class="flex items-center justify-between gap-2"><p class="text-[11px] uppercase font-black tracking-wide">' + title + '</p><span class="px-2 py-1 rounded-full bg-white/70 dark:bg-slate-900/50 text-[10px] font-bold">' + escapeHtml(p.label || '-') + '</span></div>' +
+          '<p class="mt-2 text-2xl font-black">' + pct.toFixed(2) + '%</p>' +
+          '<p class="text-xs mt-1">Realisasi: <b>' + formatRupiah(p.realisasi || 0) + '</b></p>' +
+          '<p class="text-xs">Target RAK: <b>' + formatRupiah(p.target || 0) + '</b></p>' +
+          '<p class="text-[11px] mt-2 text-gray-500 dark:text-gray-400">Target setara ' + Number(p.persenTargetPagu || 0).toFixed(2) + '% pagu; realisasi setara ' + Number(p.persenRealisasiPagu || 0).toFixed(2) + '% pagu. Deviasi ' + formatRupiah(p.deviasi || 0) + '.</p>' +
+        '</div>';
+      }).join('');
+    }
+
+    function renderDashboardAnalysis(stats) {
+      const wrap = document.getElementById('dashboard-analysis');
+      if (!wrap) return;
+      const pagu = Number(stats.totalPagu || 0);
+      const angkas = Number(stats.totalAngkas || 0);
+      const realisasi = Number(stats.totalRealisasi || 0);
+      const komitmen = Number(stats.totalKomitmenAktif || 0);
+      const sisaPagu = pagu - realisasi;
+      const sisaKas = angkas - realisasi;
+      const gapPaguAngkas = pagu - angkas;
+      const pctPagu = pagu > 0 ? (realisasi / pagu * 100) : 0;
+      const pctKas = angkas > 0 ? (realisasi / angkas * 100) : 0;
+      const status = pctPagu >= 75 ? 'Serapan tinggi' : pctPagu >= 40 ? 'Perlu akselerasi' : 'Serapan rendah';
+      const statusCls = pctPagu >= 75 ? 'text-emerald-600 dark:text-emerald-400' : pctPagu >= 40 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400';
+      wrap.innerHTML = [
+        '<div class="glass-panel p-4 rounded-xl shadow"><p class="text-[11px] uppercase font-bold text-gray-500">Analisis Serapan</p><p class="mt-1 text-lg font-bold ' + statusCls + '">' + status + '</p><p class="mt-2 text-xs text-gray-500">Realisasi ' + pctPagu.toFixed(2) + '% dari pagu dan ' + pctKas.toFixed(2) + '% dari RAK.</p></div>',
+        '<div class="glass-panel p-4 rounded-xl shadow"><p class="text-[11px] uppercase font-bold text-gray-500">Sisa Anggaran</p><p class="mt-1 text-lg font-bold text-gray-900 dark:text-white">' + formatRupiah(sisaPagu) + '</p><p class="mt-2 text-xs text-gray-500">Sisa kas terhadap RAK: ' + formatRupiah(sisaKas) + '.</p></div>',
+        '<div class="glass-panel p-4 rounded-xl shadow"><p class="text-[11px] uppercase font-bold text-gray-500">Gap Pagu vs RAK</p><p class="mt-1 text-lg font-bold ' + (Math.abs(gapPaguAngkas) > 1 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400') + '">' + formatRupiah(gapPaguAngkas) + '</p><p class="mt-2 text-xs text-gray-500">Pagu ' + (gapPaguAngkas > 0 ? 'lebih besar' : 'selaras/lebih kecil') + ' dibanding RAK.</p></div>',
+        '<div class="glass-panel p-4 rounded-xl shadow"><p class="text-[11px] uppercase font-bold text-gray-500">Dokumen & Komitmen</p><p class="mt-1 text-lg font-bold text-gray-900 dark:text-white">' + (stats.jumlahSPJ || 0) + ' SPJ</p><p class="mt-2 text-xs text-gray-500">Komitmen aktif: ' + formatRupiah(komitmen) + '. Valid: ' + (stats.realisasiBasisStatus || '-') + '.</p></div>'
+      ].join('');
     }
 
     function renderDashboardChart(stats) {
@@ -1521,7 +1790,7 @@
                     borderRadius: 4
                   },
                   {
-                    label: 'Anggaran Kas (Rp)',
+                    label: 'RAK (Rp)',
                     data: angkasData,
                     backgroundColor: '#10b981',
                     borderColor: '#059669',
@@ -1573,6 +1842,8 @@
 
     function renderRecentSPJ() {
       const container = document.getElementById('recent-spj-list');
+      if (!container) return;
+      container.innerHTML = '<p class="text-center text-gray-400 dark:text-gray-500 text-sm py-4">Memuat SPJ terakhir...</p>';
       google.script.run
         .withSuccessHandler(function(spjList) {
           container.innerHTML = '';
@@ -1605,7 +1876,7 @@
           });
         })
         .withFailureHandler(failToast('Gagal memuat SPJ terbaru'))
-        .getDaftarSpj();
+        .getDaftarSpjFresh();
     }
 
     // ==================== DATA HELPERS & FALLBACKS ====================
@@ -1686,8 +1957,8 @@
       return '<tr id="' + detailId + '" class="bg-slate-50 dark:bg-slate-950/40"><td colspan="7" class="px-4 py-4">' +
         '<div class="rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-900 shadow-sm">' +
           '<div class="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-slate-700">' +
-            '<p class="text-xs font-bold text-blue-900 dark:text-blue-300 uppercase"><i class="fas fa-layer-group mr-2"></i>Rincian sampai Nama Uraian Kegiatan</p>' +
-            '<p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Menampilkan kode rekening, uraian belanja, nama/detail uraian kegiatan, sub rincian, pagu, anggaran kas, realisasi, dan sisa kas.</p>' +
+            '<p class="text-xs font-bold text-blue-900 dark:text-blue-300 uppercase"><i class="fas fa-layer-group mr-2"></i>Rincian sampai Rincian Uraian Kegiatan</p>' +
+            '<p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Menampilkan Kode Rekening, Uraian Belanja, Rincian Uraian Kegiatan, Sub Rincian, Pagu DPA, RAK, Realisasi, dan Sisa Kas.</p>' +
           '</div>' +
           '<div class="overflow-x-auto">' +
             '<table class="min-w-full text-xs">' +
@@ -1695,10 +1966,10 @@
                 '<tr>' +
                   '<th class="px-3 py-2 text-left uppercase">Kode Rekening</th>' +
                   '<th class="px-3 py-2 text-left uppercase">Uraian Belanja</th>' +
-                  '<th class="px-3 py-2 text-left uppercase">Nama Uraian Kegiatan</th>' +
+                  '<th class="px-3 py-2 text-left uppercase">Rincian Uraian Kegiatan</th>' +
                   '<th class="px-3 py-2 text-left uppercase">Sub Rincian</th>' +
                   '<th class="px-3 py-2 text-right uppercase">Pagu DPA</th>' +
-                  '<th class="px-3 py-2 text-right uppercase">Angkas RAK</th>' +
+                  '<th class="px-3 py-2 text-right uppercase">RAK</th>' +
                   '<th class="px-3 py-2 text-right uppercase">Realisasi</th>' +
                   '<th class="px-3 py-2 text-right uppercase">Sisa Kas</th>' +
                 '</tr>' +
@@ -1721,7 +1992,7 @@
       if (!item) { showToast('Data detail tidak ditemukan.', 'error'); return; }
       activeDpaDetailRows = Array.isArray(item.rincian) ? item.rincian : [];
       const title = document.getElementById('dpa-detail-modal-title');
-      title.textContent = (item.kode || '') + ' — ' + (item.nama || '') + ' | Pagu ' + formatRupiah(item.pagu || 0) + ' | Angkas ' + formatRupiah(item.angkas || 0);
+      title.textContent = (item.kode || '') + ' — ' + (item.nama || '') + ' | Pagu ' + formatRupiah(item.pagu || 0) + ' | RAK ' + formatRupiah(item.angkas || 0);
       resetDpaDetailFilters();
       renderDpaDetailModalRows(activeDpaDetailRows);
       document.getElementById('dpa-detail-modal').classList.remove('hidden');
@@ -1780,7 +2051,7 @@
     }
 
     function loadDPAList() {
-      showLoading(true, 'Memuat DPA & Anggaran Kas...');
+      showLoading(true, 'Memuat DPA & RAK (Rencana Anggaran Kas)...');
       google.script.run
         .withSuccessHandler(function(list) {
           const rows = Array.isArray(list) ? list : [];
@@ -1820,21 +2091,61 @@
     }
 
     // ==================== MONITORING RFK ====================
-    function loadMonitoringList() {
+    function loadMonitoringList(context) {
+      const mode = context || (document.getElementById('view-kendala') && document.getElementById('view-kendala').classList.contains('active') ? 'kendala' : 'monitoring');
       showLoading(true, 'Memuat monitoring RFK...');
       google.script.run
         .withSuccessHandler(function(list) {
           monitoringData = Array.isArray(list) ? list : [];
-          fillSelect(document.getElementById('monitoring-sub-kegiatan'), monitoringData, 'kode', function(row) { return row.kode + ' - ' + row.nama; }, '-- Pilih Sub Kegiatan --');
-          if (document.getElementById('kendala-sub-kegiatan')) fillSelect(document.getElementById('kendala-sub-kegiatan'), monitoringData, 'kode', function(row) { return row.kode + ' - ' + row.nama; }, '-- Pilih --');
+          const monitoringSelect = document.getElementById('monitoring-sub-kegiatan');
+          if (monitoringSelect) fillSelect(monitoringSelect, monitoringData, 'kode', function(row) { return row.kode + ' - ' + row.nama; }, '-- Pilih Sub Kegiatan --');
+          const kendalaSelect = document.getElementById('kendala-sub-kegiatan');
+          if (kendalaSelect) fillSelect(kendalaSelect, monitoringData, 'kode', function(row) { return row.kode + ' - ' + row.nama; }, '-- Pilih --');
           const detail = document.getElementById('monitoring-detail');
           if (detail) detail.classList.add('hidden');
-          loadKendalaIssues();
-          loadKendalaList(false);
+          renderMonitoringSummary();
+          if (mode === 'kendala') {
+            loadKendalaIssues();
+            loadKendalaList(false);
+          }
           showLoading(false);
         })
-        .withFailureHandler(failToast('Gagal memuat monitoring'))
-        .getMonitoringRFKData();
+        .withFailureHandler(function(err) {
+          showLoading(false);
+          const msg = err && err.message ? err.message : String(err || 'Error tidak diketahui');
+          const detail = document.getElementById('monitoring-detail');
+          const summary = document.getElementById('monitoring-summary');
+          if (summary && mode === 'monitoring') summary.innerHTML = '<div class="glass-panel p-6 rounded-xl shadow text-center text-red-600 dark:text-red-300 font-semibold">Gagal memuat Monitoring RFK: ' + escapeHtml(msg) + '</div>';
+          if (detail && mode === 'monitoring') detail.classList.add('hidden');
+          showToast('Gagal memuat monitoring: ' + msg, 'error');
+        })
+        .getMonitoringRFKSummary();
+    }
+
+    function renderMonitoringSummary() {
+      const wrap = document.getElementById('monitoring-summary');
+      if (!wrap) return;
+      wrap.innerHTML = '';
+      if (!monitoringData.length) {
+        wrap.innerHTML = '<div class="glass-panel p-6 rounded-xl shadow text-center text-gray-400 dark:text-gray-500">Belum ada data monitoring.</div>';
+        return;
+      }
+      monitoringData.forEach(function(item) {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.onclick = function() {
+          const sel = document.getElementById('monitoring-sub-kegiatan');
+          if (sel) sel.value = item.kode;
+          loadMonitoringDetail(item.kode);
+        };
+        card.className = 'glass-panel p-4 rounded-xl shadow hover:shadow-lg hover:border-blue-400 transition text-left';
+        card.innerHTML = '<p class="font-mono text-[11px] font-bold text-blue-900 dark:text-blue-300">' + escapeHtml(item.kode) + '</p>' +
+          '<p class="mt-1 text-sm font-bold text-gray-800 dark:text-gray-100 line-clamp-2">' + escapeHtml(item.nama || '-') + '</p>' +
+          '<div class="mt-3 grid grid-cols-2 gap-2 text-[11px]"><div><span class="text-gray-500">Pagu</span><br><b>' + formatRupiah(item.pagu || 0) + '</b></div>' +
+          '<div><span class="text-gray-500">Realisasi</span><br><b class="text-emerald-600 dark:text-emerald-400">' + formatRupiah(item.realisasiTotal || 0) + '</b></div></div>' +
+          '<p class="mt-2 text-[11px] text-gray-500">Klik untuk rincian bulanan</p>';
+        wrap.appendChild(card);
+      });
     }
 
     function renderMonitoringMonthlyChips(monthly) {
@@ -1854,12 +2165,33 @@
     }
 
     function loadMonitoringDetail(kode) {
-      const item = monitoringData.find(function(row) { return String(row.kode) === String(kode); });
+      const summaryItem = monitoringData.find(function(row) { return String(row.kode) === String(kode); });
+      const detail = document.getElementById('monitoring-detail');
+      if (!kode || !summaryItem) { if (detail) detail.classList.add('hidden'); return; }
+      if (detail) {
+        detail.classList.remove('hidden');
+        document.getElementById('monitoring-title').textContent = summaryItem.kode + ' - ' + summaryItem.nama;
+        document.getElementById('monitoring-subtitle').textContent = 'Memuat rincian...';
+        document.getElementById('monitoring-table-body').innerHTML = '<tr><td colspan="10" class="px-4 py-8 text-center text-gray-400">Memuat rincian monitoring...</td></tr>';
+        document.getElementById('monitoring-rincian-body').innerHTML = '<tr><td colspan="10" class="px-4 py-8 text-center text-gray-400">Memuat rincian uraian...</td></tr>';
+        document.getElementById('monitoring-rincian-foot').innerHTML = '';
+      }
+      google.script.run
+        .withSuccessHandler(function(item) { renderMonitoringDetail(item || summaryItem); })
+        .withFailureHandler(function(err) {
+          const msg = err && err.message ? err.message : String(err || 'Error tidak diketahui');
+          showToast('Gagal memuat detail monitoring: ' + msg, 'error');
+          if (detail) document.getElementById('monitoring-rincian-body').innerHTML = '<tr><td colspan="10" class="px-4 py-8 text-center text-red-500">Gagal memuat detail: ' + escapeHtml(msg) + '</td></tr>';
+        })
+        .getMonitoringRFKDetail(kode);
+    }
+
+    function renderMonitoringDetail(item) {
       const detail = document.getElementById('monitoring-detail');
       if (!item) { if (detail) detail.classList.add('hidden'); return; }
       detail.classList.remove('hidden');
       document.getElementById('monitoring-title').textContent = item.kode + ' - ' + item.nama;
-      document.getElementById('monitoring-subtitle').textContent = 'Pagu ' + formatRupiah(item.pagu) + ' | Anggaran Kas ' + formatRupiah(item.angkasTotal);
+      document.getElementById('monitoring-subtitle').textContent = 'Pagu ' + formatRupiah(item.pagu) + ' | RAK ' + formatRupiah(item.angkasTotal);
       const tbody = document.getElementById('monitoring-table-body');
       tbody.innerHTML = '';
       let totalAngkas = 0, totalRealisasi = 0, totalSisa = 0;
@@ -1972,7 +2304,7 @@
           const pagu = Number(row.pagu || 0);
           const angkas = Number(row.angkas || 0);
           const problems = [];
-          if (Math.abs(pagu - angkas) > 1) problems.push('Pagu DPA tidak sama dengan Angkas RAK');
+          if (Math.abs(pagu - angkas) > 1) problems.push('Pagu DPA tidak sama dengan RAK');
           (row.monthly || []).forEach(function(m) {
             if (m.statusJadwal === 'SEBELUM_JADWAL') problems.push('Realisasi sebelum jadwal: ' + m.bulan);
             if (m.statusJadwal === 'MELEBIHI_JADWAL') problems.push('Realisasi melebihi angkas: ' + m.bulan);
@@ -1986,6 +2318,11 @@
     function loadKendalaIssues() {
       const wrap = document.getElementById('kendala-issues-table');
       if (!wrap) return;
+      if (!(monitoringData || []).some(function(sub) { return Array.isArray(sub.rincian); })) {
+        wrap.innerHTML = '<div class="p-6 text-center text-gray-400 dark:text-gray-500">Analisis kendala detail dimuat saat sub kegiatan dibuka.</div>';
+        window.kendalaIssuesCache = [];
+        return;
+      }
       const issues = getKendalaIssues();
       wrap.innerHTML = '';
       if (!issues.length) {
@@ -2000,7 +2337,7 @@
           '<div class="min-w-0"><p class="font-mono text-[11px] font-bold text-blue-900 dark:text-blue-300">' + escapeHtml(issue.sub.kode) + ' / ' + escapeHtml(row.kodeRekening || '') + '</p>' +
           '<p class="text-sm font-bold text-gray-800 dark:text-gray-100 mt-1">' + escapeHtml(row.namaUraianKegiatan || row.uraianBelanja || '-') + '</p>' +
           '<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">' + escapeHtml(row.uraianBelanja || '-') + ' | ' + escapeHtml(row.subRincian || '-') + '</p>' +
-          '<p class="text-xs mt-2"><b>Pagu:</b> ' + formatRupiah(row.pagu || 0) + ' | <b>Angkas:</b> ' + formatRupiah(row.angkas || 0) + ' | <b>Realisasi:</b> ' + formatRupiah(row.realisasi || 0) + '</p>' +
+          '<p class="text-xs mt-2"><b>Pagu:</b> ' + formatRupiah(row.pagu || 0) + ' | <b>RAK:</b> ' + formatRupiah(row.angkas || 0) + ' | <b>Realisasi:</b> ' + formatRupiah(row.realisasi || 0) + '</p>' +
           '<div class="mt-2 flex flex-wrap gap-1">' + issue.problems.map(function(p) { return '<span class="px-2 py-1 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-[10px] font-bold">' + escapeHtml(p) + '</span>'; }).join('') + '</div></div>' +
           '<button type="button" onclick="openKendalaModal(' + idx + ')" class="shrink-0 px-3 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold"><i class="fas fa-edit mr-1"></i>Input Kendala</button>' +
           '</div>';
@@ -2110,6 +2447,16 @@
     const MASTER_MONTHS = ['januari','februari','maret','april','mei','juni','juli','agustus','september','oktober','november','desember'];
     const MASTER_MONTH_LABELS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
+    function updateLiveMasterRakTotal() {
+      let sum = 0;
+      MASTER_MONTHS.forEach(function(m) {
+        const el = document.getElementById('mak-bulan-' + m);
+        if (el) sum += Number(el.value || 0);
+      });
+      const lbl = document.getElementById('mak-live-total-label');
+      if (lbl) lbl.textContent = 'Akumulasi RAK Input: ' + formatRupiah(sum);
+    }
+
     function ensureMonthInputs() {
       const wrap = document.getElementById('mak-month-grid');
       if (!wrap || wrap.dataset.ready === '1') return;
@@ -2130,7 +2477,7 @@
 
     function loadMasterData() {
       ensureMonthInputs();
-      showLoading(true, 'Memuat master DPA dan Anggaran Kas...');
+      showLoading(true, 'Memuat master DPA dan RAK...');
       google.script.run
         .withSuccessHandler(function(rows) {
           masterDpaRows = Array.isArray(rows) ? rows : [];
@@ -2141,7 +2488,7 @@
               renderMasterAngkasTable();
               showLoading(false);
             })
-            .withFailureHandler(failToast('Gagal memuat Master Anggaran Kas'))
+            .withFailureHandler(failToast('Gagal memuat Master RAK'))
             .getMasterAngkasRows(currentSessionToken);
         })
         .withFailureHandler(failToast('Gagal memuat Master DPA'))
@@ -2152,7 +2499,7 @@
       const body = document.getElementById('master-dpa-body');
       if (!body) return;
       if (!masterDpaRows.length) {
-        body.innerHTML = '<tr><td colspan="5" class="px-3 py-6 text-center text-gray-400">Belum ada Master DPA</td></tr>';
+        body.innerHTML = '<tr><td colspan="6" class="px-3 py-6 text-center text-gray-400">Belum ada Master DPA</td></tr>';
         return;
       }
       body.innerHTML = masterDpaRows.map(function(row, idx) {
@@ -2230,7 +2577,7 @@
       const body = document.getElementById('master-angkas-body');
       if (!body) return;
       if (!masterAngkasRows.length) {
-        body.innerHTML = '<tr><td colspan="5" class="px-3 py-6 text-center text-gray-400">Belum ada Master Anggaran Kas</td></tr>';
+        body.innerHTML = '<tr><td colspan="6" class="px-3 py-6 text-center text-gray-400">Belum ada Master RAK</td></tr>';
         return;
       }
       body.innerHTML = masterAngkasRows.map(function(row, idx) {
@@ -2269,7 +2616,7 @@
       MASTER_MONTHS.forEach(function(m){ const el=document.getElementById('mak-bulan-' + m); if(el) el.value = r['bulan_' + m] || 0; });
       updateLiveMasterRakTotal();
       showMasterTab('angkas');
-      showToast('Data Anggaran Kas dimuat ke form edit.', 'info');
+      showToast('Data RAK dimuat ke form edit.', 'info');
     }
 
     function saveMasterAngkas() {
@@ -2287,19 +2634,19 @@
         source_pdf: document.getElementById('mak-source').value
       };
       MASTER_MONTHS.forEach(function(m){ payload['bulan_' + m] = Number(document.getElementById('mak-bulan-' + m).value || 0); });
-      showLoading(true, 'Menyimpan Master Anggaran Kas...');
+      showLoading(true, 'Menyimpan Master RAK...');
       google.script.run
-        .withSuccessHandler(function(res) { showLoading(false); showToast(res.message || 'Master Anggaran Kas tersimpan.', 'success'); resetMasterAngkasForm(); loadMasterData(); loadDPAList(); })
-        .withFailureHandler(failToast('Gagal menyimpan Master Anggaran Kas'))
+        .withSuccessHandler(function(res) { showLoading(false); showToast(res.message || 'Master RAK tersimpan.', 'success'); resetMasterAngkasForm(); loadMasterData(); loadDPAList(); })
+        .withFailureHandler(failToast('Gagal menyimpan Master RAK'))
         .saveMasterAngkasRow(payload, currentSessionToken);
     }
 
     function deleteMasterAngkas(id) {
-      if (!id || !confirm('Hapus data Master Anggaran Kas ini?')) return;
-      showLoading(true, 'Menghapus Master Anggaran Kas...');
+      if (!id || !confirm('Hapus data Master RAK ini?')) return;
+      showLoading(true, 'Menghapus Master RAK...');
       google.script.run
-        .withSuccessHandler(function(res) { showLoading(false); showToast(res.message || 'Master Anggaran Kas dihapus.', 'success'); loadMasterData(); loadDPAList(); })
-        .withFailureHandler(failToast('Gagal menghapus Master Anggaran Kas'))
+        .withSuccessHandler(function(res) { showLoading(false); showToast(res.message || 'Master RAK dihapus.', 'success'); loadMasterData(); loadDPAList(); })
+        .withFailureHandler(failToast('Gagal menghapus Master RAK'))
         .deleteMasterAngkasRow(id, currentSessionToken);
     }
 
@@ -2312,51 +2659,107 @@
     }
 
 
+    // ==================== REKAP PELAKSANA ====================
+    let rekapPelaksanaData = null;
+
+    function loadRekapPelaksana() {
+      showLoading(true, 'Memuat rekap pelaksana SPPD...');
+      google.script.run
+        .withSuccessHandler(function(data) {
+          showLoading(false);
+          rekapPelaksanaData = data || { months: [], kegiatan: [], tables: {} };
+          const select = document.getElementById('rekap-pelaksana-kegiatan');
+          if (!select) return;
+          select.innerHTML = '<option value="">-- Pilih Kegiatan --</option>';
+          (rekapPelaksanaData.kegiatan || []).forEach(function(item) {
+            const opt = document.createElement('option');
+            opt.value = item.key;
+            opt.textContent = (item.kode_rekening ? item.kode_rekening + ' — ' : '') + item.title + ' (' + item.total + ' item SPPD)';
+            select.appendChild(opt);
+          });
+          if ((rekapPelaksanaData.kegiatan || []).length) {
+            select.value = rekapPelaksanaData.kegiatan[0].key;
+            renderRekapPelaksanaTable(select.value);
+          } else {
+            renderRekapPelaksanaEmpty('Belum ada data SPJ jenis SPPD.');
+          }
+        })
+        .withFailureHandler(failToast('Gagal memuat rekap pelaksana'))
+        .getRekapPelaksanaSppd();
+    }
+
+    function renderRekapPelaksanaEmpty(message) {
+      document.getElementById('rekap-pelaksana-title').textContent = 'Rekap Pelaksana';
+      document.getElementById('rekap-pelaksana-head').innerHTML = '';
+      document.getElementById('rekap-pelaksana-body').innerHTML = '<tr><td class="px-4 py-8 text-center text-gray-400 dark:text-gray-500">' + escapeHtml(message || 'Tidak ada data') + '</td></tr>';
+      document.getElementById('rekap-pelaksana-foot').innerHTML = '';
+    }
+
+    function renderRekapPelaksanaTable(key) {
+      if (!rekapPelaksanaData || !key) { renderRekapPelaksanaEmpty('Pilih uraian kegiatan.'); return; }
+      const table = (rekapPelaksanaData.tables || {})[key];
+      if (!table) { renderRekapPelaksanaEmpty('Data tidak ditemukan.'); return; }
+      const months = rekapPelaksanaData.months || [];
+      document.getElementById('rekap-pelaksana-title').textContent = table.title || 'Rekap Pelaksana';
+      document.getElementById('rekap-pelaksana-subtitle').textContent = [table.kode_rekening, table.uraian_belanja, 'Jenis SPJ: SPPD'].filter(Boolean).join(' • ');
+      document.getElementById('rekap-pelaksana-head').innerHTML = '<tr><th class="px-3 py-3 text-left font-bold uppercase border-r border-gray-200 dark:border-slate-700 min-w-[180px]">Pelaksana</th>' + months.map(function(m) { return '<th class="px-3 py-3 text-center font-bold uppercase border-r border-gray-200 dark:border-slate-700 min-w-[76px]">' + escapeHtml(m) + '</th>'; }).join('') + '<th class="px-3 py-3 text-center font-bold uppercase min-w-[76px]">Total</th></tr>';
+      const rows = Array.isArray(table.rows) ? table.rows : [];
+      if (!rows.length) { renderRekapPelaksanaEmpty('Belum ada pelaksana untuk kegiatan ini.'); return; }
+      document.getElementById('rekap-pelaksana-body').innerHTML = rows.map(function(row) {
+        return '<tr class="hover:bg-blue-50 dark:hover:bg-slate-800"><td class="px-3 py-2 font-semibold text-gray-800 dark:text-gray-100 border-r border-gray-100 dark:border-slate-800">' + escapeHtml(row.pelaksana || '-') + '</td>' + (row.months || []).map(function(v) { return '<td class="px-3 py-2 text-center font-mono border-r border-gray-100 dark:border-slate-800">' + Number(v || 0) + '</td>'; }).join('') + '<td class="px-3 py-2 text-center font-mono font-bold text-blue-700 dark:text-blue-300">' + Number(row.total || 0) + '</td></tr>';
+      }).join('');
+      const totals = months.map(function(_, i) { return rows.reduce(function(sum, row) { return sum + Number((row.months || [])[i] || 0); }, 0); });
+      const grand = totals.reduce(function(sum, v) { return sum + v; }, 0);
+      document.getElementById('rekap-pelaksana-foot').innerHTML = '<tr><td class="px-3 py-3 font-bold uppercase border-r border-gray-200 dark:border-slate-700">Total</td>' + totals.map(function(v) { return '<td class="px-3 py-3 text-center font-mono font-bold border-r border-gray-200 dark:border-slate-700">' + v + '</td>'; }).join('') + '<td class="px-3 py-3 text-center font-mono font-bold text-blue-700 dark:text-blue-300">' + grand + '</td></tr>';
+    }
+
     // ==================== SPJ ====================
-    function openSpjInputModal() {
-      document.getElementById('spj-input-modal').classList.remove('hidden');
-    }
-
-    function closeSpjInputModal() {
-      document.getElementById('spj-input-modal').classList.add('hidden');
-    }
-
-    function loadSPJWorkspace() {
-      showLoading(true, 'Memuat referensi SPJ...');
+    function loadSPJWorkspace(showOverlay, loadListAfter) {
+      const useOverlay = showOverlay !== false;
+      const shouldLoadList = loadListAfter !== false;
+      if (useOverlay) showLoading(true, 'Memuat referensi SPJ...');
       google.script.run
         .withSuccessHandler(function(hierarki) {
           masterHierarki = hierarki || {};
-          const datalist = document.getElementById('list-sub-kegiatan');
-          datalist.innerHTML = '';
+          const subSelect = document.getElementById('dd-sub-kegiatan');
+          subSelect.innerHTML = '<option value="">-- Pilih Sub Kegiatan --</option>';
           Object.keys(masterHierarki).forEach(function(sub) {
-            const opt = document.createElement('option'); opt.value = sub; datalist.appendChild(opt);
+            const rekening = masterHierarki[sub] || {};
+            const items = Object.keys(rekening).reduce(function(all, kode) { return all.concat(rekening[kode] || []); }, []);
+            const first = items[0] || {};
+            const totalPagu = items.reduce(function(sum, item) { return sum + Number(item.pagu || 0); }, 0);
+            const kodeSub = first.sub_kegiatan_kode || '';
+            const opt = document.createElement('option');
+            opt.value = sub;
+            opt.textContent = (kodeSub ? kodeSub + ' — ' : '') + sub + ' (' + formatRupiah(totalPagu) + ')';
+            subSelect.appendChild(opt);
           });
-          populateRekapPelaksanaFilter();
-          loadSPJList(false);
-          showLoading(false);
+          loadPelaksanaOptions();
+          if (shouldLoadList) loadSPJList(false);
+          if (useOverlay) showLoading(false);
         })
         .withFailureHandler(failToast('Gagal memuat referensi SPJ'))
         .getDpaHierarkiTigaTingkat();
     }
 
-    function populateRekapPelaksanaFilter() {
-      const sel = document.getElementById('rekap-pelaksana-filter');
-      if (!sel) return;
-      const current = sel.value;
-      sel.innerHTML = '<option value="">-- Pilih Kegiatan --</option>';
-      Object.keys(masterHierarki || {}).forEach(function(sub) {
-        const rekening = masterHierarki[sub] || {};
-        Object.keys(rekening).forEach(function(kode) {
-          (rekening[kode] || []).forEach(function(item) {
-            const value = [item.sub_kegiatan_kode || sub, item.kode_rekening || kode, item.uraian_belanja || '', item.detail_kegiatan || '', item.sub_rincian || ''].join('|');
+    function loadPelaksanaOptions() {
+      const select = document.getElementById('input-pelaksana');
+      if (!select) return;
+      select.innerHTML = '<option value="">-- Pilih Pelaksana --</option><option value="__manual__">Input manual / belum terdaftar</option>';
+      google.script.run
+        .withSuccessHandler(function(list) {
+          select.innerHTML = '<option value="">-- Pilih Pelaksana --</option><option value="__manual__">Input manual / belum terdaftar</option>';
+          (Array.isArray(list) ? list : []).forEach(function(item) {
             const opt = document.createElement('option');
-            opt.value = value;
-            opt.textContent = (item.sub_kegiatan_kode || sub) + ' — ' + (item.uraian_belanja || '-') + (item.detail_kegiatan ? ' — ' + item.detail_kegiatan : '') + (item.sub_rincian ? ' | ' + item.sub_rincian : '');
-            sel.appendChild(opt);
+            opt.value = item.nama_pelaksana || '';
+            opt.textContent = (item.nama_pelaksana || '-') + (item.jabatan ? ' — ' + item.jabatan : '') + (item.unit ? ' | ' + item.unit : '');
+            select.appendChild(opt);
           });
-        });
-      });
-      sel.value = current;
+        })
+        .withFailureHandler(function(err) {
+          console.warn('Gagal memuat referensi pelaksana', err);
+        })
+        .getPelaksanaList();
     }
 
     function onSubKegiatanChanged() {
@@ -2367,26 +2770,50 @@
       uraianSelect.innerHTML = '<option value="">-- Uraian Belanja --</option>';
       document.getElementById('lbl-pagu-dpa').textContent = 'Rp 0';
       const rekening = masterHierarki[sub] || {};
-      Object.keys(rekening).forEach(function(kode) { const opt = document.createElement('option'); opt.value = kode; opt.textContent = kode; kodeSelect.appendChild(opt); });
+      const itemsAll = Object.keys(rekening).reduce(function(all, kode) { return all.concat(rekening[kode] || []); }, []);
+      const first = itemsAll[0] || {};
+      const totalSubPagu = itemsAll.reduce(function(sum, item) { return sum + Number(item.pagu || 0); }, 0);
+      const help = document.getElementById('dd-sub-kegiatan-help');
+      if (help) help.textContent = sub ? ((first.sub_kegiatan_kode ? first.sub_kegiatan_kode + ' — ' : '') + sub + ' | Total pagu ' + formatRupiah(totalSubPagu)) : 'Pilih sub kegiatan untuk membuka rekening belanja.';
+      Object.keys(rekening).forEach(function(kode) {
+        const items = rekening[kode] || [];
+        const opt = document.createElement('option');
+        opt.value = kode;
+        opt.textContent = buildRekeningOptionLabel(kode, items);
+        kodeSelect.appendChild(opt);
+      });
       kodeSelect.disabled = Object.keys(rekening).length === 0;
       uraianSelect.disabled = true;
+    }
+
+    function buildRekeningOptionLabel(kode, items) {
+      const first = (items || [])[0] || {};
+      const uraianSet = [];
+      (items || []).forEach(function(item) {
+        const uraian = item.uraian_belanja || '';
+        if (uraian && uraianSet.indexOf(uraian) === -1) uraianSet.push(uraian);
+      });
+      const totalPagu = (items || []).reduce(function(sum, item) { return sum + Number(item.pagu || 0); }, 0);
+      const uraianText = uraianSet.slice(0, 2).join(' / ') || first.uraian_belanja || '-';
+      const extra = uraianSet.length > 2 ? ' +' + (uraianSet.length - 2) + ' uraian' : '';
+      return kode + ' — ' + uraianText + extra + ' (' + formatRupiah(totalPagu) + ')';
     }
 
     function onKodeRekeningChanged() {
       const sub = document.getElementById('dd-sub-kegiatan').value;
       const kode = document.getElementById('dd-kode-rekening').value;
       const uraianSelect = document.getElementById('dd-uraian-belanja');
-      const listUraian = document.getElementById('list-uraian-belanja');
-      uraianSelect.innerHTML = '<option value="">-- Uraian Belanja --</option>';
+      uraianSelect.innerHTML = '<option value="">-- Pilih Uraian Belanja --</option>';
       const items = ((masterHierarki[sub] || {})[kode]) || [];
-      items.forEach(function(item) {
+      items.forEach(function(item, idx) {
         const opt = document.createElement('option');
-        opt.value = item.uraian_belanja || '';
-        opt.textContent = (item.kode_rekening || '') + ' - ' + (item.uraian_belanja || '-') + (item.detail_kegiatan ? ' — ' + item.detail_kegiatan : '') + (item.sub_rincian ? ' | ' + item.sub_rincian : '');
+        opt.value = String(idx);
+        opt.textContent = (item.uraian_belanja || '-') + (item.detail_kegiatan ? ' — ' + item.detail_kegiatan : '') + (item.sub_rincian ? ' | ' + item.sub_rincian : '') + ' (' + formatRupiah(item.pagu || 0) + ')';
         uraianSelect.appendChild(opt);
       });
       uraianSelect.disabled = items.length === 0;
-      if (items[0]) document.getElementById('lbl-pagu-dpa').textContent = formatRupiah(items[0].pagu || 0);
+      if (items.length === 1) uraianSelect.value = '0';
+      document.getElementById('lbl-pagu-dpa').textContent = formatRupiah(items.reduce(function(sum, item) { return sum + Number(item.pagu || 0); }, 0));
     }
 
     function onUraianBelanjaChanged() {
@@ -2397,18 +2824,23 @@
     function getSelectedDpaItem() {
       const sub = document.getElementById('dd-sub-kegiatan').value;
       const kode = document.getElementById('dd-kode-rekening').value;
-      const uraian = document.getElementById('dd-uraian-belanja').value;
+      const selectedIdx = document.getElementById('dd-uraian-belanja').value;
       const items = ((masterHierarki[sub] || {})[kode]) || [];
-      return items.find(function(item) { return String(item.uraian_belanja || '') === String(uraian); }) || items[0] || null;
+      if (selectedIdx !== '' && items[Number(selectedIdx)]) return items[Number(selectedIdx)];
+      return items[0] || null;
     }
 
     function sisipkanItem() {
       const sub = document.getElementById('dd-sub-kegiatan').value;
       const kode = document.getElementById('dd-kode-rekening').value;
-      const uraianDisplay = document.getElementById('dd-uraian-belanja').value;
+      const uraianValue = document.getElementById('dd-uraian-belanja').value;
+      const pelaksanaSelect = document.getElementById('input-pelaksana');
+      let pelaksanaValue = pelaksanaSelect ? pelaksanaSelect.value : '';
+      if (pelaksanaValue === '__manual__') pelaksanaValue = prompt('Nama pelaksana belum ada di referensi:') || '';
       const nilai = Number(document.getElementById('input-nilai-bruto').value || 0);
       const item = getSelectedDpaItem();
-      if (!sub || !kode || !uraianDisplay || nilai <= 0) { showToast('Lengkapi sub kegiatan, rekening, uraian, dan nilai bruto.', 'error'); return; }
+      const uraianDisplay = item ? (item.uraian_belanja || '') : '';
+      if (!sub || !kode || uraianValue === '' || !uraianDisplay || !pelaksanaValue || nilai <= 0) { showToast('Lengkapi sub kegiatan, rekening, uraian, pelaksana, dan nilai bruto.', 'error'); return; }
       spjAntrean.push({
         id_dpa: item ? item.id_dpa : '',
         sub_kegiatan: sub,
@@ -2417,7 +2849,7 @@
         nama_kegiatan: document.getElementById('input-nama-kegiatan').value.trim(),
         kode_rekening: kode,
         uraian_belanja: uraianDisplay,
-        pelaksana: document.getElementById('input-pelaksana').value.trim(),
+        pelaksana: pelaksanaValue.trim(),
         nilai_bruto: nilai,
         pagu_referensi: item ? Number(item.pagu || 0) : 0,
         detail_kegiatan: item ? (item.detail_kegiatan || '') : '',
@@ -2454,6 +2886,7 @@
     function simpanSPJ() {
       const total = spjAntrean.reduce(function(sum, item) { return sum + Number(item.nilai_bruto || 0); }, 0);
       const header = {
+        id_spj: currentEditSpjId || '',
         nomor_spj: document.getElementById('spj-nomor').value.trim(),
         tanggal_spj: document.getElementById('spj-tanggal').value,
         bulan: document.getElementById('spj-bulan').value,
@@ -2470,7 +2903,21 @@
           showLoading(false);
           if (res && res.success) {
             showToast('SPJ berhasil disimpan', 'success');
-            spjAntrean = []; renderSpjAntrean(); loadSPJList(false); loadDashboard(); loadMonitoringList();
+            prependSavedSpjRow({
+              id_spj: res.id_spj,
+              nomor_spj: header.nomor_spj,
+              tanggal: header.tanggal_spj,
+              bulan: header.bulan,
+              pptk: header.pptk,
+              status: header.status_spj,
+              total: res.total || total
+            });
+            currentEditSpjId = '';
+            spjAntrean = []; renderSpjAntrean();
+            document.getElementById('spj-nomor').value = '';
+            document.getElementById('input-nilai-bruto').value = '';
+            setTimeout(function() { loadSPJList(false, true); }, 800);
+            loadDashboard(); loadMonitoringList('monitoring');
           } else {
             showToast('Gagal menyimpan SPJ', 'error');
           }
@@ -2488,81 +2935,184 @@
           showToast('Status SPJ diperbarui ke ' + statusBaru, 'success');
           loadSPJList(false);
           loadDashboard();
-          loadMonitoringList();
+          loadMonitoringList('monitoring');
           loadDPAList();
         })
         .withFailureHandler(failToast('Gagal mengubah status SPJ'))
         .updateStatusSpj(idSpj, statusBaru, currentSessionToken);
     }
 
+    function actionButtonsForSpj(item) {
+      const role = (currentUser.role || '').toUpperCase();
+      const canEdit = ['ADMIN','OPERATOR','PPTK'].includes(role) && ['Draft','Diajukan'].includes(item.status);
+      const canDelete = ['ADMIN','OPERATOR'].includes(role) && item.status !== 'Batal';
+      const canApprove = ['ADMIN','OPERATOR','PPTK','VERIFIKATOR','BENDAHARA'].includes(role);
+      let html = '';
+      if (canEdit) html += '<button onclick="editSpj(&quot;' + escapeHtml(item.id_spj) + '&quot;)" class="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">Edit</button>';
+      if (canDelete) html += '<button onclick="hapusSpjUi(&quot;' + escapeHtml(item.id_spj) + '&quot;)" class="px-2 py-1 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">Hapus</button>';
+      html += '<button onclick="openUploadDokumen(&quot;' + escapeHtml(item.id_spj) + '&quot;)" class="px-2 py-1 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">Upload</button>';
+      if (canApprove) html += '<select onchange="ubahStatusSpj(&quot;' + escapeHtml(item.id_spj) + '&quot;, this.value)" class="px-2 py-1 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white text-[11px]"><option value="">Ubah status</option><option value="Diajukan">Diajukan</option><option value="Diverifikasi">Diverifikasi</option><option value="Dibayar">Dibayar</option><option value="Ditolak">Ditolak</option><option value="Batal">Batal</option></select>';
+      return html;
+    }
+
+    function renderSpjListRow(item) {
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-blue-50/60 dark:hover:bg-slate-800/70 transition';
+      tr.innerHTML = '<td class="px-4 py-3"><p class="font-mono text-xs font-bold text-blue-900 dark:text-blue-400">' + escapeHtml(item.nomor_spj) + '</p><p class="text-[10px] text-gray-500">' + escapeHtml(formatDate(item.tanggal)) + ' | ' + escapeHtml(item.pptk) + '</p></td>' +
+        '<td class="px-4 py-3 text-xs text-gray-700 dark:text-gray-200 max-w-[280px]"><p class="line-clamp-2">' + escapeHtml(item.uraian_summary || '-') + '</p><p class="text-[10px] text-gray-400 mt-1">' + Number(item.detail_count || 0) + ' uraian • ' + Number(item.dokumen_count || 0) + ' dokumen</p><span class="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold ' + (Number(item.dokumen_count || 0) > 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300') + '">' + (Number(item.dokumen_count || 0) > 0 ? 'Sudah upload dokumen' : 'Belum upload dokumen') + '</span></td>' +
+        '<td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">' + escapeHtml(item.bulan) + '</td>' +
+        '<td class="px-4 py-3 text-right font-mono text-sm text-gray-900 dark:text-white">' + formatRupiah(item.total) + '</td>' +
+        '<td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded text-[10px] font-bold ' + statusBadge(item.status) + '">' + escapeHtml(item.status) + '</span></td>' +
+        '<td class="px-4 py-3 text-center text-xs"><div class="flex flex-col gap-1 items-center"><button onclick="reviewSpj(&quot;' + escapeHtml(item.id_spj) + '&quot;)" class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">Review</button>' + actionButtonsForSpj(item) + '</div></td>';
+      return tr;
+    }
+
     function reviewSpj(idSpj) {
-      showToast('Review SPJ: ' + idSpj, 'info');
+      showLoading(true, 'Memuat review SPJ...');
+      google.script.run.withSuccessHandler(function(data) {
+        showLoading(false);
+        renderSpjReviewModal(data);
+      }).withFailureHandler(failToast('Gagal review SPJ')).getSpjDetailForEdit(idSpj, currentSessionToken);
+    }
+
+    function renderSpjReviewModal(data) {
+      const panel = document.getElementById('spj-review-panel');
+      const content = document.getElementById('spj-review-content');
+      const h = (data && data.header) || {};
+      const details = (data && data.details) || [];
+      const docs = (data && data.dokumen) || [];
+      const canVerify = ['ADMIN','OPERATOR','PPTK','VERIFIKATOR','BENDAHARA'].includes((currentUser.role || '').toUpperCase());
+      content.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">' +
+        '<div class="glass-panel p-4 rounded-xl"><p class="text-[11px] uppercase font-bold text-gray-500">Nomor SPJ</p><p class="font-mono font-bold text-blue-700 dark:text-blue-300">' + escapeHtml(h.nomor_spj || '-') + '</p></div>' +
+        '<div class="glass-panel p-4 rounded-xl"><p class="text-[11px] uppercase font-bold text-gray-500">Tanggal / Bulan</p><p class="font-bold text-gray-900 dark:text-white">' + escapeHtml(h.tanggal_spj || '-') + ' / ' + escapeHtml(h.bulan || '-') + '</p></div>' +
+        '<div class="glass-panel p-4 rounded-xl"><p class="text-[11px] uppercase font-bold text-gray-500">Status Saat Ini</p><span class="inline-block mt-1 px-2 py-1 rounded text-[10px] font-bold ' + statusBadge(h.status || 'Draft') + '">' + escapeHtml(h.status || '-') + '</span></div>' +
+        '<div class="glass-panel p-4 rounded-xl"><p class="text-[11px] uppercase font-bold text-gray-500">Total Bruto</p><p class="font-mono font-bold text-emerald-600 dark:text-emerald-400">' + formatRupiah(h.total || 0) + '</p></div>' +
+      '</div>' +
+      '<div class="glass-panel rounded-xl overflow-hidden"><div class="px-4 py-3 bg-gray-100 dark:bg-slate-800 font-bold text-gray-800 dark:text-gray-100 uppercase text-xs">Rincian Belanja</div><div class="overflow-x-auto"><table class="min-w-full text-xs"><thead class="bg-gray-50 dark:bg-slate-900"><tr><th class="px-3 py-2 text-left">Uraian Belanja / Rincian Uraian Kegiatan</th><th class="px-3 py-2 text-left">Pelaksana</th><th class="px-3 py-2 text-right">Nilai</th></tr></thead><tbody>' +
+        (details.length ? details.map(function(d){ return '<tr class="border-t dark:border-slate-800"><td class="px-3 py-2"><p class="font-semibold">' + escapeHtml(d.kode_rekening || '-') + '</p><p>' + escapeHtml(d.uraian_belanja || '-') + '</p><p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Detail: ' + escapeHtml(d.detail_kegiatan || '-') + '</p><p class="text-[11px] text-gray-500 dark:text-gray-400">Sub rincian: ' + escapeHtml(d.sub_rincian || '-') + '</p></td><td class="px-3 py-2">' + escapeHtml(d.pelaksana || '-') + '</td><td class="px-3 py-2 text-right font-mono">' + formatRupiah(d.nilai_bruto || 0) + '</td></tr>'; }).join('') : '<tr><td colspan="3" class="px-3 py-6 text-center text-gray-400">Tidak ada rincian.</td></tr>') +
+      '</tbody></table></div></div>' +
+      '<div class="glass-panel p-4 rounded-xl"><p class="font-bold text-gray-800 dark:text-gray-100 uppercase text-xs mb-2">Dokumen Digital</p>' + (docs.length ? docs.map(function(d){ return '<p class="text-xs mb-1"><a class="text-blue-600 dark:text-blue-400 underline" target="_blank" href="' + escapeHtml(d.drive_url || '#') + '">' + escapeHtml(d.nama_file || 'Dokumen') + '</a></p>'; }).join('') : '<p class="text-xs text-gray-400">Belum ada dokumen digital.</p>') + '</div>' +
+      '<div class="glass-panel p-4 rounded-xl"><p class="font-bold text-gray-800 dark:text-gray-100 uppercase text-xs mb-3">Verifikasi Bendahara / Status SPJ</p>' +
+        '<div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end"><div><label class="block text-xs font-semibold text-gray-500 mb-1">Status Baru</label><select id="review-status-spj" ' + (canVerify ? '' : 'disabled') + ' class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"><option value="Diajukan">Diajukan</option><option value="Diverifikasi">Diverifikasi</option><option value="Dibayar">Dibayar</option><option value="Ditolak">Ditolak</option><option value="Batal">Batal</option></select></div><div class="md:col-span-2"><label class="block text-xs font-semibold text-gray-500 mb-1">Catatan Review</label><input id="review-catatan-spj" placeholder="Catatan verifikasi (opsional)" class="w-full px-3 py-2 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white"></div></div>' +
+        '<button onclick="submitReviewStatus(&quot;' + escapeHtml(h.id_spj || '') + '&quot;)" ' + (canVerify ? '' : 'disabled') + ' class="mt-4 w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 disabled:opacity-40 text-white font-bold py-3 rounded shadow uppercase text-sm"><i class="fas fa-check-circle mr-2"></i>Simpan Verifikasi / Ubah Status</button>' +
+      '</div>';
+      const statusSelect = content.querySelector('#review-status-spj');
+      if (statusSelect && h.status) statusSelect.value = h.status;
+      panel.classList.add('active');
+      document.body.classList.add('spj-modal-open');
+    }
+
+    function closeSpjReviewModal() {
+      const panel = document.getElementById('spj-review-panel');
+      if (panel) panel.classList.remove('active');
+      document.body.classList.remove('spj-modal-open');
+    }
+
+    function submitReviewStatus(idSpj) {
+      const status = document.getElementById('review-status-spj').value;
+      if (!idSpj || !status) return;
+      showLoading(true, 'Menyimpan verifikasi SPJ...');
+      google.script.run.withSuccessHandler(function() {
+        showLoading(false);
+        closeSpjReviewModal();
+        showToast('Review/verifikasi tersimpan. Status: ' + status, 'success');
+        loadSPJList(false, true);
+        loadDashboard(false);
+        loadMonitoringList('monitoring');
+      }).withFailureHandler(failToast('Gagal menyimpan verifikasi')).updateStatusSpj(idSpj, status, currentSessionToken);
     }
 
     function editSpj(idSpj) {
-      showToast('Edit SPJ belum memuat ulang detail otomatis. Gunakan status/action sementara.', 'info');
+      showToast('Mode edit dibuka. Data lama akan dimuat ke form.', 'info');
+      showLoading(true, 'Memuat data edit...');
+      google.script.run.withSuccessHandler(function(data) {
+        showLoading(false);
+        openSpjModal();
+        const h = data.header || {};
+        document.getElementById('spj-nomor').value = h.nomor_spj || '';
+        document.getElementById('spj-tanggal').value = h.tanggal_spj || '';
+        document.getElementById('spj-bulan').value = h.bulan || '';
+        document.getElementById('spj-pptk').value = h.pptk || '';
+        document.getElementById('spj-jenis').value = h.jenis_spj || 'NON SPPD';
+        spjAntrean = (data.details || []).map(function(d) { return { id_dpa: d.id_dpa, sub_kegiatan: d.sub_kegiatan_nama, sub_kegiatan_kode: d.sub_kegiatan_kode, kode_rekening: d.kode_rekening, uraian_belanja: d.uraian_belanja, pelaksana: d.pelaksana, nilai_bruto: d.nilai_bruto, display_text: d.uraian_belanja, pagu: 0 }; });
+        currentEditSpjId = idSpj;
+        renderTempItems();
+      }).withFailureHandler(failToast('Gagal memuat data edit')).getSpjDetailForEdit(idSpj, currentSessionToken);
     }
 
-    function hapusSpj(idSpj) {
-      if (!confirm('Batalkan SPJ ini? Data tidak dihapus fisik, status menjadi Batal.')) return;
-      ubahStatusSpj(idSpj, 'Batal');
+    function hapusSpjUi(idSpj) {
+      if (!confirm('Hapus/batalkan SPJ ini?')) return;
+      showLoading(true, 'Menghapus SPJ...');
+      google.script.run.withSuccessHandler(function() { showLoading(false); showToast('SPJ dibatalkan.', 'success'); loadSPJList(true, true); }).withFailureHandler(failToast('Gagal hapus SPJ')).hapusSpj(idSpj, currentSessionToken);
     }
 
-    function loadRekapPelaksana(showSpinner) {
-      if (showSpinner) showLoading(true, 'Memuat Rekap Pelaksana...');
-      if (!masterHierarki || !Object.keys(masterHierarki).length) {
-        google.script.run.withSuccessHandler(function(h) { masterHierarki = h || {}; populateRekapPelaksanaFilter(); loadRekapPelaksana(showSpinner); }).withFailureHandler(failToast('Gagal memuat referensi kegiatan')).getDpaHierarkiTigaTingkat();
-        return;
-      }
-      populateRekapPelaksanaFilter();
-      const filterValue = (document.getElementById('rekap-pelaksana-filter') || {}).value || '';
-      google.script.run
-        .withSuccessHandler(function(list) {
-          const rows = Array.isArray(list) ? list : [];
-          const body = document.getElementById('rekap-pelaksana-body');
-          if (!body) return;
-          body.innerHTML = '';
-          if (!rows.length) {
-            body.innerHTML = '<tr><td colspan="14" class="px-4 py-8 text-center text-gray-400 dark:text-gray-500">Belum ada data SPPD</td></tr>';
-          }
-          rows.forEach(function(row) {
-            const tr = document.createElement('tr');
-            tr.className = 'hover:bg-cyan-50/60 dark:hover:bg-slate-800/70 transition';
-            const months = row.months || [];
-            tr.innerHTML = '<td class="px-3 py-3 font-semibold text-gray-800 dark:text-gray-100">' + escapeHtml(row.pelaksana || '-') + '</td>' +
-              months.map(function(v) { return '<td class="px-3 py-3 text-right font-mono text-gray-700 dark:text-gray-200">' + Number(v || 0) + '</td>'; }).join('') +
-              '<td class="px-3 py-3 text-right font-mono font-bold text-cyan-700 dark:text-cyan-300">' + Number(row.total || 0) + '</td>';
-            body.appendChild(tr);
-          });
-          if (showSpinner) showLoading(false);
-        })
-        .withFailureHandler(failToast('Gagal memuat Rekap Pelaksana'))
-        .getRekapPelaksana(filterValue);
+    function openUploadDokumen(idSpj) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.onchange = function() {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          showLoading(true, 'Upload dokumen digital...');
+          google.script.run.withSuccessHandler(function(res) { showLoading(false); showToast('Dokumen terupload ke Drive.', 'success'); loadSPJList(false, true); }).withFailureHandler(failToast('Gagal upload dokumen')).uploadDokumenSpj({ id_spj: idSpj, nama_file: file.name, mime_type: file.type, base64: e.target.result }, currentSessionToken);
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
     }
 
-    function loadSPJList(showSpinner) {
+    function prependSavedSpjRow(item) {
+      const tbody = document.getElementById('tabel-spj');
+      if (!tbody || !item || !item.id_spj) return;
+      const existing = Array.from(tbody.querySelectorAll('select')).some(function(sel) { return sel.getAttribute('onchange') && sel.getAttribute('onchange').indexOf(item.id_spj) !== -1; });
+      if (existing) return;
+      if (tbody.textContent.indexOf('Belum ada SPJ') !== -1) tbody.innerHTML = '';
+      tbody.insertBefore(renderSpjListRow(item), tbody.firstChild);
+    }
+
+    let spjListLoading_ = false;
+    let spjAutoRefreshTimer_ = null;
+
+    function startSpjAutoRefresh_() {
+      if (spjAutoRefreshTimer_) clearInterval(spjAutoRefreshTimer_);
+      spjAutoRefreshTimer_ = setInterval(function() {
+        if (!currentSessionToken) return;
+        const inputView = document.getElementById('view-inputspj');
+        const dashboardView = document.getElementById('view-dashboard');
+        const needsSpj = (inputView && inputView.classList.contains('active')) || (dashboardView && dashboardView.classList.contains('active'));
+        if (needsSpj) loadSPJList(false, true);
+      }, 15000);
+    }
+
+    function loadSPJList(showSpinner, fresh) {
+      if (spjListLoading_) return;
+      spjListLoading_ = true;
       if (showSpinner) showLoading(true, 'Memuat daftar SPJ...');
-      google.script.run
+      const tbodyInit = document.getElementById('tabel-spj');
+      if (tbodyInit && !tbodyInit.children.length) tbodyInit.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 dark:text-gray-500">Memuat Buku Kendali SPJ...</td></tr>';
+      const runner = google.script.run
         .withSuccessHandler(function(list) {
           const rows = Array.isArray(list) ? list : [];
           const tbody = document.getElementById('tabel-spj');
+          if (!tbody) { if (showSpinner) showLoading(false); return; }
           tbody.innerHTML = '';
           if (!rows.length) tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 dark:text-gray-500">Belum ada SPJ</td></tr>';
           rows.forEach(function(item) {
-            const tr = document.createElement('tr');
-            tr.className = 'hover:bg-blue-50/60 dark:hover:bg-slate-800/70 transition';
-            tr.innerHTML = '<td class="px-4 py-3"><p class="font-mono text-xs font-bold text-blue-900 dark:text-blue-400">' + escapeHtml(item.nomor_spj) + '</p><p class="text-[10px] text-gray-500">' + escapeHtml(formatDate(item.tanggal)) + ' | ' + escapeHtml(item.pptk) + '</p></td>' +
-              '<td class="px-4 py-3"><p class="text-xs font-semibold text-gray-800 dark:text-gray-100">' + escapeHtml(item.uraian_belanja || '-') + '</p><p class="text-[10px] text-gray-500">' + escapeHtml(item.detail_kegiatan || item.sub_kegiatan || '-') + '</p></td>' +
-              '<td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">' + escapeHtml(item.bulan) + '</td>' +
-              '<td class="px-4 py-3 text-right font-mono text-sm text-gray-900 dark:text-white">' + formatRupiah(item.total) + '</td>' +
-              '<td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded text-[10px] font-bold ' + statusBadge(item.status) + '">' + escapeHtml(item.status) + '</span></td>' +
-              '<td class="px-4 py-3 text-center text-xs"><div class="flex items-center justify-center gap-1 flex-wrap"><button type="button" onclick="reviewSpj(&quot;' + escapeHtml(item.id_spj) + '&quot;)" class="px-2 py-1 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 font-bold">Review</button><button type="button" onclick="editSpj(&quot;' + escapeHtml(item.id_spj) + '&quot;)" class="px-2 py-1 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 font-bold">Edit</button><button type="button" onclick="hapusSpj(&quot;' + escapeHtml(item.id_spj) + '&quot;)" class="px-2 py-1 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 font-bold">Hapus</button><select onchange="ubahStatusSpj(&quot;' + escapeHtml(item.id_spj) + '&quot;, this.value)" class="px-2 py-1 rounded border dark:bg-slate-800 dark:border-slate-700 dark:text-white text-[11px]"><option value="">Status</option><option value="Diajukan">Diajukan</option><option value="Diverifikasi">Diverifikasi</option><option value="Dibayar">Dibayar</option><option value="Ditolak">Ditolak</option><option value="Batal">Batal</option></select></div></td>';
-            tbody.appendChild(tr);
+            tbody.appendChild(renderSpjListRow(item));
           });
+          spjListLoading_ = false;
           if (showSpinner) showLoading(false);
         })
-        .withFailureHandler(failToast('Gagal memuat Buku Kendali SPJ'))
-        .getDaftarSpjFresh();
+        .withFailureHandler(function(err) {
+          spjListLoading_ = false;
+          if (showSpinner) showLoading(false);
+          const msg = err && err.message ? err.message : String(err || 'Error tidak diketahui');
+          const tbody = document.getElementById('tabel-spj');
+          if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-red-500">Gagal memuat Buku Kendali SPJ: ' + escapeHtml(msg) + '</td></tr>';
+          showToast('Gagal memuat daftar SPJ: ' + msg, 'error');
+        });
+      runner.getDaftarSpjFresh();
     }
 
     // Apps Script HTMLService may isolate top-level declarations.
@@ -2587,7 +3137,9 @@
     window.resetChangePasswordForm = resetChangePasswordForm;
     window.handleUbahPassword = handleUbahPassword;
     window.showView = showView;
+    window.toggleMasterIntegrationPanel = toggleMasterIntegrationPanel;
     window.loadDashboard = loadDashboard;
+    window.renderPeriodBadges = renderPeriodBadges;
     window.renderDashboardChart = renderDashboardChart;
     window.renderRecentSPJ = renderRecentSPJ;
     window.escapeHtml = escapeHtml;
@@ -2628,9 +3180,6 @@
     window.deleteMasterAngkas = deleteMasterAngkas;
     window.clearServerCacheFromUi = clearServerCacheFromUi;
     window.loadSPJWorkspace = loadSPJWorkspace;
-    window.openSpjInputModal = openSpjInputModal;
-    window.closeSpjInputModal = closeSpjInputModal;
-    window.populateRekapPelaksanaFilter = populateRekapPelaksanaFilter;
     window.onSubKegiatanChanged = onSubKegiatanChanged;
     window.onKodeRekeningChanged = onKodeRekeningChanged;
     window.onUraianBelanjaChanged = onUraianBelanjaChanged;
@@ -2640,11 +3189,10 @@
     window.hapusItemSPJ = hapusItemSPJ;
     window.simpanSPJ = simpanSPJ;
     window.ubahStatusSpj = ubahStatusSpj;
-    window.reviewSpj = reviewSpj;
-    window.editSpj = editSpj;
-    window.hapusSpj = hapusSpj;
-    window.loadRekapPelaksana = loadRekapPelaksana;
     window.loadSPJList = loadSPJList;
+    window.reviewSpj = reviewSpj;
+    window.closeSpjReviewModal = closeSpjReviewModal;
+    window.submitReviewStatus = submitReviewStatus;
 
     document.addEventListener('DOMContentLoaded', function() {
       restoreSidebarState();

@@ -1536,27 +1536,39 @@ function getRekapPelaksanaSppd() {
     const monthIdx = monthIndex[normalizeKey_(row[c.bulan])];
     if (monthIdx === undefined) return;
     const dpa = maps.byId[safeString_(row[c.idDpa])] || null;
+    const kodeSub = dpa ? safeString_(dpa.sub_kegiatan_kode) : safeString_(row[COL_SPJ_DETAIL.SUB_KODE]);
+    const namaSub = dpa ? safeString_(dpa.sub_kegiatan_nama) : safeString_(row[COL_SPJ_DETAIL.SUB_NAMA]);
     const kodeRekening = safeString_(row[c.kodeRekening]);
     const uraian = safeString_(row[c.uraianBelanja]);
     const detail = dpa ? safeString_(dpa.detail_kegiatan) : '';
     const subRincian = dpa ? safeString_(dpa.sub_rincian) : '';
-    const kegiatanKey = [kodeRekening, uraian, detail || subRincian || uraian].filter(Boolean).join(' | ');
-    const kegiatanTitle = detail || subRincian || uraian || kodeRekening || 'Tanpa Uraian Kegiatan';
+    const kegiatanKey = kodeSub || namaSub || 'TANPA_SUB_KEGIATAN';
+    const kegiatanTitle = namaSub || kodeSub || 'Tanpa Sub Kegiatan';
     if (!result.tables[kegiatanKey]) {
       result.tables[kegiatanKey] = {
         key: kegiatanKey,
         title: kegiatanTitle,
-        kode_rekening: kodeRekening,
-        uraian_belanja: uraian,
-        detail_kegiatan: detail,
+        sub_kegiatan_kode: kodeSub,
+        sub_kegiatan_nama: namaSub,
         rows: {},
         total: 0
       };
     }
     const table = result.tables[kegiatanKey];
-    if (!table.rows[pelaksana]) table.rows[pelaksana] = { pelaksana: pelaksana, months: APP.MONTHS.map(function() { return 0; }), total: 0 };
-    table.rows[pelaksana].months[monthIdx] += 1;
-    table.rows[pelaksana].total += 1;
+    const rowKey = [kodeRekening, uraian, detail, subRincian, pelaksana].map(normalizeKey_).join('|');
+    if (!table.rows[rowKey]) {
+      table.rows[rowKey] = {
+        kode_rekening: kodeRekening,
+        uraian_belanja: uraian,
+        detail_kegiatan: detail,
+        sub_rincian: subRincian,
+        pelaksana: pelaksana,
+        months: APP.MONTHS.map(function() { return 0; }),
+        total: 0
+      };
+    }
+    table.rows[rowKey].months[monthIdx] += 1;
+    table.rows[rowKey].total += 1;
     table.total += 1;
   });
 
@@ -1564,8 +1576,11 @@ function getRekapPelaksanaSppd() {
     return result.tables[a].title.localeCompare(result.tables[b].title);
   }).map(function(key) {
     const table = result.tables[key];
-    table.rows = Object.keys(table.rows).sort().map(function(name) { return table.rows[name]; });
-    return { key: key, title: table.title, kode_rekening: table.kode_rekening, uraian_belanja: table.uraian_belanja, total: table.total };
+    table.rows = Object.keys(table.rows).sort(function(a, b) {
+      const ra = table.rows[a], rb = table.rows[b];
+      return [ra.kode_rekening, ra.uraian_belanja, ra.detail_kegiatan, ra.sub_rincian, ra.pelaksana].join('|').localeCompare([rb.kode_rekening, rb.uraian_belanja, rb.detail_kegiatan, rb.sub_rincian, rb.pelaksana].join('|'));
+    }).map(function(rowKey) { return table.rows[rowKey]; });
+    return { key: key, title: table.title, sub_kegiatan_kode: table.sub_kegiatan_kode, sub_kegiatan_nama: table.sub_kegiatan_nama, total: table.total };
   });
   return result;
 }

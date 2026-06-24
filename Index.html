@@ -2822,7 +2822,7 @@
           (rekapPelaksanaData.kegiatan || []).forEach(function(item) {
             const opt = document.createElement('option');
             opt.value = item.key;
-            opt.textContent = (item.kode_rekening ? item.kode_rekening + ' — ' : '') + item.title + ' (' + item.total + ' item SPPD)';
+            opt.textContent = (item.sub_kegiatan_kode ? item.sub_kegiatan_kode + ' — ' : '') + item.title + ' (' + item.total + ' item SPPD)';
             select.appendChild(opt);
           });
           if ((rekapPelaksanaData.kegiatan || []).length) {
@@ -2849,16 +2849,23 @@
       if (!table) { renderRekapPelaksanaEmpty('Data tidak ditemukan.'); return; }
       const months = rekapPelaksanaData.months || [];
       document.getElementById('rekap-pelaksana-title').textContent = table.title || 'Rekap Pelaksana';
-      document.getElementById('rekap-pelaksana-subtitle').textContent = [table.kode_rekening, table.uraian_belanja, 'Jenis SPJ: SPPD'].filter(Boolean).join(' • ');
-      document.getElementById('rekap-pelaksana-head').innerHTML = '<tr><th class="px-3 py-3 text-left font-bold uppercase border-r border-gray-200 dark:border-slate-700 min-w-[180px]">Pelaksana</th>' + months.map(function(m) { return '<th class="px-3 py-3 text-center font-bold uppercase border-r border-gray-200 dark:border-slate-700 min-w-[76px]">' + escapeHtml(m) + '</th>'; }).join('') + '<th class="px-3 py-3 text-center font-bold uppercase min-w-[76px]">Total</th></tr>';
+      document.getElementById('rekap-pelaksana-subtitle').textContent = [table.sub_kegiatan_kode, table.sub_kegiatan_nama, 'Jenis SPJ: SPPD'].filter(Boolean).join(' • ');
+      document.getElementById('rekap-pelaksana-head').innerHTML = '<tr><th class="px-3 py-3 text-left font-bold uppercase border-r border-gray-200 dark:border-slate-700 min-w-[120px]">Rekening</th><th class="px-3 py-3 text-left font-bold uppercase border-r border-gray-200 dark:border-slate-700 min-w-[220px]">Uraian</th><th class="px-3 py-3 text-left font-bold uppercase border-r border-gray-200 dark:border-slate-700 min-w-[260px]">Detail Rincian</th><th class="px-3 py-3 text-left font-bold uppercase border-r border-gray-200 dark:border-slate-700 min-w-[180px]">Pelaksana</th>' + months.map(function(m) { return '<th class="px-3 py-3 text-center font-bold uppercase border-r border-gray-200 dark:border-slate-700 min-w-[76px]">' + escapeHtml(m) + '</th>'; }).join('') + '<th class="px-3 py-3 text-center font-bold uppercase min-w-[76px]">Total</th></tr>';
       const rows = Array.isArray(table.rows) ? table.rows : [];
       if (!rows.length) { renderRekapPelaksanaEmpty('Belum ada pelaksana untuk kegiatan ini.'); return; }
       document.getElementById('rekap-pelaksana-body').innerHTML = rows.map(function(row) {
-        return '<tr class="hover:bg-blue-50 dark:hover:bg-slate-800"><td class="px-3 py-2 font-semibold text-gray-800 dark:text-gray-100 border-r border-gray-100 dark:border-slate-800">' + escapeHtml(row.pelaksana || '-') + '</td>' + (row.months || []).map(function(v) { return '<td class="px-3 py-2 text-center font-mono border-r border-gray-100 dark:border-slate-800">' + Number(v || 0) + '</td>'; }).join('') + '<td class="px-3 py-2 text-center font-mono font-bold text-blue-700 dark:text-blue-300">' + Number(row.total || 0) + '</td></tr>';
+        const detailText = [row.detail_kegiatan, row.sub_rincian].filter(Boolean).join(' — ') || '-';
+        return '<tr class="hover:bg-blue-50 dark:hover:bg-slate-800">' +
+          '<td class="px-3 py-2 font-mono text-[11px] text-blue-900 dark:text-blue-300 border-r border-gray-100 dark:border-slate-800 whitespace-nowrap">' + escapeHtml(row.kode_rekening || '-') + '</td>' +
+          '<td class="px-3 py-2 text-xs text-gray-700 dark:text-gray-200 border-r border-gray-100 dark:border-slate-800">' + escapeHtml(row.uraian_belanja || '-') + '</td>' +
+          '<td class="px-3 py-2 text-xs text-gray-700 dark:text-gray-200 border-r border-gray-100 dark:border-slate-800">' + escapeHtml(detailText) + '</td>' +
+          '<td class="px-3 py-2 font-semibold text-gray-800 dark:text-gray-100 border-r border-gray-100 dark:border-slate-800">' + escapeHtml(row.pelaksana || '-') + '</td>' +
+          (row.months || []).map(function(v) { return '<td class="px-3 py-2 text-center font-mono border-r border-gray-100 dark:border-slate-800">' + Number(v || 0) + '</td>'; }).join('') +
+          '<td class="px-3 py-2 text-center font-mono font-bold text-blue-700 dark:text-blue-300">' + Number(row.total || 0) + '</td></tr>';
       }).join('');
       const totals = months.map(function(_, i) { return rows.reduce(function(sum, row) { return sum + Number((row.months || [])[i] || 0); }, 0); });
       const grand = totals.reduce(function(sum, v) { return sum + v; }, 0);
-      document.getElementById('rekap-pelaksana-foot').innerHTML = '<tr><td class="px-3 py-3 font-bold uppercase border-r border-gray-200 dark:border-slate-700">Total</td>' + totals.map(function(v) { return '<td class="px-3 py-3 text-center font-mono font-bold border-r border-gray-200 dark:border-slate-700">' + v + '</td>'; }).join('') + '<td class="px-3 py-3 text-center font-mono font-bold text-blue-700 dark:text-blue-300">' + grand + '</td></tr>';
+      document.getElementById('rekap-pelaksana-foot').innerHTML = '<tr><td colspan="4" class="px-3 py-3 font-bold uppercase border-r border-gray-200 dark:border-slate-700">Total</td>' + totals.map(function(v) { return '<td class="px-3 py-3 text-center font-mono font-bold border-r border-gray-200 dark:border-slate-700">' + v + '</td>'; }).join('') + '<td class="px-3 py-3 text-center font-mono font-bold text-blue-700 dark:text-blue-300">' + grand + '</td></tr>';
     }
 
     // ==================== SPJ ====================

@@ -852,10 +852,11 @@
           <div class="grid grid-cols-1 gap-6">
             <div>
               <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
-                <div class="p-4 border-b bg-gray-100 dark:bg-slate-800">
+                <div class="p-4 border-b bg-gray-100 dark:bg-slate-800 flex items-center justify-between gap-3">
                   <h3 class="font-bold text-gray-800 dark:text-gray-200 uppercase text-sm tracking-wider flex items-center">
                     <i class="fas fa-list mr-2 text-gray-600 dark:text-gray-400"></i>Daftar Kendala
                   </h3>
+                  <button type="button" onclick="loadKendalaList(true)" class="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow"><i class="fas fa-sync-alt mr-1"></i>Refresh</button>
                 </div>
                 <div id="kendala-table" class="divide-y">
                   <div class="p-8 text-center text-gray-400 dark:text-gray-500">Belum ada data kendala</div>
@@ -2400,7 +2401,7 @@
           showLoading(false);
           if (res && res.success) {
             closeKendalaModal();
-            showToast('Kendala berhasil disimpan', 'success');
+            showToast('Kendala berhasil disimpan. Klik Refresh jika daftar belum berubah.', 'success');
             loadKendalaList(false);
           } else showToast('Gagal menyimpan kendala', 'error');
         })
@@ -2449,7 +2450,7 @@
           if (res && res.success) {
             document.getElementById('kendala-permasalahan').value = '';
             document.getElementById('kendala-solusi').value = '';
-            showToast('Kendala berhasil disimpan', 'success');
+            showToast('Kendala berhasil disimpan. Klik Refresh jika daftar belum berubah.', 'success');
             loadKendalaList(false);
           } else {
             showToast('Gagal menyimpan kendala', 'error');

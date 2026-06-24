@@ -892,7 +892,8 @@ function getKendalaList() { return cacheJson_('rfk_kendala_v13', getKendalaList_
 function getValidasiAngkas() { return cacheJson_('rfk_validasi_v13', getValidasiAngkas_uncached_); }
 function getDpaHierarkiTigaTingkat() { return cacheJson_('rfk_dpa_hierarki_v14', getDpaHierarkiTigaTingkat_uncached_, 300); }
 function getDaftarSpj() { return cacheJson_('rfk_spj_list_v13', getDaftarSpj_uncached_); }
-function getRekapPelaksana() { return cacheJson_('rfk_rekap_pelaksana_v1', getRekapPelaksana_uncached_, 300); }
+function getDaftarSpjFresh() { return getDaftarSpj_uncached_(); }
+function getRekapPelaksana(filterKey) { return getRekapPelaksana_uncached_(filterKey); }
 
 function getDashboardStats_uncached_() {
   const maps = getDpaMaps_();
@@ -1270,6 +1271,7 @@ function getDaftarSpj_uncached_() {
   const sheet = getSheet_(APP.SHEETS.SPJ_HEADER);
   if (!sheet || sheet.getLastRow() < 2) return [];
   const data = sheet.getDataRange().getValues();
+  const detailSummary = getSpjDetailSummary_();
   const list = [];
   for (let i = 1; i < data.length; i++) {
     const id = safeString_(data[i][COL_SPJ_HEADER.ID_SPJ]);
@@ -1283,18 +1285,44 @@ function getDaftarSpj_uncached_() {
       pptk: safeString_(data[i][COL_SPJ_HEADER.PPTK]),
       status: normalizeStatus_(data[i][COL_SPJ_HEADER.STATUS]),
       total: asNumber_(data[i][COL_SPJ_HEADER.TOTAL_BRUTO]),
-      updatedAt: data[i][COL_SPJ_HEADER.UPDATED_AT] || data[i][COL_SPJ_HEADER.CREATED_AT] || ''
+      updatedAt: data[i][COL_SPJ_HEADER.UPDATED_AT] || data[i][COL_SPJ_HEADER.CREATED_AT] || '',
+      sub_kegiatan: detailSummary[id] ? detailSummary[id].sub_kegiatan : '',
+      uraian_belanja: detailSummary[id] ? detailSummary[id].uraian_belanja : '',
+      detail_kegiatan: detailSummary[id] ? detailSummary[id].detail_kegiatan : ''
     });
   }
   return list.reverse();
 }
 
-function getRekapPelaksana_uncached_() {
+function getSpjDetailSummary_() {
+  const sheet = getSheet_(APP.SHEETS.SPJ_DETAIL);
+  if (!sheet || sheet.getLastRow() < 2) return {};
+  const lastRow = sheet.getLastRow();
+  const width = Math.max(sheet.getLastColumn(), COL_SPJ_DETAIL.ID_DPA + 1);
+  const data = sheet.getRange(2, 1, lastRow - 1, width).getValues();
+  const maps = getDpaMaps_();
+  const out = {};
+  data.forEach(function(row) {
+    const idSpj = safeString_(row[COL_SPJ_DETAIL.ID_SPJ]);
+    if (!idSpj || out[idSpj]) return;
+    const dpa = resolveDpaFromDetailRow_(row, maps);
+    out[idSpj] = {
+      sub_kegiatan: safeString_(row[COL_SPJ_DETAIL.SUB_KODE]) || (dpa ? dpa.sub_kegiatan_kode : ''),
+      uraian_belanja: safeString_(row[COL_SPJ_DETAIL.URAIAN_BELANJA]) || (dpa ? dpa.uraian_belanja : ''),
+      detail_kegiatan: dpa ? safeString_(dpa.detail_kegiatan || dpa.sub_rincian) : ''
+    };
+  });
+  return out;
+}
+
+function getRekapPelaksana_uncached_(filterKey) {
   const sheet = getSheet_(APP.SHEETS.SPJ_DETAIL);
   if (!sheet || sheet.getLastRow() < 2) return [];
   const lastRow = sheet.getLastRow();
   const width = Math.max(sheet.getLastColumn(), COL_SPJ_DETAIL.TANGGAL_SPJ + 1);
   const data = sheet.getRange(2, 1, lastRow - 1, width).getValues();
+  const maps = getDpaMaps_();
+  const filterParts = safeString_(filterKey).split('|');
   const map = {};
   data.forEach(function(row) {
     const jenis = safeString_(row[COL_SPJ_DETAIL.JENIS_SPJ]).toUpperCase();
@@ -1303,6 +1331,16 @@ function getRekapPelaksana_uncached_() {
     if (jenis !== 'SPPD') return;
     if (active === false || safeString_(active).toLowerCase() === 'false') return;
     if (status === 'Batal' || status === 'Ditolak') return;
+    const dpa = resolveDpaFromDetailRow_(row, maps) || {};
+    if (filterParts.length >= 3 && filterParts[0]) {
+      const matches =
+        normalizeKey_(row[COL_SPJ_DETAIL.SUB_KODE] || dpa.sub_kegiatan_kode) === normalizeKey_(filterParts[0]) &&
+        normalizeKey_(row[COL_SPJ_DETAIL.KODE_REKENING] || dpa.kode_rekening) === normalizeKey_(filterParts[1]) &&
+        normalizeKey_(row[COL_SPJ_DETAIL.URAIAN_BELANJA] || dpa.uraian_belanja) === normalizeKey_(filterParts[2]) &&
+        (!filterParts[3] || normalizeKey_(dpa.detail_kegiatan) === normalizeKey_(filterParts[3])) &&
+        (!filterParts[4] || normalizeKey_(dpa.sub_rincian) === normalizeKey_(filterParts[4]));
+      if (!matches) return;
+    }
     const pelaksana = safeString_(row[COL_SPJ_DETAIL.PELAKSANA]) || '(Tanpa Pelaksana)';
     const monthIdx = monthIndex_(row[COL_SPJ_DETAIL.BULAN]);
     if (monthIdx < 0) return;

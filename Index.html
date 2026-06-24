@@ -192,6 +192,11 @@
             <span class="flex-1 font-medium text-sm">Input SPJ</span>
           </a>
 
+          <a onclick="showView('workflow-spj')" class="sidebar-link" data-view="workflow-spj">
+            <i class="fas fa-route w-5 h-5 mr-3 text-fuchsia-600 dark:text-fuchsia-400 flex-shrink-0"></i>
+            <span class="flex-1 font-medium text-sm">Workflow SPJ</span>
+          </a>
+
           <a onclick="showView('rekap-pelaksana')" class="sidebar-link" data-view="rekap-pelaksana">
             <i class="fas fa-users w-5 h-5 mr-3 text-cyan-600 dark:text-cyan-400 flex-shrink-0"></i>
             <span class="flex-1 font-medium text-sm">Rekap Pelaksana</span>
@@ -513,14 +518,26 @@
           <div class="flex items-center justify-between mb-6">
             <div>
               <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Input SPJ</h2>
-              <p class="text-gray-500 dark:text-gray-400">Formulir pertanggungjawaban belanja</p>
+              <p class="text-gray-500 dark:text-gray-400">Buku Kendali SPJ dan form input popup.</p>
             </div>
+            <button type="button" onclick="openSpjInputModal()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow">
+              <i class="fas fa-plus mr-2"></i>Input SPJ Baru
+            </button>
           </div>
           
           <div class="grid grid-cols-1 gap-6">
             <!-- Form Input -->
-            <div class="space-y-6">
-              <div class="flex justify-end">
+            <div id="spj-input-modal" class="hidden fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm p-3 md:p-6 overflow-y-auto">
+              <div class="max-w-4xl mx-auto bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+                <div class="p-4 bg-gradient-to-r from-blue-900 to-indigo-900 flex items-center justify-between gap-4">
+                  <div>
+                    <h3 class="text-white font-bold uppercase tracking-wider">Form Input SPJ</h3>
+                    <p class="text-blue-100 text-xs mt-1">Lengkapi identitas dan rincian belanja.</p>
+                  </div>
+                  <button type="button" onclick="closeSpjInputModal()" class="text-white/80 hover:text-white text-xl"><i class="fas fa-times"></i></button>
+                </div>
+              <div class="p-4 md:p-6 space-y-6">
+              <div class="flex justify-end hidden">
                 <button type="button" onclick="toggleSpjForm()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow">
                   <i id="spj-form-toggle-icon" class="fas fa-chevron-up mr-2"></i><span id="spj-form-toggle-text">Sembunyikan Form Input</span>
                 </button>
@@ -633,6 +650,9 @@
                 </button>
               </div>
             </div>
+              </div>
+              </div>
+            </div>
 
             <!-- SPJ List -->
             <div>
@@ -648,6 +668,7 @@
                     <thead class="bg-gray-100 dark:bg-slate-800">
                       <tr>
                         <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Nomor & Tanggal</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Uraian Belanja / Rincian Uraian Kegiatan</th>
                         <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Bulan</th>
                         <th class="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Total Bruto</th>
                         <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Status</th>
@@ -664,18 +685,48 @@
         </div>
       </div>
 
+        <!-- WORKFLOW SPJ VIEW -->
+        <div id="view-workflow-spj" class="view-section space-y-6">
+          <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Workflow Realisasi Anggaran melalui SPJ</h2>
+            <p class="text-gray-500 dark:text-gray-400">Alur sederhana sesuai prinsip penatausahaan APBD: pelaksanaan, verifikasi, pengesahan, pembayaran, dan monitoring realisasi.</p>
+          </div>
+          <div class="glass-panel p-5 rounded-xl shadow-lg">
+            <h3 class="font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4"><i class="fas fa-project-diagram mr-2 text-fuchsia-600"></i>Flowchart Interaksi User</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-6 gap-3 text-xs">
+              <div class="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/20 p-3"><p class="font-bold text-blue-900 dark:text-blue-200 mb-3">Fungsional / Pelaksana</p><div class="rounded bg-white dark:bg-slate-900 p-3 shadow"><b>1. Realisasi</b><br>Kegiatan selesai, bukti disiapkan</div><div class="mt-3 rounded bg-white dark:bg-slate-900 p-3 shadow"><b>2. Usulan SPJ</b><br>Input draft: rekening, nilai, bukti</div></div>
+              <div class="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-900/20 p-3"><p class="font-bold text-amber-900 dark:text-amber-200 mb-3">Ketua Tim Kerja</p><div class="rounded bg-white dark:bg-slate-900 p-3 shadow"><b>3. Review Teknis</b><br>Cek output, bukti, volume, kewajaran</div><p class="mt-3 italic text-amber-700 dark:text-amber-300">revisi bila bukti/akun tidak sesuai</p></div>
+              <div class="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-900/20 p-3"><p class="font-bold text-emerald-900 dark:text-emerald-200 mb-3">PPTK</p><div class="rounded bg-white dark:bg-slate-900 p-3 shadow"><b>4. Validasi PPTK</b><br>Cek DPA, pagu, RAK, kelengkapan</div></div>
+              <div class="rounded-xl border border-purple-200 dark:border-purple-900 bg-purple-50 dark:bg-purple-900/20 p-3"><p class="font-bold text-purple-900 dark:text-purple-200 mb-3">Bendahara</p><div class="rounded bg-white dark:bg-slate-900 p-3 shadow"><b>5. Bendahara</b><br>Cek kas, pajak, dokumen bayar</div><p class="mt-3 italic text-purple-700 dark:text-purple-300">koreksi pajak/kas/dokumen</p></div>
+              <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3"><p class="font-bold text-slate-900 dark:text-slate-200 mb-3">PPK</p><div class="rounded bg-white dark:bg-slate-900 p-3 shadow"><b>6. PPK</b><br>Verifikasi akhir dan pengesahan</div><div class="mt-3 rounded bg-white dark:bg-slate-900 p-3 shadow"><b>7. Pembayaran</b><br>Status Dibayar, realisasi cash</div><p class="mt-3 italic text-slate-600 dark:text-slate-300">tolak/kembalikan</p></div>
+              <div class="rounded-xl border border-cyan-200 dark:border-cyan-900 bg-cyan-50 dark:bg-cyan-900/20 p-3"><p class="font-bold text-cyan-900 dark:text-cyan-200 mb-3">Sistem RFK</p><div class="rounded bg-white dark:bg-slate-900 p-3 shadow"><b>8. Monitoring RFK</b><br>Update serapan, sisa pagu & RAK</div></div>
+            </div>
+          </div>
+        </div>
+
         <!-- REKAP PELAKSANA VIEW -->
         <div id="view-rekap-pelaksana" class="view-section space-y-6">
           <div class="flex items-center justify-between mb-6">
             <div>
-              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Rekap Pelaksana</h2>
-              <p class="text-gray-500 dark:text-gray-400">Rekap jumlah SPPD bulanan per pelaksana</p>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Rekap Pelaksana per Kegiatan</h2>
+              <p class="text-gray-500 dark:text-gray-400">Rekap jumlah pelaksana kegiatan per uraian kegiatan dan bulan. Filter: jenis SPJ hanya SPPD.</p>
             </div>
             <button type="button" onclick="loadRekapPelaksana(true)" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-bold shadow">
               <i class="fas fa-sync-alt mr-2"></i>Refresh
             </button>
           </div>
+          <div class="glass-panel p-4 rounded-xl shadow-lg">
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Pilih Uraian Kegiatan</label>
+            <select id="rekap-pelaksana-filter" onchange="loadRekapPelaksana(true)" class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded dark:text-white">
+              <option value="">-- Pilih Kegiatan --</option>
+            </select>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Angka berisi jumlah item SPPD per pelaksana, bukan nominal rupiah.</p>
+          </div>
           <div class="glass-panel rounded-xl shadow-lg overflow-hidden">
+            <div class="p-4 border-b bg-gradient-to-r from-blue-900 to-purple-900">
+              <h3 class="font-bold text-white uppercase tracking-wider">Rekap Pelaksana</h3>
+              <p class="text-blue-100 text-xs mt-1">Jenis SPJ: SPPD</p>
+            </div>
             <div class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700 text-xs">
                 <thead class="bg-gray-100 dark:bg-slate-800">
@@ -1012,7 +1063,6 @@
         </div>
       </main>
     </div>
-  </div>
 
   <!-- DPA Detail Modal -->
   <div id="dpa-detail-modal" class="hidden fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm p-3 md:p-6 overflow-y-auto">
@@ -1399,6 +1449,7 @@
       if (viewId === 'dashboard') loadDashboard();
       if (viewId === 'dpa') loadDPAList();
       if (viewId === 'inputspj') loadSPJWorkspace();
+      if (viewId === 'workflow-spj') { /* static page */ }
       if (viewId === 'rekap-pelaksana') loadRekapPelaksana(true);
       if (viewId === 'monitoring') loadMonitoringList();
       if (viewId === 'kendala') loadMonitoringList();
@@ -2262,6 +2313,14 @@
 
 
     // ==================== SPJ ====================
+    function openSpjInputModal() {
+      document.getElementById('spj-input-modal').classList.remove('hidden');
+    }
+
+    function closeSpjInputModal() {
+      document.getElementById('spj-input-modal').classList.add('hidden');
+    }
+
     function loadSPJWorkspace() {
       showLoading(true, 'Memuat referensi SPJ...');
       google.script.run
@@ -2272,11 +2331,32 @@
           Object.keys(masterHierarki).forEach(function(sub) {
             const opt = document.createElement('option'); opt.value = sub; datalist.appendChild(opt);
           });
+          populateRekapPelaksanaFilter();
           loadSPJList(false);
           showLoading(false);
         })
         .withFailureHandler(failToast('Gagal memuat referensi SPJ'))
         .getDpaHierarkiTigaTingkat();
+    }
+
+    function populateRekapPelaksanaFilter() {
+      const sel = document.getElementById('rekap-pelaksana-filter');
+      if (!sel) return;
+      const current = sel.value;
+      sel.innerHTML = '<option value="">-- Pilih Kegiatan --</option>';
+      Object.keys(masterHierarki || {}).forEach(function(sub) {
+        const rekening = masterHierarki[sub] || {};
+        Object.keys(rekening).forEach(function(kode) {
+          (rekening[kode] || []).forEach(function(item) {
+            const value = [item.sub_kegiatan_kode || sub, item.kode_rekening || kode, item.uraian_belanja || '', item.detail_kegiatan || '', item.sub_rincian || ''].join('|');
+            const opt = document.createElement('option');
+            opt.value = value;
+            opt.textContent = (item.sub_kegiatan_kode || sub) + ' — ' + (item.uraian_belanja || '-') + (item.detail_kegiatan ? ' — ' + item.detail_kegiatan : '') + (item.sub_rincian ? ' | ' + item.sub_rincian : '');
+            sel.appendChild(opt);
+          });
+        });
+      });
+      sel.value = current;
     }
 
     function onSubKegiatanChanged() {
@@ -2430,6 +2510,12 @@
 
     function loadRekapPelaksana(showSpinner) {
       if (showSpinner) showLoading(true, 'Memuat Rekap Pelaksana...');
+      if (!masterHierarki || !Object.keys(masterHierarki).length) {
+        google.script.run.withSuccessHandler(function(h) { masterHierarki = h || {}; populateRekapPelaksanaFilter(); loadRekapPelaksana(showSpinner); }).withFailureHandler(failToast('Gagal memuat referensi kegiatan')).getDpaHierarkiTigaTingkat();
+        return;
+      }
+      populateRekapPelaksanaFilter();
+      const filterValue = (document.getElementById('rekap-pelaksana-filter') || {}).value || '';
       google.script.run
         .withSuccessHandler(function(list) {
           const rows = Array.isArray(list) ? list : [];
@@ -2451,7 +2537,7 @@
           if (showSpinner) showLoading(false);
         })
         .withFailureHandler(failToast('Gagal memuat Rekap Pelaksana'))
-        .getRekapPelaksana();
+        .getRekapPelaksana(filterValue);
     }
 
     function loadSPJList(showSpinner) {
@@ -2461,11 +2547,12 @@
           const rows = Array.isArray(list) ? list : [];
           const tbody = document.getElementById('tabel-spj');
           tbody.innerHTML = '';
-          if (!rows.length) tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 dark:text-gray-500">Belum ada SPJ</td></tr>';
+          if (!rows.length) tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 dark:text-gray-500">Belum ada SPJ</td></tr>';
           rows.forEach(function(item) {
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-blue-50/60 dark:hover:bg-slate-800/70 transition';
             tr.innerHTML = '<td class="px-4 py-3"><p class="font-mono text-xs font-bold text-blue-900 dark:text-blue-400">' + escapeHtml(item.nomor_spj) + '</p><p class="text-[10px] text-gray-500">' + escapeHtml(formatDate(item.tanggal)) + ' | ' + escapeHtml(item.pptk) + '</p></td>' +
+              '<td class="px-4 py-3"><p class="text-xs font-semibold text-gray-800 dark:text-gray-100">' + escapeHtml(item.uraian_belanja || '-') + '</p><p class="text-[10px] text-gray-500">' + escapeHtml(item.detail_kegiatan || item.sub_kegiatan || '-') + '</p></td>' +
               '<td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">' + escapeHtml(item.bulan) + '</td>' +
               '<td class="px-4 py-3 text-right font-mono text-sm text-gray-900 dark:text-white">' + formatRupiah(item.total) + '</td>' +
               '<td class="px-4 py-3 text-center"><span class="inline-block px-2 py-1 rounded text-[10px] font-bold ' + statusBadge(item.status) + '">' + escapeHtml(item.status) + '</span></td>' +
@@ -2474,8 +2561,8 @@
           });
           if (showSpinner) showLoading(false);
         })
-        .withFailureHandler(failToast('Gagal memuat daftar SPJ'))
-        .getDaftarSpj();
+        .withFailureHandler(failToast('Gagal memuat Buku Kendali SPJ'))
+        .getDaftarSpjFresh();
     }
 
     // Apps Script HTMLService may isolate top-level declarations.
@@ -2541,6 +2628,9 @@
     window.deleteMasterAngkas = deleteMasterAngkas;
     window.clearServerCacheFromUi = clearServerCacheFromUi;
     window.loadSPJWorkspace = loadSPJWorkspace;
+    window.openSpjInputModal = openSpjInputModal;
+    window.closeSpjInputModal = closeSpjInputModal;
+    window.populateRekapPelaksanaFilter = populateRekapPelaksanaFilter;
     window.onSubKegiatanChanged = onSubKegiatanChanged;
     window.onKodeRekeningChanged = onKodeRekeningChanged;
     window.onUraianBelanjaChanged = onUraianBelanjaChanged;

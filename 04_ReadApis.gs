@@ -136,12 +136,19 @@ function getDpaList_uncached_() {
     });
   });
 
+  const rowsBySub = {};
+  (maps.rows || []).forEach(function(row) {
+    const kode = row.sub_kegiatan_kode;
+    if (!rowsBySub[kode]) rowsBySub[kode] = [];
+    rowsBySub[kode].push(row);
+  });
+
   Object.keys(maps.subCodeInfo).sort().forEach(function(kode) {
     const info = maps.subCodeInfo[kode];
     const angkas = angkasMap[kode] || { total: 0, totalBulanan: 0, totalTw: 0 };
     const realisasi = validAgg.bySub[kode] || 0;
     const selisihPaguAngkas = info.pagu - asNumber_(angkas.total);
-    const rincian = maps.rows.filter(function(row) { return row.sub_kegiatan_kode === kode; }).map(function(row) {
+    const rincian = (rowsBySub[kode] || []).map(function(row) {
       const dpaKey = row.id_dpa || [row.sub_kegiatan_kode, row.kode_rekening, row.uraian_belanja].map(normalizeKey_).join('|');
       const exactKey = [row.sub_kegiatan_kode, row.kode_rekening, row.uraian_belanja].map(normalizeKey_).join('|');
       const detailKey = [row.sub_kegiatan_kode, row.kode_rekening, row.uraian_belanja, row.detail_kegiatan, row.sub_rincian].map(normalizeKey_).join('|');
@@ -289,6 +296,13 @@ function getMonitoringRFKData_uncached_() {
     });
   });
 
+  const rowsBySub = {};
+  (maps.rows || []).forEach(function(row) {
+    const kode = row.sub_kegiatan_kode;
+    if (!rowsBySub[kode]) rowsBySub[kode] = [];
+    rowsBySub[kode].push(row);
+  });
+
   Object.keys(maps.subCodeInfo).sort().forEach(function(kode) {
     const info = maps.subCodeInfo[kode];
     const angkas = angkasMap[kode] || { bulanan: APP.MONTHS.map(function() { return 0; }), total: 0 };
@@ -309,7 +323,7 @@ function getMonitoringRFKData_uncached_() {
       };
     });
 
-    const rincian = maps.rows.filter(function(row) { return row.sub_kegiatan_kode === kode; }).map(function(row) {
+    const rincian = (rowsBySub[kode] || []).map(function(row) {
       const exactKey = [row.sub_kegiatan_kode, row.kode_rekening, row.uraian_belanja].map(normalizeKey_).join('|');
       const dpaKey = row.id_dpa || exactKey;
       const detailKey = [row.sub_kegiatan_kode, row.kode_rekening, row.uraian_belanja, row.detail_kegiatan, row.sub_rincian].map(normalizeKey_).join('|');

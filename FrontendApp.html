@@ -9,6 +9,7 @@
     let dashboardChart = null;
     let dashboardChartRequestId = 0;
     let dpaListCache = [];
+    const loadedViews_ = {};
     let activeDpaDetailRows = [];
     
     const APP_CONFIG = {
@@ -403,14 +404,16 @@
       });
 
       setTimeout(function() {
+        const firstLoad = !loadedViews_[viewId];
+        loadedViews_[viewId] = true;
         if (viewId === 'dashboard') loadDashboard(false);
-        if (viewId === 'dpa') loadDPAList();
-        if (viewId === 'masterdata') loadMasterData();
-        if (viewId === 'inputspj') loadSPJWorkspace();
-        if (viewId === 'monitoring') loadMonitoringList('monitoring');
-        if (viewId === 'kendala') loadMonitoringList('kendala');
-        if (viewId === 'validasi') loadValidasi();
-        if (viewId === 'rekappelaksana') loadRekapPelaksana();
+        if (viewId === 'dpa' && firstLoad) loadDPAList();
+        if (viewId === 'masterdata' && firstLoad) loadMasterData();
+        if (viewId === 'inputspj' && firstLoad) loadSPJWorkspace();
+        if (viewId === 'monitoring' && firstLoad) loadMonitoringList('monitoring');
+        if (viewId === 'kendala' && firstLoad) loadMonitoringList('kendala');
+        if (viewId === 'validasi' && firstLoad) loadValidasi();
+        if (viewId === 'rekappelaksana' && firstLoad) loadRekapPelaksana();
         if (viewId === 'settings') refreshSettingsUserInfo();
       }, 0);
     }
@@ -447,7 +450,8 @@
           
           renderPeriodBadges(stats.periodTargets || {});
           renderDashboardAnalysis(stats);
-          setTimeout(function() { renderDashboardChart((payload && payload.chart) || []); }, 120);
+          if (window.requestAnimationFrame) requestAnimationFrame(function() { renderDashboardChart((payload && payload.chart) || []); });
+          else setTimeout(function() { renderDashboardChart((payload && payload.chart) || []); }, 0);
           renderRecentSPJ((payload && payload.recentSpj) || []);
           
           document.getElementById('lap-total-pagu').textContent = formatRupiah(stats.totalPagu || 0);
@@ -782,7 +786,8 @@
         '<td class="px-3 py-2 text-right font-mono text-xs">' + formatRupiah(totalSisaKas) + '</td></tr>';
     }
 
-    function loadDPAList() {
+    function loadDPAList(force) {
+      if (!force && dpaListCache.length) return;
       showLoading(true, 'Memuat DPA & RAK (Rencana Anggaran Kas)...');
       google.script.run
         .withSuccessHandler(function(list) {
@@ -1557,8 +1562,14 @@
           showLoading(false);
           showToast(res.message || 'Data master tersimpan sinkron.', 'success');
           resetIntegratedForm();
+          dpaListCache = [];
+          loadedViews_.dpa = false;
+          loadedViews_.monitoring = false;
+          loadedViews_.kendala = false;
+          loadedViews_.validasi = false;
+          loadedViews_.rekappelaksana = false;
           loadMasterData();
-          loadDPAList();
+          loadDPAList(true);
         })
         .withFailureHandler(failToast('Gagal menyimpan master terpadu'))
         .saveMasterDpaDanRakRow(dpaPayload, rakPayload, currentSessionToken);
@@ -1572,8 +1583,14 @@
         .withSuccessHandler(function(res) {
           showLoading(false);
           showToast(res.message || 'Data berhasil dihapus.', 'success');
+          dpaListCache = [];
+          loadedViews_.dpa = false;
+          loadedViews_.monitoring = false;
+          loadedViews_.kendala = false;
+          loadedViews_.validasi = false;
+          loadedViews_.rekappelaksana = false;
           loadMasterData();
-          loadDPAList();
+          loadDPAList(true);
         })
         .withFailureHandler(failToast('Gagal menghapus data terpadu'))
         .deleteMasterDpaDanRakRow(dpaId, currentSessionToken);
@@ -1594,7 +1611,7 @@
     function clearServerCacheFromUi() {
       showLoading(true, 'Membersihkan cache...');
       google.script.run
-        .withSuccessHandler(function(res) { showLoading(false); showToast(res.message || 'Cache dibersihkan.', 'success'); loadDPAList(); loadMasterData(); })
+        .withSuccessHandler(function(res) { showLoading(false); showToast(res.message || 'Cache dibersihkan.', 'success'); dpaListCache = []; Object.keys(loadedViews_).forEach(function(k) { loadedViews_[k] = false; }); loadDPAList(true); loadMasterData(); })
         .withFailureHandler(failToast('Gagal membersihkan cache'))
         .clearRfkCachePublic(currentSessionToken);
     }
@@ -1938,10 +1955,15 @@
         .withSuccessHandler(function(res) {
           showLoading(false);
           showToast('Status SPJ diperbarui ke ' + statusBaru, 'success');
+          dpaListCache = [];
+          loadedViews_.dpa = false;
+          loadedViews_.monitoring = false;
+          loadedViews_.kendala = false;
+          loadedViews_.rekappelaksana = false;
           loadSPJList(false);
           loadDashboard();
-          loadMonitoringList('monitoring');
-          loadDPAList();
+          if (document.getElementById('view-monitoring') && document.getElementById('view-monitoring').classList.contains('active')) loadMonitoringList('monitoring');
+          if (document.getElementById('view-dpa') && document.getElementById('view-dpa').classList.contains('active')) loadDPAList(true);
         })
         .withFailureHandler(failToast('Gagal mengubah status SPJ'))
         .updateStatusSpj(idSpj, statusBaru, currentSessionToken);

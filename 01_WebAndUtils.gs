@@ -1,6 +1,10 @@
 /***************************************************************************
  * Web App
  ***************************************************************************/
+function include_(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
 function doGet(e) {
   if (e && e.parameter && e.parameter.sync === '1') {
     try {

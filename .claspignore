@@ -1,6 +1,9 @@
 **/**
 !appsscript.json
 !Index.html
+!FrontendConfig.html
+!FrontendStyles.html
+!FrontendApp.html
 !00_Config.gs
 !01_WebAndUtils.gs
 !02_Auth.gs

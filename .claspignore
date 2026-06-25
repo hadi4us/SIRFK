@@ -1,0 +1,13 @@
+**/**
+!appsscript.json
+!Index.html
+!00_Config.gs
+!01_WebAndUtils.gs
+!02_Auth.gs
+!03_DataAccess.gs
+!04_ReadApis.gs
+!05_Kendala.gs
+!06_SpjMutations.gs
+!07_MasterData.gs
+!08_ImportData.gs
+!09_Export.gs

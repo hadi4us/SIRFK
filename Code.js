@@ -433,8 +433,15 @@ function clearSpjMutationCache_() {
     'rfk_monitoring_summary_v1',
     'rfk_kendala_v13',
     'rfk_validasi_v13',
-    'rfk_dpa_list_v16',
     'rfk_spj_list_v13'
+  ]);
+}
+
+function clearKendalaMutationCache_() {
+  clearRfkCache_([
+    'rfk_monitoring_v19',
+    'rfk_monitoring_summary_v1',
+    'rfk_kendala_v13'
   ]);
 }
 
@@ -1752,7 +1759,7 @@ function simpanKendala(kendalaData, sessionToken) {
   ];
   if (!row[1] || !row[4]) throw new Error('Sub kegiatan dan permasalahan wajib diisi.');
   sheet.appendRow(row);
-  clearRfkCache_();
+  clearKendalaMutationCache_();
   logActivity_(session.email, 'SIMPAN_KENDALA', 'KENDALA_LOG', id, null, { subKode: row[1], bulan: row[2] }, 'OK', 'Kendala disimpan');
   return { success: true, id: id };
 }
@@ -2092,7 +2099,7 @@ function uploadDokumenSpj(payload, sessionToken) {
   const sheet = ensureSheetHeaders_(APP.SHEETS.SPJ_DOKUMEN, SHEET_HEADERS.SPJ_DOKUMEN);
   const row = [makeId_('DOC'), idSpj, file.getName(), blob.getContentType(), file.getId(), file.getUrl(), new Date(), session.email, safeString_(payload.keterangan)];
   sheet.appendRow(row);
-  clearRfkCache_();
+  clearSpjMutationCache_();
   return { success: true, url: file.getUrl(), name: file.getName() };
 }
 
@@ -2128,7 +2135,7 @@ function updateStatusSpj(idSpj, statusBaru, sessionToken) {
     }
   }
   SpreadsheetApp.flush();
-  clearRfkCache_();
+  clearSpjMutationCache_();
   logActivity_(session.email, 'UPDATE_STATUS_SPJ', 'SPJ_HEADER', idSpj, { status: beforeStatus }, { status: status }, 'OK', 'Status SPJ diperbarui');
   return { success: true, status: status };
 }
